@@ -15,7 +15,7 @@ g = SVG(470, 556)
 XC, XS, XR = 101, 290, 414          # centro del carril Cliente, columna principal y columna de rechazos del Sistema
 pool(g, 4, 4, 462, 548, "Viajes Aventura · Reservar paquete (TO-BE)", [("Cliente", 150), ("Sistema", 292)])
 
-Y = dict(ini=44, c1=88, s1=134, c2=180, s2=226, c3=272, g1=322, g2=414, s3=474, s4=522)
+Y = {"ini": 44, "c1": 88, "s1": 134, "c2": 180, "s2": 226, "c3": 272, "g1": 322, "g2": 414, "s3": 474, "s4": 522}
 evento(g, XC, Y["ini"], "Quiere viajar", lado="der")
 tarea(g, XC, Y["c1"], "Iniciar sesión")
 tarea(g, XS, Y["s1"], "Mostrar paquetes disponibles\ncon precio y cupo")

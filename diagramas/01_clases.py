@@ -26,17 +26,19 @@ def ancho(s, size=F):
 
 # --- lectura del modelo -------------------------------------------------------------------------
 CLASES = {}
-for m in re.finditer(r"(abstract class|class|enum) (\w+) \{(.*?)\n\s*\}", SRC, re.S):
-    tipo, nombre, cuerpo = m.groups()
-    attrs, mets = [], []
-    for linea in (l.strip() for l in cuerpo.splitlines()):
-        if not linea:
-            continue
+actual = None                    # clase abierta; se lee línea por línea (una regex sobre todo el archivo es superlineal)
+for linea in (l.strip() for l in SRC.splitlines()):
+    if m := re.match(r"(abstract class|class|enum) (\w+) \{$", linea):
+        tipo, nombre = m.groups()
+        attrs, mets = [], []
+        actual = CLASES[nombre] = (tipo, attrs, mets)
+    elif linea == "}":
+        actual = None
+    elif actual and linea:
         estatico, abstracto = "{static}" in linea, "{abstract}" in linea
         texto = re.sub(r"\{(static|abstract)\} ", "", linea)
         texto = re.sub(r"^([-+#]) ", r"\1", texto)
         (mets if "(" in texto else attrs).append((texto, estatico, abstracto))
-    CLASES[nombre] = (tipo, attrs, mets)
 
 RELS = set()
 for a, ma, flecha, mb, b in re.findall(r'^(\w+) (?:"([^"]+)" )?(\S+) (?:"([^"]+)" )?(\w+)', SRC, re.M):
