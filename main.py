@@ -9,9 +9,11 @@ rol puede hacer. No contiene ninguna sentencia SQL: todo el acceso a datos vive 
 import getpass                              # contraseñas sin eco en pantalla
 import sqlite3                              # solo para reconocer sus errores, nunca para consultar
 import time                                 # inactividad de la sesión (RF-SEG-09)
+from datetime import date, datetime         # fechas como día-mes-año (RNF-USA-02)
 
-from viajes import (Administrador, Cliente, Destino, ReglaNegocioError, Usuario,
-                    crear_tablas, hay_usuarios, validar_correo, validar_rut, validar_telefono)
+from viajes import (MARGEN_PROPUESTO, Administrador, Cliente, Destino, Paquete,
+                    ReglaNegocioError, Reserva, Usuario, crear_tablas, hay_usuarios, pesos,
+                    validar_correo, validar_rut, validar_telefono)
 
 # Techo de todo entero que se teclea: un número enorme no debe llegar a int() ni a la base.
 MAXIMO_ENTERO = 10**9
@@ -22,6 +24,7 @@ CREDENCIALES_INVALIDAS = ("   ! Correo o contraseña incorrectos, o la cuenta es
 SESION_CADUCADA = "   ! La sesión se cerró por inactividad. Inicie sesión de nuevo."
 INTERRUMPIDO = "\n   Interrumpido. Hasta luego."
 PIDE_ID_DESTINO = "   Id del destino: "
+PIDE_ID_PAQUETE = "   Id del paquete: "
 PIDE_CORREO = "   Correo: "
 PIDE_NOMBRE = "   Nombre: "
 MI_CUENTA = "Mi cuenta"
@@ -82,6 +85,24 @@ def pedir_entero(mensaje: str) -> int:
             return int(valor)
 
 
+def pedir_fecha(mensaje: str) -> date:
+    while True:
+        try:
+            return datetime.strptime(leer(mensaje), "%d-%m-%Y").date()
+        except ValueError:
+            print("   ! Escriba la fecha como día-mes-año, por ejemplo 15-12-2026.")
+
+
+def pedir_margen() -> int:
+    """Enter deja el margen habitual de 20 % (RF-PAQ-11)."""
+    valor = leer(f"   Margen de operación en % (Enter = {MARGEN_PROPUESTO}): ")
+    if not valor:
+        return MARGEN_PROPUESTO
+    if not valor.isdecimal() or len(valor) > 4:
+        raise ValueError("El margen debe ser un número entero de 0 a 1000")
+    return int(valor)
+
+
 def pedir_si_no(mensaje: str) -> bool:
     while True:
         valor = leer(mensaje + " (s/n): ").lower()
@@ -113,7 +134,34 @@ def pedir_destino() -> Destino:
     return destino
 
 
+def pedir_paquete() -> Paquete:
+    paquete = Paquete.buscar(pedir_entero(PIDE_ID_PAQUETE))
+    if paquete is None:
+        raise ValueError("No existe un paquete con ese id")
+    return paquete
+
+
+def pedir_destinos() -> list[Destino]:
+    ids = leer("   Ids de los destinos, separados por coma (2 a 5): ").replace(" ", "").split(",")
+    if not all(i.isdecimal() and len(i) < 10 for i in ids):
+        raise ValueError("Escriba solo los números de los destinos, separados por coma")
+    destinos = [Destino.buscar(int(i)) for i in ids]
+    if None in destinos:
+        raise ValueError("Uno de esos destinos no existe")
+    return destinos
+
+
 # --- Acciones sin sesión ---------------------------------------------------
+
+def ver_oferta(_sesion: Usuario | None = None) -> None:
+    """Los paquetes disponibles; se puede ver sin cuenta (S-09)."""
+    paquetes = Paquete.listar_disponibles()
+    print("\n   Paquetes disponibles")
+    for paquete in paquetes:
+        print(f"   {paquete}")
+    if not paquetes:
+        print("   (no hay paquetes disponibles)")
+
 
 def registrarse() -> None:
     """Registro público: siempre crea un cliente (RF-SEG-12). Nada en pantalla permite elegir rol."""
@@ -196,12 +244,119 @@ def reactivar_destino(sesion: Usuario) -> None:
     print(f"   Disponible otra vez: {destino}")
 
 
+# --- Acciones del administrador: paquetes y reservas -----------------------
+
+def crear_paquete(sesion: Usuario) -> None:
+    paquete = Paquete(pedir_texto(PIDE_NOMBRE), pedir_fecha("   Fecha de salida (dd-mm-aaaa): "),
+                      pedir_fecha("   Fecha de regreso (dd-mm-aaaa): "),
+                      pedir_entero("   Cupo máximo de personas: "), pedir_destinos(), pedir_margen())
+    # RF-PAQ-04: el precio se muestra con el costo de cada destino antes de guardar.
+    for destino in paquete.listar_destinos():
+        print(f"     {destino}")
+    print(f"   Precio por persona calculado: {pesos(paquete.calcular_precio())}")
+    if not pedir_si_no("   ¿Guardar el paquete en borrador?"):
+        raise Cancelado
+    paquete.guardar(sesion)
+    print(f"   Guardado en borrador: {paquete}")
+
+
+def publicar_paquete(sesion: Usuario) -> None:
+    paquete = pedir_paquete()
+    print(f"   {paquete}")
+    if not pedir_si_no("   ¿Publicarlo? El precio por persona queda fijo desde ahora (R7)"):
+        raise Cancelado
+    paquete.publicar(sesion)
+    print(f"   Publicado: {paquete}")
+
+
+def listar_paquetes(sesion: Usuario) -> None:
+    paquetes = Paquete.listar_todos(sesion)
+    print("\n   Todos los paquetes")
+    for paquete in paquetes:
+        print(f"   {paquete}")
+    if not paquetes:
+        print("   (sin paquetes)")
+
+
+def editar_paquete(sesion: Usuario) -> None:
+    """Solo en borrador (S-07): datos y, si se pide, los destinos."""
+    paquete = pedir_paquete()
+    print(f"   Actual: {paquete}")
+    if paquete.estado() != "borrador":           # aviso temprano; el dominio lo vuelve a exigir
+        raise ValueError("Solo se edita un paquete en borrador; uno publicado solo cambia su cupo")
+    paquete.editar(pedir_texto(PIDE_NOMBRE), pedir_fecha("   Fecha de salida (dd-mm-aaaa): "),
+                   pedir_fecha("   Fecha de regreso (dd-mm-aaaa): "), pedir_margen(), sesion)
+    if pedir_si_no("   ¿Cambiar también los destinos?"):
+        paquete.reemplazar_destinos(pedir_destinos(), sesion)
+    print(f"   Guardado: {paquete}")
+
+
+def cambiar_cupo(sesion: Usuario) -> None:
+    paquete = pedir_paquete()
+    print(f"   Actual: {paquete}")
+    paquete.cambiar_cupo(pedir_entero("   Cupo máximo nuevo: "), sesion)
+    print(f"   Guardado: {paquete}")
+
+
+def eliminar_paquete(sesion: Usuario) -> None:
+    paquete = pedir_paquete()
+    print(f"   {paquete}")
+    if not pedir_si_no("   ¿Eliminarlo?"):
+        raise Cancelado
+    paquete.eliminar(sesion)
+    print("   Paquete eliminado.")
+
+
+def reservas_de_paquete(sesion: Usuario) -> None:
+    """RF-RES-11: nombre y correo de cada cliente; nunca RUT ni teléfono (S-16)."""
+    paquete = pedir_paquete()
+    reservas = Reserva.listar_por_paquete(paquete, sesion)
+    print(f"\n   Reservas de: {paquete}")
+    for reserva in reservas:
+        print(f"   {reserva}")
+    if not reservas:
+        print("   (sin reservas)")
+
+
 def crear_socio(sesion: Administrador) -> None:
     nuevo = sesion.crear_administrador(pedir_texto("   Correo del socio: "), pedir_clave_nueva())
     print(f"   Cuenta de administrador creada para {nuevo.obtener_correo()}.")
 
 
 # --- Acciones del cliente y de toda sesión ---------------------------------
+
+def reservar(sesion: Cliente) -> None:
+    ver_oferta()
+    paquete = pedir_paquete()
+    # RF-RES-10: advertir una segunda reserva en el mismo paquete (P-01, reservas duplicadas).
+    if sesion.tiene_reserva_vigente(paquete) and not pedir_si_no(
+            "   Ya tiene una reserva vigente en este paquete. ¿Reservar otra?"):
+        raise Cancelado
+    reserva = Reserva.reservar(paquete, pedir_entero("   Cantidad de personas: "), sesion)
+    print(f"   Reserva confirmada por {pesos(reserva.obtener_total())}.")
+
+
+def mis_reservas(sesion: Cliente) -> list[Reserva]:
+    reservas = sesion.historial()
+    print("\n   Mis reservas")
+    for numero, reserva in enumerate(reservas, 1):
+        print(f"   {numero:>2}) {reserva}")
+    if not reservas:
+        print("   (todavía no tiene reservas)")
+    return reservas
+
+
+def anular_reserva(sesion: Cliente) -> None:
+    """Se elige por su número en la lista propia: no hay forma de nombrar una reserva ajena."""
+    reservas = mis_reservas(sesion)
+    if not reservas:
+        return
+    numero = pedir_entero("   Número de la reserva a anular: ")
+    if not 1 <= numero <= len(reservas):
+        raise ValueError("Ese número no está en la lista")
+    reservas[numero - 1].anular(sesion)
+    print("   Reserva anulada. Sus lugares vuelven al cupo del paquete.")
+
 
 def mis_datos(sesion: Cliente) -> None:
     # RUT y teléfono solo enmascarados, incluso para su dueño (RF-SEG-10, S-16).
@@ -234,7 +389,18 @@ OPCIONES = [
     ("Destinos", "Cambiar el costo de un destino", "catalogo", cambiar_costo),
     ("Destinos", "Eliminar un destino", "catalogo", eliminar_destino),
     ("Destinos", "Volver a ofrecer un destino", "catalogo", reactivar_destino),
+    ("Paquetes", "Listar todos los paquetes", "catalogo", listar_paquetes),
+    ("Paquetes", "Crear un paquete", "catalogo", crear_paquete),
+    ("Paquetes", "Publicar un paquete", "catalogo", publicar_paquete),
+    ("Paquetes", "Editar un paquete en borrador", "catalogo", editar_paquete),
+    ("Paquetes", "Cambiar el cupo de un paquete", "catalogo", cambiar_cupo),
+    ("Paquetes", "Eliminar un paquete", "catalogo", eliminar_paquete),
+    ("Paquetes", "Ver las reservas de un paquete", "ver_reservas", reservas_de_paquete),
     ("Cuentas", "Crear la cuenta de un socio", "cuentas", crear_socio),
+    ("Reservas", "Ver los paquetes disponibles", "reservar", ver_oferta),
+    ("Reservas", "Reservar un paquete", "reservar", reservar),
+    ("Reservas", "Mis reservas", "reservar", mis_reservas),
+    ("Reservas", "Anular una reserva", "reservar", anular_reserva),
     (MI_CUENTA, "Ver mis datos", "reservar", mis_datos),
     (MI_CUENTA, "Actualizar nombre y teléfono", "reservar", actualizar_contacto),
     (MI_CUENTA, "Cambiar mi contraseña", None, cambiar_clave),
@@ -348,7 +514,8 @@ def alta_inicial() -> None:
 def inicio() -> bool:
     """Pantalla sin sesión. False: salir del programa."""
     print("\n" + "=" * 66 + "\n   Viajes Aventura\n" + "=" * 66)
-    print("   1. Iniciar sesión\n   2. Registrarme como cliente\n   0. Salir")
+    print("   1. Iniciar sesión\n   2. Registrarme como cliente\n   3. Ver los paquetes disponibles"
+          "\n   0. Salir")
     try:
         eleccion = input("\n   Opción: ").strip()
     except (KeyboardInterrupt, EOFError):
@@ -361,6 +528,9 @@ def inicio() -> bool:
             return usar_sesion(sesion)
     elif eleccion == "2":
         if not atender(registrarse, None):
+            return False
+    elif eleccion == "3":
+        if not atender(ver_oferta, None):
             return False
     else:
         print("   ! Opción desconocida.")
