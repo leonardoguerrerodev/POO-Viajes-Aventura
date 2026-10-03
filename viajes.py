@@ -18,12 +18,19 @@ Unidad 2 (no modularizar clase por clase).
 
 import os                                   # permisos 0600 de la base y lectura del entorno
 import re                                   # patrones de correo, RUT y teléfono
+import secrets                              # contraseña aleatoria del hash señuelo
 import sqlite3                              # la base de datos: un archivo, sin servidor
 import tempfile                             # base temporal para la autoverificación
 import unicodedata                          # quita tildes al comparar nombres de destinos (RF-DES-02)
+from abc import ABC, abstractmethod         # Usuario es abstracta: no existe «solo un usuario»
 from contextlib import contextmanager       # `with conectar()`: abre y siempre cierra la conexión
-from datetime import date                   # fecha del último cambio de costo (RF-DES-05)
-from pathlib import Path                    # ubica la base junto a este archivo
+from datetime import date, datetime, timedelta  # fechas, y el bloqueo temporal del inicio de sesión
+from functools import lru_cache             # la clave de cifrado se lee una sola vez
+from pathlib import Path                    # ubica la base y la clave junto a este archivo
+
+from argon2 import PasswordHasher           # Argon2id, librería especializada de PyPI (G.17)
+from argon2.exceptions import InvalidHashError, VerificationError
+from cryptography.fernet import Fernet, InvalidToken  # cifrado autenticado: AES + HMAC (I.19)
 
 # =====================================================================
 # 1. VALIDACIONES Y AUTORIZACIÓN COMPARTIDAS
@@ -33,6 +40,23 @@ from pathlib import Path                    # ubica la base junto a este archivo
 # termina en OverflowError al guardarlo (regla 8 de EcoTech).
 COSTO_MAXIMO = 100_000_000
 DURACION_MAXIMA = 365
+
+# Correo: lineal, sin retroceso exponencial (regla 11 de EcoTech). RUT con o sin puntos y guion.
+PATRON_CORREO = re.compile(r"[^@\s]+@[^@\s.]+(?:\.[^@\s.]+)+")
+PATRON_RUT = re.compile(r"(\d{1,2})\.?(\d{3})\.?(\d{3})-?([\dkK])", re.ASCII)
+PATRON_TELEFONO = re.compile(r"(?:\+?56)?([2-9]\d{8})", re.ASCII)
+SEPARADORES = re.compile(r"[\s()\-.]")
+
+CLAVE_MINIMA, CLAVE_MAXIMA = 12, 128          # RF-SEG-04; el tope evita hashear textos enormes
+
+# Argon2id con time_cost=4 y 64 MiB: unos 130 ms por verificación, dentro de lo que pide
+# RNF-REN-02 (entre 0,1 y 1 segundo). Con los valores por omisión medía 98 ms.
+HASHER = PasswordHasher(time_cost=4)
+
+# La clave que cifra RUT y teléfono vive fuera del código y de la base (S-12): en el entorno
+# o en un archivo .env junto a este archivo, con permisos 0600.
+RUTA_CLAVE = Path(__file__).with_name(".env")
+VARIABLE_CLAVE = "VIAJES_CLAVE_DATOS"
 
 # Acciones que un rol puede tener. Un texto fuera de este conjunto es un error de
 # programación y se rechaza: así un permiso mal escrito no se convierte en un «no» silencioso.
@@ -91,12 +115,77 @@ def normalizar(nombre: str) -> str:
     return " ".join(sin_tildes.casefold().split())
 
 
+def validar_correo(correo: str) -> str:
+    """El correo en minúsculas: «Carolina@Correo.cl» y «carolina@correo.cl» son la misma cuenta (R9)."""
+    correo = texto(correo, "El correo", 254).lower()     # el tope va antes de la regex
+    if not PATRON_CORREO.fullmatch(correo):
+        raise ValueError("El correo no tiene un formato válido")
+    return correo
+
+
+def validar_rut(rut: str) -> str:
+    """El RUT en forma canónica (12345678-5), con su dígito verificador módulo 11 (RF-RES-03).
+
+    Ningún mensaje repite el RUT ingresado: es un dato que R17 manda resguardar (RF-SEG-13).
+    """
+    m = PATRON_RUT.fullmatch(texto(rut, "El RUT", 20))
+    if not m:
+        raise ValueError("El RUT no tiene un formato válido")
+    cuerpo, dv = "".join(m.groups()[:3]), m.group(4).upper()
+    suma = sum(int(d) * (2 + i % 6) for i, d in enumerate(reversed(cuerpo)))
+    esperado = {10: "K", 11: "0"}.get(11 - suma % 11, str(11 - suma % 11))
+    if dv != esperado:
+        raise ValueError("El RUT no es válido: revise el dígito verificador")
+    return f"{int(cuerpo)}-{dv}"
+
+
+def validar_telefono(telefono: str) -> str:
+    """Los 9 dígitos de un teléfono chileno, sin prefijo ni separadores. El mensaje no lo repite."""
+    m = PATRON_TELEFONO.fullmatch(SEPARADORES.sub("", texto(telefono, "El teléfono", 20)))
+    if not m:
+        raise ValueError("El teléfono no es válido: use los 9 dígitos de un número chileno")
+    return m.group(1)
+
+
+@lru_cache(maxsize=1)
+def cifrador() -> Fernet:
+    """Fernet con la clave del entorno o del archivo .env; la crea en el primer uso (S-12)."""
+    clave = os.environ.get(VARIABLE_CLAVE)
+    if not clave and RUTA_CLAVE.exists():
+        for linea in RUTA_CLAVE.read_text(encoding="utf-8").splitlines():
+            nombre, _, valor = linea.partition("=")
+            if nombre.strip() == VARIABLE_CLAVE:
+                clave = valor.strip()
+    if not clave:
+        if hay_usuarios():
+            # Sin la clave, los RUT ya guardados son ilegibles: crear otra los perdería para siempre.
+            raise RuntimeError("Falta la clave de cifrado de los datos personales (.env)")
+        clave = Fernet.generate_key().decode()
+        # O_EXCL: si dos procesos la crean a la vez, uno falla en vez de pisar la clave del otro.
+        fd = os.open(RUTA_CLAVE, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        with os.fdopen(fd, "w", encoding="utf-8") as archivo:
+            archivo.write(f"{VARIABLE_CLAVE}={clave}\n")
+    return Fernet(clave.encode())
+
+
+def cifrar(valor: str) -> str:
+    return cifrador().encrypt(valor.encode()).decode()
+
+
+def descifrar(token: str) -> str:
+    """Un dato alterado o cifrado con otra clave da error, nunca un dato falso (RNF-SEG-02)."""
+    try:
+        return cifrador().decrypt(token.encode()).decode()
+    except InvalidToken:
+        raise ValueError("Un dato personal no se pudo leer: la clave no corresponde "
+                         "o el dato fue alterado") from None
+
+
 def autorizar(solicitante: "Usuario", accion: str) -> None:
     """El permiso se revisa en el dominio, no solo en el menú (RF-SEG-05, decisión 6 del modelo)."""
     if accion not in ACCIONES:
         raise ValueError(f"Acción desconocida: {accion!r}")
-    # La importación circular no existe: Usuario se define más abajo en este mismo archivo
-    # y esta función se llama recién en tiempo de ejecución.
+    # Usuario se define más abajo; la función se llama recién en tiempo de ejecución.
     if not isinstance(solicitante, Usuario) or not solicitante.puede(accion):
         raise PermissionError("No tiene permiso para esta operación")
 
@@ -211,6 +300,225 @@ def hay_usuarios() -> bool:
 # =====================================================================
 # 3. CLASES DEL MODELO
 # =====================================================================
+
+
+class Usuario(ABC):
+    """tabla: usuario (una sola tabla para los dos roles). Credenciales, bloqueo y autenticación.
+
+    Es abstracta: Cliente y Administrador heredan el inicio de sesión, escrito una sola vez, y
+    cada uno responde distinto a puede() (polimorfismo).
+    """
+
+    COLUMNAS = ("id, correo, hash_clave, rol, nombre, rut_cifrado, telefono_cifrado,"
+                " intentos_fallidos, bloqueado_hasta")
+    MAX_INTENTOS = 5
+    BLOQUEO = timedelta(minutes=5)
+    _senuelo: str | None = None         # hash que se verifica cuando el correo no existe
+
+    def __init__(self, correo: str, clave: str | None = None, *, id: int | None = None,
+                 hash_clave: str | None = None, intentos_fallidos: int = 0,
+                 bloqueado_hasta: datetime | None = None):
+        self.__id = id
+        self.__correo = validar_correo(correo)
+        if hash_clave is None:
+            # Cuenta nueva: la clave se valida y se guarda solo su resumen (R10).
+            self._validar_clave(clave)
+            hash_clave = HASHER.hash(clave)
+        self.__hash_clave = hash_clave
+        self.__intentos_fallidos = intentos_fallidos
+        self.__bloqueado_hasta = bloqueado_hasta
+
+    def obtener_id(self) -> int | None:
+        return self.__id
+
+    def obtener_correo(self) -> str:
+        return self.__correo
+
+    @abstractmethod
+    def puede(self, accion: str) -> bool:
+        """Cada rol responde a su manera: el menú pregunta sin saber qué rol tiene enfrente."""
+
+    def _validar_clave(self, clave: str) -> None:
+        """Política de contraseña (RF-SEG-04): 12 caracteres o más y distinta del correo."""
+        if not isinstance(clave, str):
+            raise TypeError("La contraseña debe ser texto")
+        if not CLAVE_MINIMA <= len(clave) <= CLAVE_MAXIMA:
+            raise ReglaNegocioError("RF-SEG-04", f"La contraseña debe tener entre {CLAVE_MINIMA}"
+                                    f" y {CLAVE_MAXIMA} caracteres")
+        if clave.strip().casefold() == self.__correo:
+            raise ReglaNegocioError("RF-SEG-04", "La contraseña no puede ser igual al correo")
+
+    def __verificar(self, clave: str) -> bool:
+        try:
+            return HASHER.verify(self.__hash_clave, clave)
+        except (VerificationError, InvalidHashError):
+            return False
+
+    def cambiar_clave(self, actual: str, nueva: str) -> None:
+        """RF-SEG-11: exige la contraseña actual antes de aceptar la nueva."""
+        if not self.__verificar(actual):
+            raise PermissionError("La contraseña actual no es correcta")
+        self._validar_clave(nueva)
+        self.__hash_clave = HASHER.hash(nueva)
+        with conectar() as con:
+            con.execute("UPDATE usuario SET hash_clave = ? WHERE id = ?",
+                        (self.__hash_clave, self.__id))
+
+    @classmethod
+    def autenticar(cls, correo: str, clave: str) -> "Usuario | None":
+        """La cuenta si el correo y la contraseña son correctos y no está bloqueada; si no, None.
+
+        Los tres fallos (correo inexistente, contraseña errónea, cuenta bloqueada) devuelven lo
+        mismo y tardan lo mismo, porque siempre se verifica un Argon2id: así no se puede deducir
+        qué correos están registrados (RF-SEG-02).
+        """
+        try:
+            correo = validar_correo(correo)
+        except (TypeError, ValueError):
+            correo = None
+        fila = None
+        if correo:
+            with conectar() as con:
+                fila = con.execute(f"SELECT {cls.COLUMNAS} FROM usuario WHERE correo = ?",
+                                   (correo,)).fetchone()
+        if fila is None:
+            if cls._senuelo is None:
+                Usuario._senuelo = HASHER.hash(secrets.token_urlsafe(16))
+            try:
+                HASHER.verify(cls._senuelo, clave if isinstance(clave, str) else "")
+            except VerificationError:
+                pass
+            return None
+        usuario = _usuario_desde_fila(fila)
+        ahora = datetime.now()
+        bloqueada = (usuario.__bloqueado_hasta is not None and ahora < usuario.__bloqueado_hasta)
+        correcta = isinstance(clave, str) and usuario.__verificar(clave)
+        if bloqueada:
+            return None
+        with conectar() as con:
+            if correcta:
+                # Si los parámetros de Argon2 subieron desde que se creó el hash, se rehace ahora,
+                # que es el único momento en que se tiene la contraseña en claro.
+                if HASHER.check_needs_rehash(usuario.__hash_clave):
+                    usuario.__hash_clave = HASHER.hash(clave)
+                con.execute("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL,"
+                            " hash_clave = ? WHERE id = ?", (usuario.__hash_clave, usuario.__id))
+            else:
+                # Una sola sentencia: dos sesiones que fallan a la vez no pierden un intento.
+                # SQLite evalúa cada CASE con los valores anteriores a la actualización.
+                con.execute(
+                    "UPDATE usuario SET"
+                    " bloqueado_hasta = CASE WHEN intentos_fallidos + 1 >= ? THEN ?"
+                    "                   ELSE bloqueado_hasta END,"
+                    " intentos_fallidos = CASE WHEN intentos_fallidos + 1 >= ? THEN 0"
+                    "                     ELSE intentos_fallidos + 1 END"
+                    " WHERE id = ?",
+                    (cls.MAX_INTENTOS, (ahora + cls.BLOQUEO).isoformat(), cls.MAX_INTENTOS,
+                     usuario.__id))
+        return usuario if correcta else None
+
+    def _insertar(self, rol: str, datos_cliente: tuple[str, str, str] | None = None,
+                  solo_si_vacia: bool = False) -> bool:
+        """C: INSERT de la cuenta. Las dos subclases lo comparten; no está en el diagrama porque
+        es la persistencia común, como los métodos de CRUD."""
+        nombre, rut, telefono = datos_cliente or (None, None, None)
+        # Sin sesión, la primera cuenta solo entra si la tabla está vacía: la comprobación y la
+        # escritura son una sola sentencia, sin carrera entre las dos (S-04).
+        condicion = " WHERE NOT EXISTS (SELECT 1 FROM usuario)" if solo_si_vacia else ""
+        try:
+            with conectar() as con:
+                cur = con.execute(
+                    "INSERT INTO usuario (correo, hash_clave, rol, nombre, rut_cifrado,"
+                    " telefono_cifrado) SELECT ?, ?, ?, ?, ?, ?" + condicion,
+                    (self.__correo, self.__hash_clave, rol, nombre,
+                     rut and cifrar(rut), telefono and cifrar(telefono)))
+        except sqlite3.IntegrityError:
+            raise ReglaNegocioError("R9", "Ese correo ya tiene una cuenta") from None
+        if cur.rowcount != 1:
+            return False
+        self.__id = cur.lastrowid
+        return True
+
+
+class Cliente(Usuario):
+    """Usuario con datos personales. RUT y teléfono se guardan cifrados y se muestran enmascarados."""
+
+    def __init__(self, nombre: str, rut: str, correo: str, telefono: str,
+                 clave: str | None = None, **cuenta):
+        # Los datos se validan antes que la contraseña: el hash es lo caro, y no vale la pena
+        # calcularlo para un registro que se va a rechazar.
+        self.__nombre = texto(nombre, "El nombre", 80)
+        self.__rut = validar_rut(rut)
+        self.__telefono = validar_telefono(telefono)
+        super().__init__(correo, clave, **cuenta)
+
+    def __repr__(self) -> str:
+        # Nunca el RUT ni el teléfono: una traza o un registro no debe filtrarlos (R17, IA C4).
+        return f"Cliente(id={self.obtener_id()}, correo={self.obtener_correo()!r})"
+
+    def puede(self, accion: str) -> bool:
+        return accion == "reservar"
+
+    def obtener_nombre(self) -> str:
+        return self.__nombre
+
+    def rut_enmascarado(self) -> str:
+        """12.***.***-5: el único modo de mostrar el RUT (RF-SEG-10)."""
+        cuerpo, dv = self.__rut.split("-")
+        return f"{cuerpo[:-6]}.***.***-{dv}"
+
+    def telefono_enmascarado(self) -> str:
+        """+56 9 **** 1234 (RF-SEG-10)."""
+        return f"+56 {self.__telefono[0]} **** {self.__telefono[-4:]}"
+
+    @staticmethod
+    def registrar(nombre: str, rut: str, correo: str, telefono: str, clave: str) -> "Cliente":
+        """Registro público: siempre crea un cliente, nunca un administrador (RF-SEG-12)."""
+        cliente = Cliente(nombre, rut, correo, telefono, clave)
+        cliente._insertar("CLIENTE", (cliente.__nombre, cliente.__rut, cliente.__telefono))
+        return cliente
+
+    def actualizar_contacto(self, nombre: str, telefono: str) -> None:
+        """U: nombre y teléfono propios (RF-RES-12). El RUT y el correo no cambian."""
+        nombre, telefono = texto(nombre, "El nombre", 80), validar_telefono(telefono)
+        with conectar() as con:
+            con.execute("UPDATE usuario SET nombre = ?, telefono_cifrado = ? WHERE id = ?",
+                        (nombre, cifrar(telefono), self.obtener_id()))
+        self.__nombre, self.__telefono = nombre, telefono
+
+
+class Administrador(Usuario):
+    """Socio de la agencia: mantiene el catálogo, arma los paquetes y crea cuentas de socios."""
+
+    def puede(self, accion: str) -> bool:
+        return accion in ("catalogo", "ver_reservas", "cuentas")
+
+    @staticmethod
+    def crear_primero(correo: str, clave: str) -> "Administrador":
+        """Primer uso: la primera cuenta es de administrador, sin clave escrita en el código (S-04)."""
+        admin = Administrador(correo, clave)
+        if not admin._insertar("ADMINISTRADOR", solo_si_vacia=True):
+            raise PermissionError("Ya existe una cuenta: inicie sesión para crear otra")
+        return admin
+
+    def crear_administrador(self, correo: str, clave: str) -> "Administrador":
+        """Cuenta para otro socio (RF-SEG-07): una por persona, para saber quién hizo cada cambio."""
+        autorizar(self, "cuentas")
+        nuevo = Administrador(correo, clave)
+        nuevo._insertar("ADMINISTRADOR")
+        return nuevo
+
+
+def _usuario_desde_fila(fila: sqlite3.Row) -> Usuario:
+    """La subclase que corresponde al rol guardado, con sus datos personales descifrados."""
+    hasta = fila["bloqueado_hasta"]
+    cuenta = {"id": fila["id"], "hash_clave": fila["hash_clave"],
+              "intentos_fallidos": fila["intentos_fallidos"],
+              "bloqueado_hasta": datetime.fromisoformat(hasta) if hasta else None}
+    if fila["rol"] == "CLIENTE":
+        return Cliente(fila["nombre"], descifrar(fila["rut_cifrado"]), fila["correo"],
+                       descifrar(fila["telefono_cifrado"]), **cuenta)
+    return Administrador(fila["correo"], **cuenta)
 
 
 class Destino:
@@ -353,82 +661,152 @@ class Destino:
 
 def autoverificar() -> None:
     """Recorre las reglas sobre una base temporal y falla con AssertionError si alguna se rompe."""
+    os.environ[VARIABLE_CLAVE] = Fernet.generate_key().decode()   # nunca toca el .env real
+    cifrador.cache_clear()
     with tempfile.TemporaryDirectory() as carpeta:
         usar_base(os.path.join(carpeta, "prueba.db"))
         crear_tablas()
-        admin = Usuario({"catalogo"})
-
-        # R1 y RF-DES-02: el nombre no se repite, aunque cambien mayúsculas, tildes o espacios.
-        elqui = Destino("Valle del Elqui", "Norte Chico", "Observación astronómica", 3, 120_000)
-        id_elqui = elqui.guardar(admin)
-        for repetido in ("valle del  elqui", "Valle del Elquí"):
-            try:
-                Destino(repetido, "Norte", "x", 1, 1).guardar(admin)
-                raise AssertionError("aceptó un nombre repetido")
-            except ReglaNegocioError as e:
-                assert e.obtener_regla() == "R1"
-
-        # R2 y R1: costo mayor que cero y duración de al menos un día, en el dominio y en la base.
-        for costo, dias in ((0, 1), (-1, 1), (1, 0)):
-            try:
-                Destino("Otro", "Zona", "x", dias, costo)
-                raise AssertionError("aceptó costo o duración inválidos")
-            except ReglaNegocioError:
-                pass
-        try:
-            Destino("Otro", "Zona", "x", True, 1)                 # bool no es un entero válido
-            raise AssertionError("aceptó un bool como duración")
-        except TypeError:
-            pass
-        with conectar() as con:
-            for sql in ("INSERT INTO destino (nombre, nombre_normalizado, zona, descripcion,"
-                        " duracion_dias, costo_base, fecha_costo) VALUES ('a','a','z','d',1,0,'x')",
-                        "INSERT INTO destino (nombre, nombre_normalizado, zona, descripcion,"
-                        " duracion_dias, costo_base, fecha_costo) VALUES ('b','b','z','d',0,1,'x')"):
-                try:
-                    con.execute(sql)
-                    raise AssertionError("la base aceptó un destino inválido")
-                except sqlite3.IntegrityError:
-                    pass
-
-        # RF-DES-04 y RF-DES-05: editar y cambiar el costo, que registra la fecha.
-        elqui.cambiar_costo(130_000, admin)
-        assert Destino.buscar(id_elqui).obtener_costo_base() == 130_000
-
-        # RF-SEG-05: sin el permiso, el dominio rechaza aunque el menú no exista.
-        try:
-            elqui.cambiar_costo(1, Usuario(set()))
-            raise AssertionError("cambió el costo sin permiso")
-        except PermissionError:
-            pass
-
-        # R8: sin paquetes se elimina; dentro de un paquete queda no disponible.
-        surire = Destino("Salar de Surire", "Altiplano", "Flamencos", 4, 310_000)
-        surire.guardar(admin)
-        with conectar() as con:
-            con.execute("INSERT INTO paquete (id, nombre, fecha_salida, fecha_regreso,"
-                        " cupo_maximo, margen) VALUES (1, 'P', '2026-12-01', '2026-12-05', 10, 20)")
-            con.execute("INSERT INTO paquete_destino VALUES (1, ?)", (surire.obtener_id(),))
-        assert surire.eliminar(admin) is False and not surire.esta_disponible()
-        assert [d.obtener_costo_base() for d in Destino.listar(solo_disponibles=True)] == [130_000]
-        surire.reactivar(admin)
-        assert len(Destino.listar(solo_disponibles=True)) == 2
-        assert elqui.eliminar(admin) is True and Destino.buscar(id_elqui) is None
+        _verificar_cuentas()
+        _verificar_destinos()
     print("OK")
 
 
-class Usuario:
-    """Provisional, con un conjunto fijo de permisos.
+def _rechaza(error: type[Exception], accion, *args, regla: str | None = None) -> None:
+    """Comprueba que la acción falla con ese error (y esa regla, si se indica)."""
+    try:
+        accion(*args)
+    except error as e:
+        if regla is not None:
+            assert e.obtener_regla() == regla, (e.obtener_regla(), regla)
+        return
+    raise AssertionError(f"{getattr(accion, '__name__', accion)} no rechazó {args!r}")
 
-    ponytail: existe solo hasta el incremento de cuentas (HU-01 a HU-05), que trae el Usuario
-    abstracto del modelo con Cliente y Administrador; entonces se reemplaza entero.
-    """
 
-    def __init__(self, acciones: set[str]):
-        self.__acciones = acciones
+def _verificar_cuentas() -> None:
+    # S-04: la primera cuenta es de administrador y solo puede crearse una vez.
+    assert not hay_usuarios()
+    admin = Administrador.crear_primero("ana@viajes.cl", "clave-larga-de-ana")
+    _rechaza(PermissionError, Administrador.crear_primero, "otro@viajes.cl", "clave-larga-otro")
+    socio = admin.crear_administrador("matias@viajes.cl", "clave-larga-matias")
+    assert socio.puede("catalogo") and not socio.puede("reservar")
 
-    def puede(self, accion: str) -> bool:
-        return accion in self.__acciones
+    # RF-RES-01 a RF-RES-03 y RF-SEG-12: el registro público crea clientes y valida cada dato.
+    carolina = Cliente.registrar("Carolina Díaz", "12.345.678-5", "carolina@correo.cl",
+                                 "+56 9 1234 5678", "clave-de-carolina")
+    assert isinstance(carolina, Cliente) and carolina.puede("reservar")
+    assert not carolina.puede("catalogo")
+    _rechaza(PermissionError, autorizar, carolina, "cuentas")
+    _rechaza(ReglaNegocioError, Cliente.registrar, "Otra", "11.111.111-1", "Carolina@Correo.cl",
+             "912345678", "otra-clave-larga", regla="R9")
+    for rut, correo, fono in (("12.345.678-6", "a@b.cl", "912345678"),
+                              ("12.345.678-5", "sin-arroba.cl", "912345678"),
+                              ("12.345.678-5", "a@b.cl", "9123abc78")):
+        try:
+            Cliente("Nombre", rut, correo, fono, "clave-larga-valida")
+            raise AssertionError("aceptó un dato inválido")
+        except ValueError as e:
+            assert "12.345.678" not in str(e) and "9123" not in str(e)   # RF-SEG-13
+    assert validar_rut("6.574.256-K") == "6574256-K"         # dígito K
+
+    # RF-SEG-04: 12 caracteres o más, y distinta del correo.
+    _rechaza(ReglaNegocioError, Cliente, "N", "12.345.678-5", "n@b.cl", "912345678", "a" * 11,
+             regla="RF-SEG-04")
+    _rechaza(ReglaNegocioError, Cliente, "N", "12.345.678-5", "nombre.largo@b.cl", "912345678",
+             "Nombre.Largo@b.cl", regla="RF-SEG-04")
+
+    # R10, R17 y RNF-SEG-02: en la base no hay contraseña, RUT ni teléfono legibles,
+    # y un dato cifrado alterado da error, no un dato falso.
+    with conectar() as con:
+        fila = con.execute("SELECT hash_clave, rut_cifrado, telefono_cifrado FROM usuario"
+                           " WHERE correo = 'carolina@correo.cl'").fetchone()
+    assert fila["hash_clave"].startswith("$argon2id$")
+    assert "12345678" not in fila["rut_cifrado"] and "5678" not in fila["telefono_cifrado"]
+    alterado = fila["rut_cifrado"][:-6] + ("A" if fila["rut_cifrado"][-6] != "A" else "B") \
+        + fila["rut_cifrado"][-5:]
+    _rechaza(ValueError, descifrar, alterado)
+
+    # RF-SEG-10 y C4: enmascarado, y fuera de la representación del objeto.
+    assert carolina.rut_enmascarado() == "12.***.***-5"
+    assert carolina.telefono_enmascarado() == "+56 9 **** 5678"
+    assert "12345678" not in repr(carolina) and "5678" not in repr(carolina)
+
+    # RF-SEG-01 y RF-SEG-02: inicio de sesión; los tres fallos devuelven lo mismo.
+    entrada = Usuario.autenticar("Carolina@correo.cl", "clave-de-carolina")
+    assert isinstance(entrada, Cliente) and entrada.rut_enmascarado() == "12.***.***-5"
+    assert isinstance(Usuario.autenticar("ana@viajes.cl", "clave-larga-de-ana"), Administrador)
+    assert Usuario.autenticar("nadie@correo.cl", "clave-de-carolina") is None
+    assert Usuario.autenticar("carolina@correo.cl", "otra-clave") is None
+    assert Usuario.autenticar("no es correo", "x") is None
+
+    # RF-SEG-03: cinco fallos seguidos bloquean, aun con la contraseña correcta, y el bloqueo
+    # está en la base (sobrevive a cerrar el programa). Al vencer, se puede entrar.
+    for _ in range(4):
+        Usuario.autenticar("carolina@correo.cl", "otra-clave")   # 1 ya contó arriba: 5 en total
+    assert Usuario.autenticar("carolina@correo.cl", "clave-de-carolina") is None
+    with conectar() as con:
+        con.execute("UPDATE usuario SET bloqueado_hasta = ? WHERE correo = 'carolina@correo.cl'",
+                    ((datetime.now() - timedelta(seconds=1)).isoformat(),))
+    assert Usuario.autenticar("carolina@correo.cl", "clave-de-carolina") is not None
+
+    # RF-SEG-11 y RF-RES-12.
+    _rechaza(PermissionError, carolina.cambiar_clave, "clave-equivocada", "nueva-clave-larga")
+    carolina.cambiar_clave("clave-de-carolina", "nueva-clave-larga")
+    assert Usuario.autenticar("carolina@correo.cl", "nueva-clave-larga") is not None
+    carolina.actualizar_contacto("Carolina Díaz R.", "987654321")
+    releida = Usuario.autenticar("carolina@correo.cl", "nueva-clave-larga")
+    assert releida.obtener_nombre() == "Carolina Díaz R."
+    assert releida.telefono_enmascarado() == "+56 9 **** 4321"
+
+    # La base rechaza por sí misma una contraseña en claro y un cliente sin RUT.
+    with conectar() as con:
+        for sql in ("INSERT INTO usuario (correo, hash_clave, rol) VALUES ('z@z.cl', 'clave', 'ADMINISTRADOR')",
+                    "INSERT INTO usuario (correo, hash_clave, rol, nombre) VALUES"
+                    " ('y@z.cl', '$argon2id$x', 'CLIENTE', 'Sin RUT')"):
+            _rechaza(sqlite3.IntegrityError, con.execute, sql)
+    _verificar_cuentas.cuentas = (admin, carolina)
+
+
+def _verificar_destinos() -> None:
+    admin, cliente = _verificar_cuentas.cuentas
+
+    # R1 y RF-DES-02: el nombre no se repite, aunque cambien mayúsculas, tildes o espacios.
+    elqui = Destino("Valle del Elqui", "Norte Chico", "Observación astronómica", 3, 120_000)
+    id_elqui = elqui.guardar(admin)
+    for repetido in ("valle del  elqui", "Valle del Elquí"):
+        _rechaza(ReglaNegocioError, Destino(repetido, "Norte", "x", 1, 1).guardar, admin, regla="R1")
+
+    # R2 y R1: costo mayor que cero y duración de al menos un día, en el dominio y en la base.
+    _rechaza(ReglaNegocioError, Destino, "Otro", "Zona", "x", 1, 0, regla="R2")
+    _rechaza(ReglaNegocioError, Destino, "Otro", "Zona", "x", 1, -1, regla="R2")
+    _rechaza(ReglaNegocioError, Destino, "Otro", "Zona", "x", 0, 1, regla="R1")
+    _rechaza(TypeError, Destino, "Otro", "Zona", "x", True, 1)     # bool no es un entero válido
+    with conectar() as con:
+        for costo, dias in ((0, 1), (1, 0)):
+            _rechaza(sqlite3.IntegrityError, con.execute,
+                     "INSERT INTO destino (nombre, nombre_normalizado, zona, descripcion,"
+                     " duracion_dias, costo_base, fecha_costo) VALUES ('a', 'a', 'z', 'd', ?, ?, 'x')",
+                     (dias, costo))
+
+    # RF-DES-04 y RF-DES-05: editar y cambiar el costo, que registra la fecha.
+    elqui.cambiar_costo(130_000, admin)
+    assert Destino.buscar(id_elqui).obtener_costo_base() == 130_000
+
+    # RF-SEG-05: un cliente no toca el catálogo, aunque llame directo al dominio.
+    _rechaza(PermissionError, elqui.cambiar_costo, 1, cliente)
+    _rechaza(PermissionError, Destino("Nuevo", "Z", "d", 1, 1).guardar, cliente)
+
+    # R8: sin paquetes se elimina; dentro de un paquete queda no disponible.
+    surire = Destino("Salar de Surire", "Altiplano", "Flamencos", 4, 310_000)
+    surire.guardar(admin)
+    with conectar() as con:
+        con.execute("INSERT INTO paquete (id, nombre, fecha_salida, fecha_regreso,"
+                    " cupo_maximo, margen) VALUES (1, 'P', '2026-12-01', '2026-12-05', 10, 20)")
+        con.execute("INSERT INTO paquete_destino VALUES (1, ?)", (surire.obtener_id(),))
+    assert surire.eliminar(admin) is False and not surire.esta_disponible()
+    assert [d.obtener_costo_base() for d in Destino.listar(solo_disponibles=True)] == [130_000]
+    surire.reactivar(admin)
+    assert len(Destino.listar(solo_disponibles=True)) == 2
+    assert elqui.eliminar(admin) is True and Destino.buscar(id_elqui) is None
 
 
 if __name__ == "__main__":
