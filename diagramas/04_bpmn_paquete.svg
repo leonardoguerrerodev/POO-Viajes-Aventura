@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="470pt" height="470pt" viewBox="0 0 470 470">
+<rect width="100%" height="100%" fill="#fff"/>
+<rect x="4" y="4" width="462" height="462" rx="0" fill="#ffffff" stroke="#333333" stroke-width="0.9"/>
+<rect x="4" y="4" width="20" height="462" rx="0" fill="#eeeeee" stroke="#333333" stroke-width="0.9"/>
+<text transform="translate(17,235.0) rotate(-90)" font-family="Liberation Sans" font-size="8.5" font-weight="bold" text-anchor="middle">Viajes Aventura · Armar y publicar paquete (TO-BE)</text>
+<rect x="24" y="4" width="150" height="462" rx="0" fill="none" stroke="#333333" stroke-width="0.8"/>
+<rect x="24" y="4" width="150" height="18" rx="0" fill="#f3f3f3" stroke="#333333" stroke-width="0.8"/>
+<text x="99.0" y="16.5" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="99.0" dy="0">Administrador</tspan></text>
+<rect x="174" y="4" width="292" height="462" rx="0" fill="none" stroke="#333333" stroke-width="0.8"/>
+<rect x="174" y="4" width="292" height="18" rx="0" fill="#f3f3f3" stroke="#333333" stroke-width="0.8"/>
+<text x="320.0" y="16.5" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="320.0" dy="0">Sistema</tspan></text>
+<circle cx="101" cy="44" r="9" fill="#fff" stroke="#333333" stroke-width="1.0"/>
+<text x="114" y="42.6" font-family="Liberation Sans" font-size="7.3" text-anchor="start" fill="#000"><tspan x="114" dy="0">Temporada</tspan><tspan x="114" dy="8.76">por armar</tspan></text>
+<rect x="45.0" y="75.0" width="112" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="101" y="88.05" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="101" dy="0">Ingresar nombre, fechas,</tspan><tspan x="101" dy="9.36">cupo, margen y destinos</tspan></text>
+<rect x="234.0" y="123.0" width="112" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="290" y="136.04999999999998" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="290" dy="0">Validar los datos</tspan><tspan x="290" dy="9.36">y los destinos</tspan></text>
+<path d="M290,173 L307,190 L290,207 L273,190 Z" fill="#fff6d6" stroke="#333333" stroke-width="0.9"/>
+<path d="M284.5,184.5 L295.5,195.5 M295.5,184.5 L284.5,195.5" stroke="#333333" stroke-width="1.6"/>
+<text x="268" y="184.0" font-family="Liberation Sans" font-size="7.5" text-anchor="end" fill="#000" font-style="italic"><tspan x="268" dy="0">¿2 a 5 destinos disponibles,</tspan></text>
+<text x="268" y="193.0" font-family="Liberation Sans" font-size="7.5" text-anchor="end" fill="#000" font-style="italic"><tspan x="268" dy="0">fechas, cupo y margen</tspan></text>
+<text x="268" y="202.0" font-family="Liberation Sans" font-size="7.5" text-anchor="end" fill="#000" font-style="italic"><tspan x="268" dy="0">válidos? (R3, R5, R6, R8)</tspan></text>
+<rect x="371.0" y="175.0" width="86" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="414" y="188.04999999999998" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="414" dy="0">Informar qué</tspan><tspan x="414" dy="9.36">dato falla</tspan></text>
+<rect x="234.0" y="229.0" width="112" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="290" y="242.04999999999998" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="290" dy="0">Calcular el precio por persona</tspan><tspan x="290" dy="9.36">(suma de costos más margen)</tspan></text>
+<rect x="234.0" y="275.0" width="112" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="290" y="288.05" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="290" dy="0">Guardar el paquete</tspan><tspan x="290" dy="9.36">en borrador</tspan></text>
+<rect x="45.0" y="321.0" width="112" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="101" y="334.05" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="101" dy="0">Revisar el precio</tspan><tspan x="101" dy="9.36">calculado</tspan></text>
+<path d="M101,371 L118,388 L101,405 L84,388 Z" fill="#fff6d6" stroke="#333333" stroke-width="0.9"/>
+<path d="M95.5,382.5 L106.5,393.5 M106.5,382.5 L95.5,393.5" stroke="#333333" stroke-width="1.6"/>
+<text x="79" y="386.5" font-family="Liberation Sans" font-size="7.5" text-anchor="end" fill="#000" font-style="italic"><tspan x="79" dy="0">¿Publicar</tspan></text>
+<text x="79" y="395.5" font-family="Liberation Sans" font-size="7.5" text-anchor="end" fill="#000" font-style="italic"><tspan x="79" dy="0">ahora?</tspan></text>
+<rect x="234.0" y="373.0" width="112" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="290" y="386.05" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="290" dy="0">Fijar el precio y</tspan><tspan x="290" dy="9.36">publicar (R7)</tspan></text>
+<circle cx="101" cy="436" r="9" fill="#fff" stroke="#333333" stroke-width="2.6"/>
+<text x="114" y="434.6" font-family="Liberation Sans" font-size="7.3" text-anchor="start" fill="#000"><tspan x="114" dy="0">Queda en</tspan><tspan x="114" dy="8.76">borrador</tspan></text>
+<circle cx="376.0" cy="388" r="9" fill="#fff" stroke="#333333" stroke-width="2.6"/>
+<text x="376.0" y="407" font-family="Liberation Sans" font-size="7.3" text-anchor="middle" fill="#000"><tspan x="376.0" dy="0">Paquete</tspan><tspan x="376.0" dy="8.76">publicado</tspan></text>
+<path d="M101,53 L101,75.0" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M98.2,69.0 L101,75.0 L103.8,69.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M101,105.0 L101,138 L234.0,138" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M228.0,140.8 L234.0,138 L228.0,135.2 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M290,153.0 L290,173" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M287.2,167.0 L290,173 L292.8,167.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M307,190 L371,190" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M365.0,192.8 L371,190 L365.0,187.2 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<text x="310" y="186" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" font-style="italic" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="310" dy="0">no</tspan></text>
+<path d="M414,175.0 L414,68 L131,68 L131,75.0" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M128.2,69.0 L131,75.0 L133.8,69.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M290,207 L290,229.0" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M287.2,223.0 L290,229.0 L292.8,223.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<text x="294" y="218" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" font-style="italic" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="294" dy="0">sí</tspan></text>
+<path d="M290,259.0 L290,275.0" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M287.2,269.0 L290,275.0 L292.8,269.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M290,305.0 L290,314 L101,314 L101,321.0" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M98.2,315.0 L101,321.0 L103.8,315.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M101,351.0 L101,371" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M98.2,365.0 L101,371 L103.8,365.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M118,388 L234.0,388" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M228.0,390.8 L234.0,388 L228.0,385.2 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<text x="121" y="384" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" font-style="italic" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="121" dy="0">sí</tspan></text>
+<path d="M101,405 L101,427" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M98.2,421.0 L101,427 L103.8,421.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<text x="105" y="416" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" font-style="italic" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="105" dy="0">no</tspan></text>
+<path d="M346.0,388 L367.0,388" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M361.0,390.8 L367.0,388 L361.0,385.2 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+</svg>
