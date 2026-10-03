@@ -7,6 +7,7 @@ rol puede hacer. No contiene ninguna sentencia SQL: todo el acceso a datos vive 
 """
 
 import getpass                              # contraseñas sin eco en pantalla
+import os                                   # umask: archivos nuevos solo para su dueño (H-15)
 import sqlite3                              # solo para reconocer sus errores, nunca para consultar
 import time                                 # inactividad de la sesión (RF-SEG-09)
 from datetime import date, datetime         # fechas como día-mes-año (RNF-USA-02)
@@ -22,6 +23,13 @@ INACTIVIDAD_MAXIMA = 10 * 60                # segundos sin actividad antes de ce
 CREDENCIALES_INVALIDAS = ("   ! Correo o contraseña incorrectos, o la cuenta está bloqueada"
                           " por unos minutos.")
 SESION_CADUCADA = "   ! La sesión se cerró por inactividad. Inicie sesión de nuevo."
+# Deber de información (Ley 19.628 modificada por la Ley 21.719, art. 14 ter): para qué se piden los
+# datos, cómo se protegen y cómo se ejercen los derechos (H-14).
+AVISO_DATOS = ("   Sus datos (nombre, RUT, correo y teléfono) se usan solo para registrar sus reservas\n"
+               "   y contactarlo por ellas. El RUT y el teléfono se guardan cifrados y nunca se\n"
+               "   muestran completos. Para pedir acceso, corrección o eliminación de sus datos,\n"
+               "   escriba a la agencia. Responsable: Viajes Aventura (Ley 19.628 y Ley 21.719).")
+NO_DISPONIBLE = "Ese paquete no está en la oferta"
 INTERRUMPIDO = "\n   Interrumpido. Hasta luego."
 PIDE_ID_DESTINO = "   Id del destino: "
 PIDE_ID_PAQUETE = "   Id del paquete: "
@@ -39,6 +47,26 @@ class CerrarSesion(Exception):
     """El usuario pidió cerrar la sesión (RF-SEG-08)."""
 
 
+class SesionCaducada(CerrarSesion):
+    """Pasaron más de 10 minutos sin actividad, en el menú o dentro de una acción (RF-SEG-09)."""
+
+
+# Plazo de la sesión abierta, en segundos de time.monotonic(). None: no hay sesión.
+VENCE: float | None = None
+
+
+def esperar(lectura, mensaje: str) -> str:
+    """Toda espera de un dato pasa por aquí: si la sesión venció mientras esperaba, el dato no se
+    usa. Antes solo se medía en el menú, y una pregunta abierta podía responderse horas después (H-11)."""
+    global VENCE
+    valor = lectura(mensaje)
+    if VENCE is not None:
+        if time.monotonic() > VENCE:
+            raise SesionCaducada
+        VENCE = time.monotonic() + INACTIVIDAD_MAXIMA
+    return valor
+
+
 def limpiar() -> None:
     # Secuencia ANSI: borra la pantalla sin abrir una shell ni buscar un programa en el PATH.
     print("\033[2J\033[H", end="")
@@ -48,7 +76,7 @@ def limpiar() -> None:
 # Toda lectura pasa por leer(): así «x» cancela en cualquier dato.
 
 def leer(mensaje: str) -> str:
-    valor = input(mensaje).strip()
+    valor = esperar(input, mensaje).strip()
     if valor.lower() == "x":
         raise Cancelado
     return valor
@@ -112,7 +140,7 @@ def pedir_si_no(mensaje: str) -> bool:
 
 
 def pedir_clave(mensaje: str = "   Contraseña: ") -> str:
-    clave = getpass.getpass(mensaje)
+    clave = esperar(getpass.getpass, mensaje)
     if clave.strip().lower() == "x":
         raise Cancelado
     return clave
@@ -166,6 +194,9 @@ def ver_oferta(_sesion: Usuario | None = None) -> None:
 def registrarse() -> None:
     """Registro público: siempre crea un cliente (RF-SEG-12). Nada en pantalla permite elegir rol."""
     print("\n   Registro de cliente (escriba x para cancelar)")
+    print(AVISO_DATOS)
+    if not pedir_si_no("   ¿Acepta?"):
+        raise Cancelado
     cliente = Cliente.registrar(pedir_texto("   Nombre completo: "),
                                 pedir_valido("   RUT (12.345.678-5): ", validar_rut),
                                 pedir_valido(PIDE_CORREO, validar_correo),
@@ -327,7 +358,11 @@ def crear_socio(sesion: Administrador) -> None:
 
 def reservar(sesion: Cliente) -> None:
     ver_oferta()
-    paquete = pedir_paquete()
+    # «No existe» y «no está publicado» dan el mismo mensaje: un cliente no puede deducir los ids
+    # de los paquetes en borrador (H-13). El dominio vuelve a revisar todo al reservar.
+    paquete = Paquete.buscar(pedir_entero(PIDE_ID_PAQUETE))
+    if paquete is None or not paquete.esta_disponible():
+        raise ValueError(NO_DISPONIBLE)
     # RF-RES-10: advertir una segunda reserva en el mismo paquete (P-01, reservas duplicadas).
     if sesion.tiene_reserva_vigente(paquete) and not pedir_si_no(
             "   Ya tiene una reserva vigente en este paquete. ¿Reservar otra?"):
@@ -457,7 +492,7 @@ def atender(funcion, sesion: Usuario | None) -> bool:
 
 def pausar() -> bool:
     try:
-        input("\n   Presione Enter para continuar...")
+        esperar(input, "\n   Presione Enter para continuar...")
     except (KeyboardInterrupt, EOFError):
         return False
     return True
@@ -465,35 +500,45 @@ def pausar() -> bool:
 
 def usar_sesion(sesion: Usuario) -> bool:
     """El menú de una sesión. True: volver al inicio (cerró o caducó). False: salir del programa."""
+    global VENCE
     opciones = opciones_de(sesion)
-    ultima = time.monotonic()
+    VENCE = time.monotonic() + INACTIVIDAD_MAXIMA
+    try:
+        return recorrer_menu(sesion, opciones)
+    except SesionCaducada:
+        limpiar()                      # lo que quedó en pantalla no queda a la vista (H-11)
+        print(SESION_CADUCADA)
+        return True
+    finally:
+        VENCE = None
+
+
+def recorrer_menu(sesion: Usuario, opciones: list[tuple]) -> bool:
     while True:
         mostrar_menu(sesion, opciones)
         try:
-            eleccion = input("\n   Opción: ").strip()
+            eleccion = esperar(input, "\n   Opción: ").strip()
         except (KeyboardInterrupt, EOFError):
             return False
-        # La espera ante el menú también cuenta como inactividad (RF-SEG-09).
-        if time.monotonic() - ultima > INACTIVIDAD_MAXIMA:
-            print(SESION_CADUCADA)
-            return True
         resultado = ejecutar_opcion(eleccion, opciones, sesion)
         if resultado is not None:
             return resultado
         if not pausar():
             return False
-        ultima = time.monotonic()
 
 
 def ejecutar_opcion(eleccion: str, opciones: list[tuple], sesion: Usuario) -> bool | None:
     """None: seguir en el menú. True: volver al inicio. False: salir del programa."""
     if eleccion == "0":
         return False
-    if not (eleccion.isdecimal() and 1 <= int(eleccion) <= len(opciones)):
+    # El largo va antes de int(): con más de 4.300 dígitos, int() lanza ValueError (H-12).
+    if not (len(eleccion) <= 3 and eleccion.isdecimal() and 1 <= int(eleccion) <= len(opciones)):
         print("   ! Opción desconocida.")
         return None
     try:
         return None if atender(opciones[int(eleccion) - 1][3], sesion) else False
+    except SesionCaducada:
+        raise
     except CerrarSesion:
         print("   Sesión cerrada.")
         return True
@@ -509,6 +554,9 @@ def alta_inicial() -> None:
             return
         except (ReglaNegocioError, ValueError, TypeError) as error:
             print(f"   ! {error}")
+        except PermissionError as error:       # otro equipo creó la primera cuenta (H-12)
+            print(f"   ! {error}")
+            return
 
 
 def inicio() -> bool:
@@ -538,6 +586,7 @@ def inicio() -> bool:
 
 
 def main() -> None:
+    os.umask(0o077)       # la base, su diario y la clave nacen solo para su dueño (H-15)
     try:
         crear_tablas()
         if not hay_usuarios():
@@ -550,6 +599,9 @@ def main() -> None:
         print("   ! No se pudo abrir la base de datos. El programa se cierra.")
     except (Cancelado, KeyboardInterrupt, EOFError):
         print(INTERRUMPIDO)
+    except Exception as error:
+        # Último recurso: nunca una traza con rutas o datos (RNF-SEG-05, H-12).
+        print(f"   ! Error inesperado ({type(error).__name__}). El programa se cierra.")
 
 
 if __name__ == "__main__":

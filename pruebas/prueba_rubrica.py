@@ -12,7 +12,7 @@ import sqlite3
 import sys
 import tempfile
 import time
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from importlib.metadata import version
 from pathlib import Path
 
@@ -199,7 +199,7 @@ def g18() -> None:
     otra = sqlite3.connect(v.RUTA_ACTIVA)
     hasta = otra.execute("SELECT bloqueado_hasta FROM usuario WHERE correo = 'pedro@c.cl'").fetchone()[0]
     otra.close()
-    assert datetime.fromisoformat(hasta) > datetime.now() + timedelta(minutes=4)
+    assert datetime.fromisoformat(hasta) > datetime.now(timezone.utc) + timedelta(minutes=4)
     ok("G.18", "5 fallos seguidos bloquean 5 minutos, aun con la contraseña correcta, y el bloqueo"
                " queda en la base")
     for clave, motivo in (("a" * 11, "11 caracteres"), ("Pedro2@c.cl", "igual al correo")):
@@ -236,7 +236,8 @@ def i19() -> None:
         assert os.stat(v.RUTA_CLAVE).st_mode & 0o777 == 0o600
         ok("I.19", "la base y la clave quedan con permisos 0600, solo para su dueño")
     assert ".env" in (RAIZ / ".gitignore").read_text() and "*.db" in (RAIZ / ".gitignore").read_text()
-    ok("I.19", "la clave (.env) y la base (*.db) no viajan al repositorio")
+    assert RAIZ not in g15.ruta_clave_real.parents
+    ok("I.19", "la clave vive fuera del proyecto (carpeta del usuario) y la base no viaja al repositorio")
     assert cliente.rut_enmascarado() == "12.***.***-5" and cliente.telefono_enmascarado() == "+56 9 **** 4321"
     assert all("12345678" not in str(r) for r in v.Reserva.listar_por_paquete(paquete, g15.admin))
     assert "12345678" not in repr(cliente)
@@ -286,8 +287,8 @@ def main() -> None:
     v.autoverificar()
     os.environ.pop(v.VARIABLE_CLAVE, None)      # la clave se crea en la carpeta temporal
     with tempfile.TemporaryDirectory() as carpeta:
-        original = v.RUTA_CLAVE
-        v.RUTA_CLAVE = Path(carpeta) / ".env"
+        original = g15.ruta_clave_real = v.RUTA_CLAVE
+        v.RUTA_CLAVE = Path(carpeta) / "clave.env"
         v.cifrador.cache_clear()
         try:
             v.usar_base(os.path.join(carpeta, "rubrica.db"))
