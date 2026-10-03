@@ -278,3 +278,64 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
    Opción: 0
    Hasta luego.
 ```
+
+## Sesión que caduca por inactividad (RF-SEG-09)
+
+El reloj se adelanta 11 minutos mientras el menú espera.
+
+```text
+
+   Primer uso: cree la cuenta del primer administrador.
+   Correo: ana@viajes.cl
+   Contraseña nueva (12 caracteres o más): ••••
+   Repita la contraseña: ••••
+   Cuenta creada para ana@viajes.cl. Ahora inicie sesión.
+
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Iniciar sesión
+   2. Registrarme como cliente
+   0. Salir
+
+   Opción: 1
+
+   Inicio de sesión (escriba x para cancelar)
+   Correo: ana@viajes.cl
+   Contraseña: ••••
+[pantalla limpia]
+==================================================================
+   Viajes Aventura · ana@viajes.cl (administrador)
+==================================================================
+
+   DESTINOS
+    1. Listar el catálogo
+    2. Registrar un destino
+    3. Editar un destino
+    4. Cambiar el costo de un destino
+    5. Eliminar un destino
+    6. Volver a ofrecer un destino
+
+   CUENTAS
+    7. Crear la cuenta de un socio
+
+   MI CUENTA
+    8. Cambiar mi contraseña
+    9. Cerrar sesión
+
+   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+==================================================================
+
+   Opción: 7
+   ! La sesión se cerró por inactividad. Inicie sesión de nuevo.
+
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Iniciar sesión
+   2. Registrarme como cliente
+   0. Salir
+
+   Opción: 0
+   Hasta luego.
+```

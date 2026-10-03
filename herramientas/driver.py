@@ -77,8 +77,8 @@ ESPERADO = [
 ]
 
 
-def ejecutar() -> str:
-    pendientes = list(GUION)
+def ejecutar(guion: list[str] = GUION, esperado: list[str] = ESPERADO) -> str:
+    pendientes = list(guion)
     salida = io.StringIO()
 
     def teclear(mensaje: str = "", oculto: bool = False) -> str:
@@ -103,9 +103,36 @@ def ejecutar() -> str:
     texto = condensar(salida.getvalue())
     assert "Traceback" not in texto, "la sesión mostró un Traceback"
     assert not pendientes, f"quedaron {len(pendientes)} respuestas sin usar: {pendientes[:3]}"
-    faltan = [e for e in ESPERADO if e not in texto]
+    faltan = [e for e in esperado if e not in texto]
     assert not faltan, f"la sesión no mostró: {faltan}"
-    assert texto.count("Correo o contraseña incorrectos") == 2
+    return texto
+
+
+class RelojQueSalta:
+    """time.monotonic falso: el primer llamado da 0 y los siguientes, 11 minutos después."""
+
+    def __init__(self):
+        self.__llamados = 0
+
+    def monotonic(self) -> float:
+        self.__llamados += 1
+        return 0.0 if self.__llamados == 1 else 11 * 60.0
+
+
+def probar_inactividad() -> str:
+    """RF-SEG-09: tras más de 10 minutos ante el menú, la opción elegida no se ejecuta."""
+    guion = ["ana@viajes.cl", "clave-larga-de-ana", "clave-larga-de-ana",
+             "1", "ana@viajes.cl", "clave-larga-de-ana",
+             "7",                     # crear un socio: no debe llegar a pedir el correo
+             "0"]
+    import main
+    original = main.time
+    main.time = RelojQueSalta()
+    try:
+        texto = ejecutar(guion, ["La sesión se cerró por inactividad"])
+    finally:
+        main.time = original
+    assert "Correo del socio" not in texto, "la sesión caducada ejecutó la opción"
     return texto
 
 
@@ -125,9 +152,13 @@ def condensar(texto: str) -> str:
 
 if __name__ == "__main__":
     sesion = ejecutar()
+    assert sesion.count("Correo o contraseña incorrectos") == 2     # RF-SEG-02
+    caducada = probar_inactividad()
     destino = RAIZ / "docs" / "SALIDA_TERMINAL.md"
     destino.parent.mkdir(exist_ok=True)
     destino.write_text("# Sesión real del menú\n\nGenerada por `herramientas/driver.py` sobre una "
                        "base temporal. Las contraseñas se teclearon sin eco y aquí se ven como ••••."
-                       "\n\n```text\n" + sesion + "```\n", encoding="utf-8")
+                       "\n\n```text\n" + sesion + "```\n\n## Sesión que caduca por inactividad"
+                       " (RF-SEG-09)\n\nEl reloj se adelanta 11 minutos mientras el menú espera.\n\n"
+                       "```text\n" + caducada + "```\n", encoding="utf-8")
     print(f"OK: {destino.relative_to(RAIZ)} ({sesion.count(chr(10))} líneas)")

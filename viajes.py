@@ -670,14 +670,32 @@ class Destino:
 
 def autoverificar() -> None:
     """Recorre las reglas sobre una base temporal y falla con AssertionError si alguna se rompe."""
-    os.environ[VARIABLE_CLAVE] = Fernet.generate_key().decode()   # nunca toca el .env real
-    cifrador.cache_clear()
-    with tempfile.TemporaryDirectory() as carpeta:
-        usar_base(os.path.join(carpeta, "prueba.db"))
-        crear_tablas()
-        _verificar_cuentas()
-        _verificar_destinos()
+    global RUTA_CLAVE
+    original = RUTA_CLAVE
+    os.environ.pop(VARIABLE_CLAVE, None)            # la clave se crea en la carpeta temporal,
+    with tempfile.TemporaryDirectory() as carpeta:  # nunca en el .env real
+        RUTA_CLAVE = Path(carpeta) / ".env"
+        cifrador.cache_clear()
+        try:
+            usar_base(os.path.join(carpeta, "prueba.db"))
+            crear_tablas()
+            _verificar_clave_y_permisos(carpeta)
+            _verificar_cuentas()
+            _verificar_destinos()
+        finally:
+            RUTA_CLAVE = original
+            cifrador.cache_clear()
     print("OK")
+
+
+def _verificar_clave_y_permisos(carpeta: str) -> None:
+    # S-12: la clave se crea en el primer uso, fuera de la base, con un nombre de variable fijo.
+    cifrador()
+    assert RUTA_CLAVE.read_text(encoding="utf-8").startswith(f"{VARIABLE_CLAVE}=")
+    # RNF-SEG-04: la base y la clave quedan solo para su dueño. Windows no tiene estos permisos.
+    if os.name == "posix":
+        for archivo in (RUTA_ACTIVA, RUTA_CLAVE):
+            assert os.stat(archivo).st_mode & 0o777 == 0o600, archivo
 
 
 def _rechaza(error: type[Exception], accion, *args, regla: str | None = None) -> None:
@@ -736,6 +754,14 @@ def _verificar_cuentas() -> None:
     alterado = fila["rut_cifrado"][:-6] + ("A" if fila["rut_cifrado"][-6] != "A" else "B") \
         + fila["rut_cifrado"][-5:]
     _rechaza(ValueError, descifrar, alterado)
+
+    # S-12: si la clave se pierde con datos ya cifrados, no se crea otra (los dejaría ilegibles).
+    respaldo = RUTA_CLAVE.read_bytes()
+    RUTA_CLAVE.unlink()
+    cifrador.cache_clear()
+    _rechaza(RuntimeError, cifrador)
+    RUTA_CLAVE.write_bytes(respaldo)
+    cifrador.cache_clear()
 
     # RF-SEG-10 y C4: enmascarado, y fuera de la representación del objeto.
     assert carolina.rut_enmascarado() == "12.***.***-5"
