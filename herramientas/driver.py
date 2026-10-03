@@ -14,6 +14,7 @@ import os
 import sys
 import tempfile
 from contextlib import redirect_stdout
+from datetime import date, timedelta
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -25,11 +26,15 @@ import viajes  # noqa: E402
 
 ENTER = ""
 CAROLINA = "carolina@correo.cl"
+SALIDA = (date.today() + timedelta(days=30)).strftime("%d-%m-%Y")
+REGRESO = (date.today() + timedelta(days=35)).strftime("%d-%m-%Y")
 # Cada línea: lo que se teclea. Las contraseñas van por getpass y en la salida se ven como ••••.
+# Menú del administrador: 1-6 destinos, 7-13 paquetes, 14 crear socio, 15 contraseña, 16 cerrar.
+# Menú del cliente: 1-4 reservas, 5-6 mis datos, 7 contraseña, 8 cerrar sesión.
 GUION = [
     # Primer uso (S-04): la base no tiene cuentas.
     "ana@viajes.cl", "clave-larga-de-ana", "clave-larga-de-ana",
-    # Inicio de sesión del administrador.
+    # Inicio de sesión del administrador: catálogo de destinos.
     "1", "ana@viajes.cl", "clave-larga-de-ana",
     "2", "Valle del Elqui", "Norte Chico", "Observación astronómica y pisco", "3", "120.000", ENTER,
     "2", "valle del  elqui", "Norte", "Repetido a propósito (R1)", "2", "1", ENTER,
@@ -39,10 +44,19 @@ GUION = [
     "1", "n", ENTER,
     "5", "2", "s", ENTER,
     "1", "s", ENTER,
-    "7", "matias@viajes.cl", "clave-larga-de-matias", "clave-larga-de-matias", ENTER,
+    "2", "Salar de Surire", "Altiplano", "Flamencos y termas", "4", "310.000", ENTER,
+    # Paquetes: uno con un solo destino (R3), uno válido, publicarlo y bajar el cupo.
+    "8", "Solo uno", SALIDA, REGRESO, "12", "1", ENTER, ENTER,
+    "8", "Altiplano y estrellas", SALIDA, REGRESO, "12", "2,1", ENTER, "s", ENTER,
+    "9", "1", "s", ENTER,
+    "10", "1", ENTER,
+    "11", "1", "10", ENTER,
+    "7", ENTER,
+    # Cuentas, cancelación y opción inexistente.
+    "14", "matias@viajes.cl", "clave-larga-de-matias", "clave-larga-de-matias", ENTER,
     "2", "Torres del Paine", "x", ENTER,
-    "11", ENTER,
-    "9",
+    "99", ENTER,
+    "16",
     # Registro público de un cliente: el RUT con el dígito verificador malo se rechaza al
     # escribirlo, y se vuelve a pedir; una contraseña corta la rechaza el dominio.
     "2", "Carolina Díaz", "12.345.678-6", "12.345.678-5", CAROLINA, "9 1234 5678",
@@ -52,11 +66,24 @@ GUION = [
     # Contraseña errónea y correo inexistente: el mismo mensaje (RF-SEG-02).
     "1", CAROLINA, "clave-equivocada",
     "1", "nadie@correo.cl", "clave-equivocada",
-    # Sesión de cliente: solo ve «Mi cuenta» (RNF-USA-03).
+    # Sesión de cliente: oferta, reserva, segunda reserva advertida, sobre el cupo, anulación.
     "1", CAROLINA, "clave-de-carolina",
     "1", ENTER,
-    "2", "Carolina Díaz Rojas", "987654321", ENTER,
-    "4",
+    "2", "1", "2", ENTER,
+    "2", "1", "n", ENTER,
+    "2", "1", "s", "20", ENTER,
+    "3", ENTER,
+    "2", "1", "s", "1", ENTER,
+    "4", "2", ENTER,
+    "5", ENTER,
+    "6", "Carolina Díaz Rojas", "987654321", ENTER,
+    "8",
+    # El administrador ve quién viaja: nombre y correo, sin RUT ni teléfono (RF-RES-11).
+    "1", "ana@viajes.cl", "clave-larga-de-ana",
+    "13", "1", ENTER,
+    "16",
+    # Sin sesión también se ve la oferta (S-09).
+    "3",
     "0",
 ]
 
@@ -65,6 +92,12 @@ ESPERADO = [
     "Ya existe un destino con ese nombre",
     "El costo base debe estar entre 1 y 100.000.000",
     "Eliminado del catálogo.",
+    "Un paquete combina entre 2 y 5 destinos",
+    "Precio por persona calculado: $528.000",
+    "Guardado en borrador:",
+    "Publicado: [1] Altiplano y estrellas",
+    "Solo se edita un paquete en borrador",
+    "cupo 10 de 10 · publicado",
     "Cuenta de administrador creada para matias@viajes.cl.",
     "Acción cancelada. No se guardó nada.",
     "Sesión cerrada.",
@@ -72,8 +105,15 @@ ESPERADO = [
     "La contraseña debe tener entre 12 y 128 caracteres",
     "Cuenta creada para carolina@correo.cl.",
     "carolina@correo.cl (cliente)",
+    "Reserva confirmada por $1.056.000.",
+    "Ya tiene una reserva vigente en este paquete",
+    "No hay cupo: quedan 8 lugares",
+    "Reserva confirmada por $528.000.",
+    "Reserva anulada.",
     "RUT:      12.***.***-5",
     "Teléfono: +56 9 **** 4321",
+    "Carolina Díaz Rojas <carolina@correo.cl>",
+    "· anulada",
 ]
 
 
@@ -123,7 +163,7 @@ def probar_inactividad() -> str:
     """RF-SEG-09: tras más de 10 minutos ante el menú, la opción elegida no se ejecuta."""
     guion = ["ana@viajes.cl", "clave-larga-de-ana", "clave-larga-de-ana",
              "1", "ana@viajes.cl", "clave-larga-de-ana",
-             "7",                     # crear un socio: no debe llegar a pedir el correo
+             "14",                    # crear un socio: no debe llegar a pedir el correo
              "0"]
     import main
     original = main.time
