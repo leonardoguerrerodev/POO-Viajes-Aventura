@@ -36,7 +36,7 @@ from cryptography.fernet import Fernet, InvalidToken  # cifrado autenticado: AES
 # 1. VALIDACIONES Y AUTORIZACIÓN COMPARTIDAS
 # =====================================================================
 
-# Todo entero que llega del usuario tiene techo: sin techo, un número de 25 dígitos
+# Cada entero que llega del usuario tiene techo: sin techo, un número de 25 dígitos
 # termina en OverflowError al guardarlo (regla 8 de EcoTech).
 COSTO_MAXIMO = 100_000_000
 DURACION_MAXIMA = 365
@@ -57,6 +57,7 @@ HASHER = PasswordHasher(time_cost=4)
 # o en un archivo .env junto a este archivo, con permisos 0600.
 RUTA_CLAVE = Path(__file__).with_name(".env")
 VARIABLE_CLAVE = "VIAJES_CLAVE_DATOS"
+CAMPO_NOMBRE = "El nombre"
 
 # Acciones que un rol puede tener. Un texto fuera de este conjunto es un error de
 # programación y se rechaza: así un permiso mal escrito no se convierte en un «no» silencioso.
@@ -309,15 +310,16 @@ class Usuario(ABC):
     cada uno responde distinto a puede() (polimorfismo).
     """
 
+    # El contador de intentos fallidos vive solo en la base: lo suma y lo reinicia una sentencia
+    # SQL (ver __intentar), y el objeto nunca lo necesita (decisión 11 del modelo).
     COLUMNAS = ("id, correo, hash_clave, rol, nombre, rut_cifrado, telefono_cifrado,"
-                " intentos_fallidos, bloqueado_hasta")
+                " bloqueado_hasta")
     MAX_INTENTOS = 5
     BLOQUEO = timedelta(minutes=5)
     _senuelo: str | None = None         # hash que se verifica cuando el correo no existe
 
     def __init__(self, correo: str, clave: str | None = None, *, id: int | None = None,
-                 hash_clave: str | None = None, intentos_fallidos: int = 0,
-                 bloqueado_hasta: datetime | None = None):
+                 hash_clave: str | None = None, bloqueado_hasta: datetime | None = None):
         self.__id = id
         self.__correo = validar_correo(correo)
         if hash_clave is None:
@@ -325,7 +327,6 @@ class Usuario(ABC):
             self._validar_clave(clave)
             hash_clave = HASHER.hash(clave)
         self.__hash_clave = hash_clave
-        self.__intentos_fallidos = intentos_fallidos
         self.__bloqueado_hasta = bloqueado_hasta
 
     def obtener_id(self) -> int | None:
@@ -382,27 +383,36 @@ class Usuario(ABC):
                 fila = con.execute(f"SELECT {cls.COLUMNAS} FROM usuario WHERE correo = ?",
                                    (correo,)).fetchone()
         if fila is None:
-            if cls._senuelo is None:
-                Usuario._senuelo = HASHER.hash(secrets.token_urlsafe(16))
-            try:
-                HASHER.verify(cls._senuelo, clave if isinstance(clave, str) else "")
-            except VerificationError:
-                pass
+            cls.__senuelo(clave)
             return None
         usuario = _usuario_desde_fila(fila)
+        return usuario if usuario.__intentar(clave) else None
+
+    @classmethod
+    def __senuelo(cls, clave: str) -> None:
+        """Verifica la clave contra un hash al azar: el correo inexistente tarda lo mismo."""
+        if cls._senuelo is None:
+            Usuario._senuelo = HASHER.hash(secrets.token_urlsafe(16))
+        try:
+            HASHER.verify(cls._senuelo, clave if isinstance(clave, str) else "")
+        except VerificationError:
+            pass
+
+    def __intentar(self, clave: str) -> bool:
+        """Un intento de inicio de sesión sobre esta cuenta: True si entra. Registra el resultado."""
         ahora = datetime.now()
-        bloqueada = (usuario.__bloqueado_hasta is not None and ahora < usuario.__bloqueado_hasta)
-        correcta = isinstance(clave, str) and usuario.__verificar(clave)
+        bloqueada = self.__bloqueado_hasta is not None and ahora < self.__bloqueado_hasta
+        correcta = isinstance(clave, str) and self.__verificar(clave)   # siempre: misma demora
         if bloqueada:
-            return None
+            return False
         with conectar() as con:
             if correcta:
                 # Si los parámetros de Argon2 subieron desde que se creó el hash, se rehace ahora,
                 # que es el único momento en que se tiene la contraseña en claro.
-                if HASHER.check_needs_rehash(usuario.__hash_clave):
-                    usuario.__hash_clave = HASHER.hash(clave)
+                if HASHER.check_needs_rehash(self.__hash_clave):
+                    self.__hash_clave = HASHER.hash(clave)
                 con.execute("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL,"
-                            " hash_clave = ? WHERE id = ?", (usuario.__hash_clave, usuario.__id))
+                            " hash_clave = ? WHERE id = ?", (self.__hash_clave, self.__id))
             else:
                 # Una sola sentencia: dos sesiones que fallan a la vez no pierden un intento.
                 # SQLite evalúa cada CASE con los valores anteriores a la actualización.
@@ -413,9 +423,9 @@ class Usuario(ABC):
                     " intentos_fallidos = CASE WHEN intentos_fallidos + 1 >= ? THEN 0"
                     "                     ELSE intentos_fallidos + 1 END"
                     " WHERE id = ?",
-                    (cls.MAX_INTENTOS, (ahora + cls.BLOQUEO).isoformat(), cls.MAX_INTENTOS,
-                     usuario.__id))
-        return usuario if correcta else None
+                    (self.MAX_INTENTOS, (ahora + self.BLOQUEO).isoformat(), self.MAX_INTENTOS,
+                     self.__id))
+        return correcta
 
     def _insertar(self, rol: str, datos_cliente: tuple[str, str, str] | None = None,
                   solo_si_vacia: bool = False) -> bool:
@@ -447,7 +457,7 @@ class Cliente(Usuario):
                  clave: str | None = None, **cuenta):
         # Los datos se validan antes que la contraseña: el hash es lo caro, y no vale la pena
         # calcularlo para un registro que se va a rechazar.
-        self.__nombre = texto(nombre, "El nombre", 80)
+        self.__nombre = texto(nombre, CAMPO_NOMBRE, 80)
         self.__rut = validar_rut(rut)
         self.__telefono = validar_telefono(telefono)
         super().__init__(correo, clave, **cuenta)
@@ -480,7 +490,7 @@ class Cliente(Usuario):
 
     def actualizar_contacto(self, nombre: str, telefono: str) -> None:
         """U: nombre y teléfono propios (RF-RES-12). El RUT y el correo no cambian."""
-        nombre, telefono = texto(nombre, "El nombre", 80), validar_telefono(telefono)
+        nombre, telefono = texto(nombre, CAMPO_NOMBRE, 80), validar_telefono(telefono)
         with conectar() as con:
             con.execute("UPDATE usuario SET nombre = ?, telefono_cifrado = ? WHERE id = ?",
                         (nombre, cifrar(telefono), self.obtener_id()))
@@ -513,7 +523,6 @@ def _usuario_desde_fila(fila: sqlite3.Row) -> Usuario:
     """La subclase que corresponde al rol guardado, con sus datos personales descifrados."""
     hasta = fila["bloqueado_hasta"]
     cuenta = {"id": fila["id"], "hash_clave": fila["hash_clave"],
-              "intentos_fallidos": fila["intentos_fallidos"],
               "bloqueado_hasta": datetime.fromisoformat(hasta) if hasta else None}
     if fila["rol"] == "CLIENTE":
         return Cliente(fila["nombre"], descifrar(fila["rut_cifrado"]), fila["correo"],
@@ -540,7 +549,7 @@ class Destino:
         self.__fecha_costo = fecha_costo or date.today()
 
     def __fijar_datos(self, nombre, zona, descripcion, duracion_dias) -> None:
-        self.__nombre = texto(nombre, "El nombre", 80)
+        self.__nombre = texto(nombre, CAMPO_NOMBRE, 80)
         self.__zona = texto(zona, "La zona", 80)
         self.__descripcion = texto(descripcion, "La descripción", 500)
         self.__duracion_dias = entero(duracion_dias, "La duración en días", 1,
@@ -682,6 +691,9 @@ def _rechaza(error: type[Exception], accion, *args, regla: str | None = None) ->
     raise AssertionError(f"{getattr(accion, '__name__', accion)} no rechazó {args!r}")
 
 
+CAROLINA = "carolina@correo.cl"            # correo de prueba de la autoverificación
+
+
 def _verificar_cuentas() -> None:
     # S-04: la primera cuenta es de administrador y solo puede crearse una vez.
     assert not hay_usuarios()
@@ -691,7 +703,7 @@ def _verificar_cuentas() -> None:
     assert socio.puede("catalogo") and not socio.puede("reservar")
 
     # RF-RES-01 a RF-RES-03 y RF-SEG-12: el registro público crea clientes y valida cada dato.
-    carolina = Cliente.registrar("Carolina Díaz", "12.345.678-5", "carolina@correo.cl",
+    carolina = Cliente.registrar("Carolina Díaz", "12.345.678-5", CAROLINA,
                                  "+56 9 1234 5678", "clave-de-carolina")
     assert isinstance(carolina, Cliente) and carolina.puede("reservar")
     assert not carolina.puede("catalogo")
@@ -718,7 +730,7 @@ def _verificar_cuentas() -> None:
     # y un dato cifrado alterado da error, no un dato falso.
     with conectar() as con:
         fila = con.execute("SELECT hash_clave, rut_cifrado, telefono_cifrado FROM usuario"
-                           " WHERE correo = 'carolina@correo.cl'").fetchone()
+                           " WHERE correo = ?", (CAROLINA,)).fetchone()
     assert fila["hash_clave"].startswith("$argon2id$")
     assert "12345678" not in fila["rut_cifrado"] and "5678" not in fila["telefono_cifrado"]
     alterado = fila["rut_cifrado"][:-6] + ("A" if fila["rut_cifrado"][-6] != "A" else "B") \
@@ -735,25 +747,25 @@ def _verificar_cuentas() -> None:
     assert isinstance(entrada, Cliente) and entrada.rut_enmascarado() == "12.***.***-5"
     assert isinstance(Usuario.autenticar("ana@viajes.cl", "clave-larga-de-ana"), Administrador)
     assert Usuario.autenticar("nadie@correo.cl", "clave-de-carolina") is None
-    assert Usuario.autenticar("carolina@correo.cl", "otra-clave") is None
+    assert Usuario.autenticar(CAROLINA, "otra-clave") is None
     assert Usuario.autenticar("no es correo", "x") is None
 
     # RF-SEG-03: cinco fallos seguidos bloquean, aun con la contraseña correcta, y el bloqueo
     # está en la base (sobrevive a cerrar el programa). Al vencer, se puede entrar.
     for _ in range(4):
-        Usuario.autenticar("carolina@correo.cl", "otra-clave")   # 1 ya contó arriba: 5 en total
-    assert Usuario.autenticar("carolina@correo.cl", "clave-de-carolina") is None
+        Usuario.autenticar(CAROLINA, "otra-clave")   # 1 ya contó arriba: 5 en total
+    assert Usuario.autenticar(CAROLINA, "clave-de-carolina") is None
     with conectar() as con:
-        con.execute("UPDATE usuario SET bloqueado_hasta = ? WHERE correo = 'carolina@correo.cl'",
-                    ((datetime.now() - timedelta(seconds=1)).isoformat(),))
-    assert Usuario.autenticar("carolina@correo.cl", "clave-de-carolina") is not None
+        con.execute("UPDATE usuario SET bloqueado_hasta = ? WHERE correo = ?",
+                    ((datetime.now() - timedelta(seconds=1)).isoformat(), CAROLINA))
+    assert Usuario.autenticar(CAROLINA, "clave-de-carolina") is not None
 
     # RF-SEG-11 y RF-RES-12.
     _rechaza(PermissionError, carolina.cambiar_clave, "clave-equivocada", "nueva-clave-larga")
     carolina.cambiar_clave("clave-de-carolina", "nueva-clave-larga")
-    assert Usuario.autenticar("carolina@correo.cl", "nueva-clave-larga") is not None
+    assert Usuario.autenticar(CAROLINA, "nueva-clave-larga") is not None
     carolina.actualizar_contacto("Carolina Díaz R.", "987654321")
-    releida = Usuario.autenticar("carolina@correo.cl", "nueva-clave-larga")
+    releida = Usuario.autenticar(CAROLINA, "nueva-clave-larga")
     assert releida.obtener_nombre() == "Carolina Díaz R."
     assert releida.telefono_enmascarado() == "+56 9 **** 4321"
 

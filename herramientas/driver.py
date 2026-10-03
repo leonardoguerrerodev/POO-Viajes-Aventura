@@ -24,6 +24,7 @@ from cryptography.fernet import Fernet  # noqa: E402
 import viajes  # noqa: E402
 
 ENTER = ""
+CAROLINA = "carolina@correo.cl"
 # Cada línea: lo que se teclea. Las contraseñas van por getpass y en la salida se ven como ••••.
 GUION = [
     # Primer uso (S-04): la base no tiene cuentas.
@@ -44,15 +45,15 @@ GUION = [
     "9",
     # Registro público de un cliente: el RUT con el dígito verificador malo se rechaza al
     # escribirlo, y se vuelve a pedir; una contraseña corta la rechaza el dominio.
-    "2", "Carolina Díaz", "12.345.678-6", "12.345.678-5", "carolina@correo.cl", "9 1234 5678",
+    "2", "Carolina Díaz", "12.345.678-6", "12.345.678-5", CAROLINA, "9 1234 5678",
     "corta", "corta",
-    "2", "Carolina Díaz", "12.345.678-5", "carolina@correo.cl", "9 1234 5678",
+    "2", "Carolina Díaz", "12.345.678-5", CAROLINA, "9 1234 5678",
     "clave-de-carolina", "clave-de-carolina",
     # Contraseña errónea y correo inexistente: el mismo mensaje (RF-SEG-02).
-    "1", "carolina@correo.cl", "clave-equivocada",
+    "1", CAROLINA, "clave-equivocada",
     "1", "nadie@correo.cl", "clave-equivocada",
     # Sesión de cliente: solo ve «Mi cuenta» (RNF-USA-03).
-    "1", "carolina@correo.cl", "clave-de-carolina",
+    "1", CAROLINA, "clave-de-carolina",
     "1", ENTER,
     "2", "Carolina Díaz Rojas", "987654321", ENTER,
     "4",
