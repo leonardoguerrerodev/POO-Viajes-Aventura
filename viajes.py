@@ -383,7 +383,7 @@ class Usuario(ABC):
 
     # El contador de intentos fallidos vive solo en la base: lo suma y lo reinicia una sentencia
     # SQL (ver __intentar), y el objeto nunca lo necesita (decisión 11 del modelo).
-    # Todo el SQL es texto literal: ninguna consulta se arma pegando textos (RNF-SEG-03, bandit B608).
+    # El SQL completo es texto literal: ninguna consulta se arma pegando textos (RNF-SEG-03, bandit B608).
     SQL_POR_CORREO = ("SELECT id, correo, hash_clave, rol, nombre, rut_cifrado, telefono_cifrado, bloqueado_hasta"
                       " FROM usuario WHERE correo = ?")
     MAX_INTENTOS = 5
@@ -1198,7 +1198,8 @@ def _rechaza(error: type[Exception], accion, *args, regla: str | None = None) ->
     raise AssertionError(f"{getattr(accion, '__name__', accion)} no rechazó {args!r}")
 
 
-CAROLINA = "carolina@correo.cl"            # correo de prueba de la autoverificación
+CAROLINA = "carolina@correo.cl"            # correos de prueba de la autoverificación
+PEDRO = "pedro@correo.cl"
 
 
 def _verificar_cuentas() -> None:
@@ -1343,7 +1344,7 @@ def _verificar_destinos() -> None:
 
 def _verificar_paquetes_y_reservas() -> None:
     admin, carolina = _verificar_cuentas.cuentas
-    pedro = Cliente.registrar("Pedro Soto", "11.111.111-1", "pedro@correo.cl", "922223333",
+    pedro = Cliente.registrar("Pedro Soto", "11.111.111-1", PEDRO, "922223333",
                               "clave-de-pedro-1")
     salida, regreso = date.today() + timedelta(days=30), date.today() + timedelta(days=35)
     surire = Destino("Salar de Surire 2", "Altiplano", "Flamencos", 4, 310_000)
@@ -1500,7 +1501,7 @@ def _verificar_paquetes_y_reservas() -> None:
 
 
 def _verificar_auditoria() -> None:
-    admin, carolina = _verificar_cuentas.cuentas
+    admin, _ = _verificar_cuentas.cuentas
     with conectar() as con:
         filas = con.execute("SELECT usuario_id, accion, detalle FROM auditoria").fetchall()
     acciones = {f["accion"] for f in filas}
@@ -1543,14 +1544,14 @@ def _verificar_auditoria() -> None:
                    CUPO_MAXIMO, caros, MARGEN_MAXIMO)
     lujo.guardar(admin)
     lujo.publicar(admin)
-    pedro = Usuario.autenticar("pedro@correo.cl", "clave-de-pedro-1")
+    pedro = Usuario.autenticar(PEDRO, "clave-de-pedro-1")
     assert Reserva.reservar(lujo, CUPO_MAXIMO, pedro).obtener_total() == PRECIO_MAXIMO * CUPO_MAXIMO
     assert max(r.obtener_total() for r in pedro.historial()) == PRECIO_MAXIMO * CUPO_MAXIMO
 
     # H-04 y H-05: un RUT alterado en la base no impide entrar ni listar; solo falla al mostrarlo.
     with conectar() as con:
-        con.execute("UPDATE usuario SET rut_cifrado = 'alterado' WHERE correo = 'pedro@correo.cl'")
-    pedro = Usuario.autenticar("pedro@correo.cl", "clave-de-pedro-1")
+        con.execute("UPDATE usuario SET rut_cifrado = 'alterado' WHERE correo = ?", (PEDRO,))
+    pedro = Usuario.autenticar(PEDRO, "clave-de-pedro-1")
     assert pedro is not None and len(Reserva.listar_por_paquete(lujo, admin)) == 1
     _rechaza(ValueError, pedro.rut_enmascarado)
 

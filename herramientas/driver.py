@@ -180,8 +180,8 @@ def probar_inactividad() -> str:
     assert "Correo del socio" not in texto, "la sesión caducada ejecutó la opción"
     # H-11: también dentro de una acción. Se elige «crear socio» a tiempo, pero el correo llega
     # 11 minutos después: la cuenta no se crea.
-    guion = ["ana@viajes.cl", "clave-larga-de-ana", "clave-larga-de-ana",
-             "1", "ana@viajes.cl", "clave-larga-de-ana",
+    guion = [ANA, "clave-larga-de-ana", "clave-larga-de-ana",
+             "1", ANA, "clave-larga-de-ana",
              "14", "intruso@viajes.cl",
              "0"]
     dentro = con_reloj(RelojQueSalta([0, 10, 10, 11 * 60 + 20]), guion)

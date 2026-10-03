@@ -173,13 +173,16 @@ def g17() -> None:
 
 # --- 4.1.5.G.18: validación rigurosa de credenciales en todos los escenarios ---
 
+PEDRO, NADIE = "pedro@c.cl", "nadie@c.cl"
+
+
 def g18() -> None:
-    cuenta = v.Cliente.registrar("Pedro", "11.111.111-1", "pedro@c.cl", "922223333", "clave-de-pedro-1")
+    cuenta = v.Cliente.registrar("Pedro", "11.111.111-1", PEDRO, "922223333", "clave-de-pedro-1")
     assert isinstance(v.Usuario.autenticar("PEDRO@c.cl", "clave-de-pedro-1"), v.Cliente)
     ok("G.18", "credenciales correctas: entra, sin importar mayúsculas en el correo")
-    assert v.Usuario.autenticar("pedro@c.cl", "clave-equivocada") is None
-    assert v.Usuario.autenticar("nadie@c.cl", "clave-de-pedro-1") is None
-    assert v.Usuario.autenticar("no es correo", "") is None and v.Usuario.autenticar("", None) is None
+    assert v.Usuario.autenticar(PEDRO, "clave-equivocada") is None
+    assert v.Usuario.autenticar(NADIE, "clave-de-pedro-1") is None
+    assert v.Usuario.autenticar("no es correo", "") is None and v.Usuario.autenticar("", "") is None
     ok("G.18", "contraseña errónea, correo inexistente, formato inválido o vacío: la misma respuesta")
 
     def demora(correo: str) -> float:
@@ -188,18 +191,18 @@ def g18() -> None:
             v.Usuario.autenticar(correo, "otra-clave-x")
         return time.perf_counter() - inicio
 
-    v.Usuario.autenticar("nadie@c.cl", "x")                 # el hash señuelo se calcula una vez
-    existe, no_existe = demora("pedro@c.cl"), demora("nadie@c.cl")
+    v.Usuario.autenticar(NADIE, "x")                 # el hash señuelo se calcula una vez
+    existe, no_existe = demora(PEDRO), demora(NADIE)
     assert 0.5 < existe / no_existe < 2, (existe, no_existe)
     ok("G.18", f"el correo inexistente tarda lo mismo que uno existente ({no_existe / 3 * 1000:.0f} ms"
                f" contra {existe / 3 * 1000:.0f} ms): no revela qué correos hay")
     with v.conectar() as con:
-        con.execute("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE correo = 'pedro@c.cl'")
+        con.execute("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE correo = ?", (PEDRO,))
     for _ in range(5):
-        v.Usuario.autenticar("pedro@c.cl", "clave-equivocada")
-    assert v.Usuario.autenticar("pedro@c.cl", "clave-de-pedro-1") is None
+        v.Usuario.autenticar(PEDRO, "clave-equivocada")
+    assert v.Usuario.autenticar(PEDRO, "clave-de-pedro-1") is None
     otra = sqlite3.connect(v.RUTA_ACTIVA)
-    hasta = otra.execute("SELECT bloqueado_hasta FROM usuario WHERE correo = 'pedro@c.cl'").fetchone()[0]
+    hasta = otra.execute("SELECT bloqueado_hasta FROM usuario WHERE correo = ?", (PEDRO,)).fetchone()[0]
     otra.close()
     assert datetime.fromisoformat(hasta) > datetime.now(timezone.utc) + timedelta(minutes=4)
     ok("G.18", "5 fallos seguidos bloquean 5 minutos, aun con la contraseña correcta, y el bloqueo"
@@ -211,11 +214,11 @@ def g18() -> None:
     ok("G.18", "cambiar la contraseña exige la actual")
     debil = PasswordHasher(time_cost=1, memory_cost=8192, parallelism=1).hash("clave-de-pedro-1")
     with v.conectar() as con:
-        con.execute("UPDATE usuario SET hash_clave = ?, bloqueado_hasta = NULL WHERE correo = 'pedro@c.cl'",
-                    (debil,))
-    assert v.Usuario.autenticar("pedro@c.cl", "clave-de-pedro-1") is not None
+        con.execute("UPDATE usuario SET hash_clave = ?, bloqueado_hasta = NULL WHERE correo = ?",
+                    (debil, PEDRO))
+    assert v.Usuario.autenticar(PEDRO, "clave-de-pedro-1") is not None
     with v.conectar() as con:
-        nuevo = con.execute("SELECT hash_clave FROM usuario WHERE correo = 'pedro@c.cl'").fetchone()[0]
+        nuevo = con.execute("SELECT hash_clave FROM usuario WHERE correo = ?", (PEDRO,)).fetchone()[0]
     assert "m=65536,t=4,p=4" in nuevo
     ok("G.18", "un hash con parámetros viejos se rehace al entrar (check_needs_rehash)")
 
