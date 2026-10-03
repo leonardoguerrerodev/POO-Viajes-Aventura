@@ -1,0 +1,29 @@
+name: Pruebas
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  PYTHONUTF8: "1"   # la consola de Windows no es UTF-8 por omisión
+
+jobs:
+  pruebas:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.12", "3.14"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Dependencias fijadas, verificadas por hash
+        run: "pip install --only-binary :all: --require-hashes -r requirements.txt"
+
+      - name: Las librerías de seguridad cargan
+        run: python -c "import argon2, cryptography.fernet; print('OK')"
