@@ -57,6 +57,15 @@ PATRON_TELEFONO = re.compile(r"(?:\+?56)?([2-9]\d{8})", re.ASCII)
 SEPARADORES = re.compile(r"[\s()\-.]")
 
 CLAVE_MINIMA, CLAVE_MAXIMA = 12, 128          # RF-SEG-04; el tope evita hashear textos enormes
+# Contraseñas de 12 o más caracteres que igual se adivinan primero (H-16). Además se exigen al
+# menos 5 caracteres distintos, que descarta «aaaaaaaaaaaa» o «121212121212».
+CLAVES_COMUNES = frozenset({
+    "contraseña123", "contrasena123", "contraseña1234", "contrasena1234", "password1234",
+    "password12345", "passwordpassword", "123456789012", "1234567890123", "12345678901234",
+    "qwertyuiopas", "qwerty123456", "abcdefghijkl", "abc123456789", "iloveyou1234",
+    "administrador", "admin1234567", "viajesaventura", "viajes123456", "valparaiso123",
+    "chile1234567", "bienvenido123", "123456789abc"})
+CLAVE_DISTINTOS = 5
 
 # Argon2id con time_cost=4 y 64 MiB: unos 130 ms por verificación, dentro de lo que pide
 # RNF-REN-02 (entre 0,1 y 1 segundo). Con los valores por omisión medía 98 ms.
@@ -287,6 +296,14 @@ CREATE TABLE IF NOT EXISTS reserva (
     total          INTEGER NOT NULL CHECK (total > 0),                              -- R13
     estado         TEXT    NOT NULL DEFAULT 'VIGENTE' CHECK (estado IN ('VIGENTE', 'ANULADA'))
 );
+-- Registro de auditoría (H-02): quién hizo qué y cuándo. Nunca datos personales ni contraseñas.
+CREATE TABLE IF NOT EXISTS auditoria (
+    id         INTEGER PRIMARY KEY,
+    fecha_utc  TEXT    NOT NULL,
+    usuario_id INTEGER REFERENCES usuario(id),          -- NULL: intento con un correo inexistente
+    accion     TEXT    NOT NULL,
+    detalle    TEXT    NOT NULL DEFAULT ''
+);
 -- Índices en las claves foráneas: el historial (R11) y el cupo (R14) se consultan por ellas.
 CREATE INDEX IF NOT EXISTS ix_paquete_destino_destino ON paquete_destino(destino_id);
 CREATE INDEX IF NOT EXISTS ix_reserva_cliente ON reserva(cliente_id);
@@ -335,6 +352,16 @@ def crear_tablas() -> None:
         os.chmod(RUTA_ACTIVA, 0o600)            # sqlite crea el archivo en 0644 (RNF-SEG-04)
     except OSError:
         print("   ! No se pudieron restringir los permisos de la base de datos.")
+
+
+def registrar_evento(con: sqlite3.Connection, usuario_id: int | None, accion: str, detalle: str = "") -> None:
+    """Agrega una línea al registro de auditoría, en la misma transacción de la operación (H-02).
+
+    Si la operación se deshace, su registro también: el registro nunca dice algo que no ocurrió.
+    El detalle lleva ids y montos, nunca RUT, teléfono, correo ni contraseña.
+    """
+    con.execute("INSERT INTO auditoria (fecha_utc, usuario_id, accion, detalle) VALUES (?, ?, ?, ?)",
+                (datetime.now(timezone.utc).isoformat(timespec="seconds"), usuario_id, accion, detalle))
 
 
 def hay_usuarios() -> bool:
@@ -395,6 +422,8 @@ class Usuario(ABC):
                                     f" y {CLAVE_MAXIMA} caracteres")
         if clave.strip().casefold() == self.__correo:
             raise ReglaNegocioError("RF-SEG-04", "La contraseña no puede ser igual al correo")
+        if clave.casefold() in CLAVES_COMUNES or len(set(clave)) < CLAVE_DISTINTOS:
+            raise ReglaNegocioError("RF-SEG-04", "Esa contraseña es demasiado común o repetitiva")
 
     def __verificar(self, clave: str) -> bool:
         try:
@@ -406,11 +435,20 @@ class Usuario(ABC):
         """RF-SEG-11: exige la contraseña actual antes de aceptar la nueva."""
         if not self.__verificar(actual):
             raise PermissionError("La contraseña actual no es correcta")
+        if nueva == actual:
+            raise ReglaNegocioError("RF-SEG-11", "La contraseña nueva debe ser distinta de la actual")
         self._validar_clave(nueva)
-        self.__hash_clave = HASHER.hash(nueva)
+        nuevo_hash = HASHER.hash(nueva)
+        # Solo si la base todavía tiene el hash que se verificó: si otra sesión ya cambió la
+        # contraseña, esta no puede volver a cambiarla con la contraseña vieja (H-10).
         with conectar() as con:
-            con.execute("UPDATE usuario SET hash_clave = ? WHERE id = ?",
-                        (self.__hash_clave, self.__id))
+            cur = con.execute("UPDATE usuario SET hash_clave = ? WHERE id = ? AND hash_clave = ?",
+                              (nuevo_hash, self.__id, self.__hash_clave))
+            if cur.rowcount == 1:
+                registrar_evento(con, self.__id, "cuenta.cambiar_clave")
+        if cur.rowcount != 1:
+            raise PermissionError("La contraseña cambió en otra sesión: inicie sesión de nuevo")
+        self.__hash_clave = nuevo_hash
 
     @classmethod
     def autenticar(cls, correo: str, clave: str) -> "Usuario | None":
@@ -430,6 +468,8 @@ class Usuario(ABC):
                 fila = con.execute(cls.SQL_POR_CORREO, (correo,)).fetchone()
         if fila is None:
             cls.__senuelo(clave)
+            with conectar() as con:                 # sin el correo: puede ser de otra persona
+                registrar_evento(con, None, "sesion.correo_inexistente")
             return None
         usuario = _usuario_desde_fila(fila)
         return usuario if usuario.__intentar(clave) else None
@@ -456,6 +496,7 @@ class Usuario(ABC):
                                 (self.__id,)).fetchone()["bloqueado_hasta"]
             self.__bloqueado_hasta = datetime.fromisoformat(hasta) if hasta else None
             if self.__bloqueado_hasta is not None and ahora < self.__bloqueado_hasta:
+                registrar_evento(con, self.__id, "sesion.rechazada_bloqueada")
                 return False
             if correcta:
                 # Si los parámetros de Argon2 subieron desde que se creó el hash, se rehace ahora,
@@ -464,6 +505,7 @@ class Usuario(ABC):
                     self.__hash_clave = HASHER.hash(clave)
                 con.execute("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL,"
                             " hash_clave = ? WHERE id = ?", (self.__hash_clave, self.__id))
+                registrar_evento(con, self.__id, "sesion.inicio")
             else:
                 # Una sola sentencia: dos sesiones que fallan a la vez no pierden un intento.
                 # SQLite evalúa cada CASE con los valores anteriores a la actualización.
@@ -476,10 +518,13 @@ class Usuario(ABC):
                     " WHERE id = ?",
                     (self.MAX_INTENTOS, (ahora + self.BLOQUEO).isoformat(), self.MAX_INTENTOS,
                      self.__id))
+                bloqueo = con.execute("SELECT bloqueado_hasta > ? FROM usuario WHERE id = ?",
+                                      (ahora.isoformat(), self.__id)).fetchone()[0]
+                registrar_evento(con, self.__id, "sesion.bloqueo" if bloqueo else "sesion.fallida")
         return correcta
 
     def _insertar(self, rol: str, datos_cliente: tuple[str, str, str] | None = None,
-                  solo_si_vacia: bool = False) -> bool:
+                  solo_si_vacia: bool = False, autor: "Usuario | None" = None) -> bool:
         """C: INSERT de la cuenta. Las dos subclases lo comparten; no está en el diagrama porque
         es la persistencia común, como los métodos de CRUD."""
         nombre, rut_cifrado, telefono_cifrado = datos_cliente or (None, None, None)
@@ -492,6 +537,9 @@ class Usuario(ABC):
                     "INSERT INTO usuario (correo, hash_clave, rol, nombre, rut_cifrado,"
                     " telefono_cifrado) SELECT ?, ?, ?, ?, ?, ?" + condicion,
                     (self.__correo, self.__hash_clave, rol, nombre, rut_cifrado, telefono_cifrado))
+                if cur.rowcount == 1:
+                    registrar_evento(con, autor.obtener_id() if autor else cur.lastrowid, "cuenta.crear",
+                                     f"cuenta {cur.lastrowid} ({rol.lower()})")
         except sqlite3.IntegrityError as error:
             # Solo el UNIQUE del correo es R9; otra restricción sigue como error de la base (H-06).
             if "usuario.correo" in str(error):
@@ -569,6 +617,7 @@ class Cliente(Usuario):
         with conectar() as con:
             con.execute("UPDATE usuario SET nombre = ?, telefono_cifrado = ? WHERE id = ?",
                         (nombre, telefono, self.obtener_id()))
+            registrar_evento(con, self.obtener_id(), "cliente.contacto")
         self.__nombre, self.__telefono = nombre, telefono
 
 
@@ -590,7 +639,7 @@ class Administrador(Usuario):
         """Cuenta para otro socio (RF-SEG-07): una por persona, para saber quién hizo cada cambio."""
         autorizar(self, "cuentas")
         nuevo = Administrador(correo, clave)
-        nuevo._insertar("ADMINISTRADOR")
+        nuevo._insertar("ADMINISTRADOR", autor=self)
         return nuevo
 
 
@@ -665,6 +714,7 @@ class Destino:
                     (self.__nombre, normalizar(self.__nombre), self.__zona, self.__descripcion,
                      self.__duracion_dias, self.__costo_base, int(self.__disponible),
                      self.__fecha_costo.isoformat()))
+                registrar_evento(con, solicitante.obtener_id(), "destino.crear", f"destino {cur.lastrowid}")
         except sqlite3.IntegrityError:
             raise ReglaNegocioError("R1", "Ya existe un destino con ese nombre") from None
         self.__id = cur.lastrowid
@@ -683,6 +733,7 @@ class Destino:
                     " descripcion = ?, duracion_dias = ? WHERE id = ?",
                     (self.__nombre, normalizar(self.__nombre), self.__zona, self.__descripcion,
                      self.__duracion_dias, self.__id))
+                registrar_evento(con, solicitante.obtener_id(), "destino.editar", f"destino {self.__id}")
         except sqlite3.IntegrityError:
             # El objeto vuelve a sus datos anteriores: memoria y base siguen diciendo lo mismo.
             self.__nombre, self.__zona, self.__descripcion, self.__duracion_dias = anterior
@@ -696,6 +747,8 @@ class Destino:
         with conectar() as con:
             con.execute("UPDATE destino SET costo_base = ?, fecha_costo = ? WHERE id = ?",
                         (self.__costo_base, self.__fecha_costo.isoformat(), self.__id))
+            registrar_evento(con, solicitante.obtener_id(), "destino.costo",
+                             f"destino {self.__id}: {self.__costo_base}")
 
     def eliminar(self, solicitante: "Usuario") -> bool:
         """D, según R8: True si se eliminó; False si estaba en un paquete y quedó no disponible."""
@@ -709,6 +762,9 @@ class Destino:
                 con.execute("UPDATE destino SET disponible = 0 WHERE id = ?", (self.__id,))
             else:
                 con.execute("DELETE FROM destino WHERE id = ?", (self.__id,))
+            registrar_evento(con, solicitante.obtener_id(),
+                             "destino.no_disponible" if en_paquete else "destino.eliminar",
+                             f"destino {self.__id}")
         self.__disponible = False
         return en_paquete is None
 
@@ -717,6 +773,7 @@ class Destino:
         autorizar(solicitante, "catalogo")
         with conectar() as con:
             con.execute("UPDATE destino SET disponible = 1 WHERE id = ?", (self.__id,))
+            registrar_evento(con, solicitante.obtener_id(), "destino.reactivar", f"destino {self.__id}")
         self.__disponible = True
 
     @classmethod
@@ -815,6 +872,9 @@ class Paquete:
         with conectar() as con:
             cur = con.execute("UPDATE paquete SET publicado = 1, precio_por_persona = ?"
                               " WHERE id = ? AND publicado = 0", (precio, self.__id))
+            if cur.rowcount == 1:
+                registrar_evento(con, solicitante.obtener_id(), "paquete.publicar",
+                                 f"paquete {self.__id}: {precio} por persona")
         if cur.rowcount != 1:
             raise ReglaNegocioError("R7", "El paquete ya está publicado")
         self.__publicado, self.__precio_por_persona = True, precio
@@ -857,6 +917,7 @@ class Paquete:
                  self.__cupo_maximo, self.__margen))
             con.executemany("INSERT INTO paquete_destino (paquete_id, destino_id) VALUES (?, ?)",
                             [(cur.lastrowid, d.obtener_id()) for d in self.__destinos])
+            registrar_evento(con, solicitante.obtener_id(), "paquete.crear", f"paquete {cur.lastrowid}")
         self.__id = cur.lastrowid
         return self.__id
 
@@ -885,6 +946,7 @@ class Paquete:
                         " margen = ? WHERE id = ? AND publicado = 0",
                         (self.__nombre, self.__fecha_salida.isoformat(),
                          self.__fecha_regreso.isoformat(), self.__margen, self.__id))
+            registrar_evento(con, solicitante.obtener_id(), "paquete.editar", f"paquete {self.__id}")
 
     def reemplazar_destinos(self, destinos: list[Destino], solicitante: "Usuario") -> None:
         """U: los destinos de un borrador, con R3 y R8, en una sola transacción."""
@@ -898,6 +960,7 @@ class Paquete:
                 con.execute("DELETE FROM paquete_destino WHERE paquete_id = ?", (self.__id,))
                 con.executemany("INSERT INTO paquete_destino (paquete_id, destino_id) VALUES (?, ?)",
                                 [(self.__id, d.obtener_id()) for d in self.__destinos])
+                registrar_evento(con, solicitante.obtener_id(), "paquete.destinos", f"paquete {self.__id}")
         except ReglaNegocioError:
             self.__destinos = anteriores
             raise
@@ -912,6 +975,8 @@ class Paquete:
                 "UPDATE paquete SET cupo_maximo = ? WHERE id = ? AND ? >= (SELECT"
                 " COALESCE(SUM(personas), 0) FROM reserva WHERE paquete_id = ? AND estado = 'VIGENTE')",
                 (cupo, self.__id, cupo, self.__id))
+            if cur.rowcount == 1:
+                registrar_evento(con, solicitante.obtener_id(), "paquete.cupo", f"paquete {self.__id}: {cupo}")
         if cur.rowcount != 1:
             raise ReglaNegocioError("R14", "El cupo no puede quedar bajo las personas ya reservadas")
         self.__cupo_maximo = cupo
@@ -922,6 +987,8 @@ class Paquete:
         with conectar() as con:
             cur = con.execute("DELETE FROM paquete WHERE id = ? AND NOT EXISTS"
                               " (SELECT 1 FROM reserva WHERE paquete_id = ?)", (self.__id, self.__id))
+            if cur.rowcount == 1:
+                registrar_evento(con, solicitante.obtener_id(), "paquete.eliminar", f"paquete {self.__id}")
         if cur.rowcount != 1:
             raise ReglaNegocioError("RF-PAQ-09", "Un paquete con reservas no se elimina")
 
@@ -1034,6 +1101,8 @@ class Reserva:
                               " personas, total) VALUES (?, ?, ?, ?, ?)",
                               (solicitante.obtener_id(), paquete.obtener_id(), hoy.isoformat(),
                                personas, total))
+            registrar_evento(con, solicitante.obtener_id(), "reserva.crear",
+                             f"reserva {cur.lastrowid}: paquete {paquete.obtener_id()}, {personas} personas")
         return Reserva(solicitante, paquete, personas, total, hoy, id=cur.lastrowid)
 
     def anular(self, solicitante: Cliente) -> None:
@@ -1047,6 +1116,8 @@ class Reserva:
                 " AND estado = 'VIGENTE' AND (SELECT fecha_salida FROM paquete"
                 " WHERE id = reserva.paquete_id) > ?",
                 (self.__id, solicitante.obtener_id(), date.today().isoformat()))
+            if cur.rowcount == 1:
+                registrar_evento(con, solicitante.obtener_id(), "reserva.anular", f"reserva {self.__id}")
         if cur.rowcount != 1:
             raise ReglaNegocioError("S-01", "Solo se anula una reserva vigente, antes del día de salida")
         self.__estado = EstadoReserva.ANULADA
@@ -1093,6 +1164,7 @@ def autoverificar() -> None:
             _verificar_cuentas()
             _verificar_destinos()
             _verificar_paquetes_y_reservas()
+            _verificar_auditoria()
         finally:
             RUTA_CLAVE = original
             cifrador.cache_clear()
@@ -1424,6 +1496,63 @@ def _verificar_paquetes_y_reservas() -> None:
                  " estado) VALUES (?, ?, '2030-01-01', 1, 1, 'PAGADA')",
                  (pedro.obtener_id(), altiplano.obtener_id()))):
             _rechaza(sqlite3.IntegrityError, con.execute, sql, datos)
+
+
+
+def _verificar_auditoria() -> None:
+    admin, carolina = _verificar_cuentas.cuentas
+    with conectar() as con:
+        filas = con.execute("SELECT usuario_id, accion, detalle FROM auditoria").fetchall()
+    acciones = {f["accion"] for f in filas}
+    esperadas = {"cuenta.crear", "sesion.inicio", "sesion.fallida", "sesion.bloqueo",
+                 "sesion.rechazada_bloqueada", "sesion.correo_inexistente", "cuenta.cambiar_clave",
+                 "cliente.contacto", "destino.crear", "destino.costo", "destino.eliminar",
+                 "destino.no_disponible", "destino.reactivar", "paquete.crear", "paquete.editar",
+                 "paquete.destinos", "paquete.publicar", "paquete.cupo", "paquete.eliminar",
+                 "reserva.crear", "reserva.anular"}
+    assert esperadas <= acciones, esperadas - acciones                     # H-02
+    detalles = " ".join(f["detalle"] for f in filas)
+    for dato in ("12345678", "@", "clave", "5678"):       # las contraseñas de prueba dicen «clave»
+        assert dato not in detalles, dato                                  # sin datos personales
+    # Una operación rechazada se deshace entera, con su registro: el registro no miente.
+    antes = len(filas)
+    _rechaza(ReglaNegocioError, Destino("Destino 0", "Z", "d", 1, 1).guardar, admin, regla="R1")
+    with conectar() as con:
+        assert con.execute("SELECT COUNT(*) FROM auditoria").fetchone()[0] == antes
+
+    # H-10: una sesión vieja no cambia una contraseña que otra sesión ya cambió.
+    sesion_a = Usuario.autenticar(CAROLINA, "nueva-clave-larga")
+    sesion_b = Usuario.autenticar(CAROLINA, "nueva-clave-larga")
+    _rechaza(ReglaNegocioError, sesion_a.cambiar_clave, "nueva-clave-larga", "nueva-clave-larga",
+             regla="RF-SEG-11")
+    sesion_a.cambiar_clave("nueva-clave-larga", "otra-clave-larga-1")
+    _rechaza(PermissionError, sesion_b.cambiar_clave, "nueva-clave-larga", "tercera-clave-larga")
+    assert Usuario.autenticar(CAROLINA, "otra-clave-larga-1") is not None
+
+    # H-16 y H-14: contraseñas comunes o repetitivas, y el RUT 0.
+    for clave in ("Contraseña123", "aaaaaaaaaaaa", "121212121212"):
+        _rechaza(ReglaNegocioError, Cliente, "N", "12.345.678-5", "n@b.cl", "912345678", clave,
+                 regla="RF-SEG-04")
+    _rechaza(ValueError, validar_rut, "0.000.000-0")
+
+    # H-09: el total más alto posible se guarda y se vuelve a leer (antes rompía el historial).
+    caros = [Destino(f"Caro {i}", "Z", "d", 1, COSTO_MAXIMO) for i in range(DESTINOS_MAXIMO)]
+    for d in caros:
+        d.guardar(admin)
+    lujo = Paquete("Lujo", date.today() + timedelta(days=9), date.today() + timedelta(days=10),
+                   CUPO_MAXIMO, caros, MARGEN_MAXIMO)
+    lujo.guardar(admin)
+    lujo.publicar(admin)
+    pedro = Usuario.autenticar("pedro@correo.cl", "clave-de-pedro-1")
+    assert Reserva.reservar(lujo, CUPO_MAXIMO, pedro).obtener_total() == PRECIO_MAXIMO * CUPO_MAXIMO
+    assert max(r.obtener_total() for r in pedro.historial()) == PRECIO_MAXIMO * CUPO_MAXIMO
+
+    # H-04 y H-05: un RUT alterado en la base no impide entrar ni listar; solo falla al mostrarlo.
+    with conectar() as con:
+        con.execute("UPDATE usuario SET rut_cifrado = 'alterado' WHERE correo = 'pedro@correo.cl'")
+    pedro = Usuario.autenticar("pedro@correo.cl", "clave-de-pedro-1")
+    assert pedro is not None and len(Reserva.listar_por_paquete(lujo, admin)) == 1
+    _rechaza(ValueError, pedro.rut_enmascarado)
 
 
 if __name__ == "__main__":
