@@ -36,3 +36,6 @@ jobs:
 
       - name: El código implementa el diagrama de clases sin diferencias
         run: python herramientas/uml_vs_codigo.py
+
+      - name: Prueba por indicador de la rúbrica
+        run: python pruebas/prueba_rubrica.py
