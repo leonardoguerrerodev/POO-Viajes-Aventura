@@ -1036,7 +1036,7 @@ def autoverificar() -> None:
         try:
             usar_base(os.path.join(carpeta, "prueba.db"))
             crear_tablas()
-            _verificar_clave_y_permisos(carpeta)
+            _verificar_clave_y_permisos()
             _verificar_cuentas()
             _verificar_destinos()
             _verificar_paquetes_y_reservas()
@@ -1046,7 +1046,7 @@ def autoverificar() -> None:
     print("OK")
 
 
-def _verificar_clave_y_permisos(carpeta: str) -> None:
+def _verificar_clave_y_permisos() -> None:
     # S-12: la clave se crea en el primer uso, fuera de la base, con un nombre de variable fijo.
     cifrador()
     assert RUTA_CLAVE.read_text(encoding="utf-8").startswith(f"{VARIABLE_CLAVE}=")
@@ -1114,11 +1114,11 @@ def _verificar_cuentas() -> None:
     _rechaza(ValueError, descifrar, alterado)
 
     # S-12: si la clave se pierde con datos ya cifrados, no se crea otra (los dejaría ilegibles).
-    respaldo = RUTA_CLAVE.read_bytes()
-    RUTA_CLAVE.unlink()
+    global RUTA_CLAVE
+    guardada, RUTA_CLAVE = RUTA_CLAVE, RUTA_CLAVE.with_name("perdida.env")
     cifrador.cache_clear()
     _rechaza(RuntimeError, cifrador)
-    RUTA_CLAVE.write_bytes(respaldo)
+    RUTA_CLAVE = guardada
     cifrador.cache_clear()
 
     # RF-SEG-10 y C4: enmascarado, y fuera de la representación del objeto.

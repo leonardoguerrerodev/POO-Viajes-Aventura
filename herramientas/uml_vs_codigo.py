@@ -2,7 +2,7 @@
 
 Para cada clase del diagrama comprueba, leyendo el código con `ast` (sin ejecutarlo):
   - que la clase exista y herede de lo que el diagrama dice;
-  - cada atributo: un `self.__nombre` privado asignado en la clase;
+  - cada atributo: un `self.__nombre` privado asignado en la clase, y ningún atributo público;
   - cada método: mismo nombre (camelCase en el diagrama, snake_case en el código), mismos
     parámetros y en el mismo orden, y la marca {static} o {abstract} cuando la tiene;
   - que el código no tenga métodos públicos que el diagrama no dibuja.
@@ -26,71 +26,121 @@ def snake(nombre: str) -> str:
     return re.sub(r"(?<!^)(?=[A-Z])", "_", nombre).lower()
 
 
+# --- Diagrama ----------------------------------------------------------------
+
+def leer_miembro(clase: dict, linea: str) -> None:
+    """Una línea del cuerpo de una clase: atributo («- correo: str») o método («+ puede(...)»)."""
+    if clase["tipo"] == "enum":
+        clase["atributos"].add(linea)                       # valores de la enumeración
+        return
+    static, abstract = "{static}" in linea, "{abstract}" in linea
+    sin_marcas = re.sub(r"\{(static|abstract)\} ", "", linea)
+    protegido, firma = sin_marcas[0] == "#", sin_marcas[2:]
+    nombre, abre, resto = firma.partition("(")
+    if not abre:
+        clase["atributos"].add(snake(nombre.split(":")[0].strip()))
+        return
+    lista = resto.rpartition(")")[0]
+    params = tuple(snake(p.split(":")[0].strip()) for p in lista.split(",") if p.strip())
+    # «#» protegido en el diagrama = un guion bajo en Python
+    clase["metodos"][("_" if protegido else "") + snake(nombre)] = (params, static, abstract)
+
+
+def leer_relacion(clases: dict, linea: str) -> None:
+    """«A <|-- B» es herencia; cualquier otra flecha entre dos clases, una asociación."""
+    partes = re.sub(r'"[^"]*"', " ", linea).split()        # sin las multiplicidades
+    if len(partes) < 3 or partes[2] not in clases:
+        return
+    a, flecha, b = partes[:3]
+    if "-" not in flecha or "hidden" in flecha:
+        return
+    if flecha.startswith("<|"):
+        clases[b]["padre"] = a                              # el padre puede ser Exception
+    elif a in clases:
+        clases[a]["asociadas"] |= {snake(b), snake(b) + "s"}
+        clases[b]["asociadas"] |= {snake(a), snake(a) + "s"}
+
+
 def leer_diagrama(texto: str) -> dict:
-    """{clase: {"tipo", "padre", "atributos": {...}, "metodos": {nombre: (params, static, abstract)}}}"""
-    clases, actual = {}, None
+    clases, actual, relaciones = {}, None, []
     for linea in (l.strip() for l in texto.splitlines()):
         if m := re.match(r"(abstract class|class|enum) (\w+) \{$", linea):
-            actual = clases[m.group(2)] = {"tipo": m.group(1), "padre": None,
-                                           "atributos": set(), "metodos": {}}
+            actual = clases[m.group(2)] = {"tipo": m.group(1), "padre": None, "atributos": set(),
+                                           "metodos": {}, "asociadas": set()}
         elif linea == "}":
             actual = None
-        elif actual is not None and linea and actual["tipo"] != "enum":
-            static, abstract = "{static}" in linea, "{abstract}" in linea
-            sin_marcas = re.sub(r"\{(static|abstract)\} ", "", linea)
-            protegido, firma = sin_marcas[0] == "#", sin_marcas[2:]
-            if m := re.match(r"(\w+)\((.*)\)", firma):
-                params = tuple(snake(p.split(":")[0].strip()) for p in m.group(2).split(",")
-                               if p.strip())
-                # «#» protegido en el diagrama = un guion bajo en Python
-                nombre = ("_" if protegido else "") + snake(m.group(1))
-                actual["metodos"][nombre] = (params, static, abstract)
-            else:
-                actual["atributos"].add(snake(firma.split(":")[0].strip()))
         elif actual is not None and linea:
-            actual["atributos"].add(linea)              # valores de la enumeración
-        if m := re.match(r"(\w+) <\|-+\w*-* (\w+)$", linea):
-            if m.group(2) in clases:
-                clases[m.group(2)]["padre"] = m.group(1)
-    # las generalizaciones pueden estar después de las clases
-    for padre, hija in re.findall(r"^(\w+) <\|-+\w*-* (\w+)$", texto, re.M):
-        if hija in clases:
-            clases[hija]["padre"] = padre
-    # asociaciones y agregaciones: cada extremo puede ser un atributo de la otra clase
-    for a, flecha, b in re.findall(r'^(\w+) (?:"[^"]+" )?(\S+) (?:"[^"]+" )?(\w+)', texto, re.M):
-        if "<|" not in flecha and "hidden" not in flecha and a in clases and b in clases:
-            clases[a].setdefault("asociadas", set()).update({snake(b), snake(b) + "s"})
-            clases[b].setdefault("asociadas", set()).update({snake(a), snake(a) + "s"})
+            leer_miembro(actual, linea)
+        elif actual is None:
+            relaciones.append(linea)
+    for linea in relaciones:                                 # después: ya están todas las clases
+        leer_relacion(clases, linea)
     return clases
+
+
+# --- Código ------------------------------------------------------------------
+
+def leer_metodo(funcion: ast.FunctionDef) -> tuple:
+    decoradores = {getattr(d, "id", getattr(d, "attr", "")) for d in funcion.decorator_list}
+    params = tuple(a.arg for a in funcion.args.args + funcion.args.kwonlyargs
+                   if a.arg not in ("self", "cls"))
+    return params, bool(decoradores & {"staticmethod", "classmethod"}), "abstractmethod" in decoradores
+
+
+def atributos_asignados(nodo: ast.ClassDef) -> tuple[set, set]:
+    """(privados, públicos) asignados como self.x. self.__x llega al árbol sin el mangling."""
+    privados, publicos = set(), set()
+    for sub in ast.walk(nodo):
+        if not (isinstance(sub, ast.Attribute) and isinstance(sub.ctx, ast.Store)
+                and isinstance(sub.value, ast.Name) and sub.value.id == "self"):
+            continue
+        if sub.attr.startswith("__"):
+            privados.add(sub.attr[2:])
+        elif not sub.attr.startswith("_"):
+            publicos.add(sub.attr)
+    return privados, publicos
 
 
 def leer_codigo(texto: str) -> dict:
     clases = {}
-    for nodo in ast.parse(texto).body:
-        if not isinstance(nodo, ast.ClassDef):
-            continue
-        metodos, atributos, valores, publicos = {}, set(), set(), set()
-        for hijo in nodo.body:
-            if isinstance(hijo, ast.FunctionDef):
-                decoradores = {getattr(d, "id", getattr(d, "attr", "")) for d in hijo.decorator_list}
-                params = tuple(a.arg for a in hijo.args.args + hijo.args.kwonlyargs
-                               if a.arg not in ("self", "cls"))
-                static = bool(decoradores & {"staticmethod", "classmethod"})
-                metodos[hijo.name] = (params, static, "abstractmethod" in decoradores)
-            elif isinstance(hijo, ast.Assign):
-                valores |= {t.id for t in hijo.targets if isinstance(t, ast.Name)}
-        for sub in ast.walk(nodo):
-            # self.__x se guarda mangled como atributo «__x» en el árbol: se toma tal cual.
-            if (isinstance(sub, ast.Attribute) and isinstance(sub.ctx, ast.Store)
-                    and isinstance(sub.value, ast.Name) and sub.value.id == "self"):
-                if sub.attr.startswith("__"):
-                    atributos.add(sub.attr[2:])
-                elif not sub.attr.startswith("_"):
-                    publicos.add(sub.attr)          # rompe el encapsulamiento del modelo
-        padres = [getattr(b, "id", getattr(b, "attr", "")) for b in nodo.bases]
-        clases[nodo.name] = {"padres": padres, "metodos": metodos, "atributos": atributos,
-                             "valores": valores, "publicos": publicos}
+    for nodo in (n for n in ast.parse(texto).body if isinstance(n, ast.ClassDef)):
+        metodos = {f.name: leer_metodo(f) for f in nodo.body if isinstance(f, ast.FunctionDef)}
+        valores = {t.id for a in nodo.body if isinstance(a, ast.Assign)
+                   for t in a.targets if isinstance(t, ast.Name)}
+        privados, publicos = atributos_asignados(nodo)
+        clases[nodo.name] = {"padres": [getattr(b, "id", getattr(b, "attr", "")) for b in nodo.bases],
+                             "metodos": metodos, "atributos": privados, "publicos": publicos,
+                             "valores": valores}
     return clases
+
+
+# --- Comparación -------------------------------------------------------------
+
+def comparar_metodos(clase: str, d: dict, c: dict) -> list[str]:
+    difs = []
+    for nombre, (params, static, abstract) in d["metodos"].items():
+        if nombre not in c["metodos"]:
+            difs.append(f"{clase}: falta el método {nombre}()")
+            continue
+        cp, cs, ca = c["metodos"][nombre]
+        if cp != params:
+            difs.append(f"{clase}.{nombre}: parámetros {params} en el diagrama, {cp} en el código")
+        if cs != static:
+            difs.append(f"{clase}.{nombre}: {'' if static else 'no '}es de clase en el diagrama")
+        if ca != abstract:
+            difs.append(f"{clase}.{nombre}: {'' if abstract else 'no '}es abstracto en el diagrama")
+    publicos = {m for m in c["metodos"] if not m.startswith("_")}
+    difs += [f"{clase}: método público {m}() que el diagrama no dibuja"
+             for m in sorted(publicos - set(d["metodos"]))]
+    return difs
+
+
+def comparar_atributos(clase: str, d: dict, c: dict) -> list[str]:
+    return ([f"{clase}: falta el atributo privado {a}" for a in sorted(d["atributos"] - c["atributos"])]
+            + [f"{clase}: atributo público {a}; el modelo los declara privados"
+               for a in sorted(c["publicos"])]
+            + [f"{clase}: atributo privado {a} que el diagrama no dibuja"
+               for a in sorted(c["atributos"] - d["atributos"] - d["asociadas"])])
 
 
 def comparar(diagrama: dict, codigo: dict) -> list[str]:
@@ -103,28 +153,9 @@ def comparar(diagrama: dict, codigo: dict) -> list[str]:
         if d["padre"] and d["padre"] not in c["padres"]:
             difs.append(f"{clase}: el diagrama dice que hereda de {d['padre']}, el código de {c['padres']}")
         if d["tipo"] == "enum":
-            faltan = d["atributos"] - c["valores"]
-            difs += [f"{clase}: falta el valor {v}" for v in sorted(faltan)]
-            continue
-        difs += [f"{clase}: falta el atributo privado {a}" for a in sorted(d["atributos"] - c["atributos"])]
-        difs += [f"{clase}: atributo público {a}; el modelo los declara privados"
-                 for a in sorted(c["publicos"])]
-        difs += [f"{clase}: atributo privado {a} que el diagrama no dibuja"
-                 for a in sorted(c["atributos"] - d["atributos"] - d.get("asociadas", set()))]
-        for nombre, (params, static, abstract) in d["metodos"].items():
-            if nombre not in c["metodos"]:
-                difs.append(f"{clase}: falta el método {nombre}()")
-                continue
-            cp, cs, ca = c["metodos"][nombre]
-            if cp != params:
-                difs.append(f"{clase}.{nombre}: parámetros {params} en el diagrama, {cp} en el código")
-            if cs != static:
-                difs.append(f"{clase}.{nombre}: {'' if static else 'no '}es de clase en el diagrama")
-            if ca != abstract:
-                difs.append(f"{clase}.{nombre}: {'' if abstract else 'no '}es abstracto en el diagrama")
-        publicos = {m for m in c["metodos"] if not m.startswith("_")}
-        difs += [f"{clase}: método público {m}() que el diagrama no dibuja"
-                 for m in sorted(publicos - set(d["metodos"]))]
+            difs += [f"{clase}: falta el valor {v}" for v in sorted(d["atributos"] - c["valores"])]
+        else:
+            difs += comparar_atributos(clase, d, c) + comparar_metodos(clase, d, c)
     return difs
 
 
