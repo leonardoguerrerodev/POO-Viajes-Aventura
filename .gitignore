@@ -1,6 +1,8 @@
 # Datos locales: la base y la clave de cifrado nunca van al repositorio
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
 .env
 
 # Entorno y cachés de Python

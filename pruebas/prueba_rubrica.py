@@ -12,7 +12,7 @@ import sqlite3
 import sys
 import tempfile
 import time
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from importlib.metadata import version
 from pathlib import Path
 
@@ -199,7 +199,7 @@ def g18() -> None:
     otra = sqlite3.connect(v.RUTA_ACTIVA)
     hasta = otra.execute("SELECT bloqueado_hasta FROM usuario WHERE correo = 'pedro@c.cl'").fetchone()[0]
     otra.close()
-    assert datetime.fromisoformat(hasta) > datetime.now() + timedelta(minutes=4)
+    assert datetime.fromisoformat(hasta) > datetime.now(timezone.utc) + timedelta(minutes=4)
     ok("G.18", "5 fallos seguidos bloquean 5 minutos, aun con la contraseña correcta, y el bloqueo"
                " queda en la base")
     for clave, motivo in (("a" * 11, "11 caracteres"), ("Pedro2@c.cl", "igual al correo")):
