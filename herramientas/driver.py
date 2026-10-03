@@ -26,6 +26,8 @@ import viajes  # noqa: E402
 
 ENTER = ""
 CAROLINA = "carolina@correo.cl"
+ANA = "ana@viajes.cl"
+SURIRE, FLAMENCOS = "Salar de Surire", "Flamencos y termas"
 SALIDA = (date.today() + timedelta(days=30)).strftime("%d-%m-%Y")
 REGRESO = (date.today() + timedelta(days=35)).strftime("%d-%m-%Y")
 # Cada línea: lo que se teclea. Las contraseñas van por getpass y en la salida se ven como ••••.
@@ -33,18 +35,18 @@ REGRESO = (date.today() + timedelta(days=35)).strftime("%d-%m-%Y")
 # Menú del cliente: 1-4 reservas, 5-6 mis datos, 7 contraseña, 8 cerrar sesión.
 GUION = [
     # Primer uso (S-04): la base no tiene cuentas.
-    "ana@viajes.cl", "clave-larga-de-ana", "clave-larga-de-ana",
+    ANA, "clave-larga-de-ana", "clave-larga-de-ana",
     # Inicio de sesión del administrador: catálogo de destinos.
-    "1", "ana@viajes.cl", "clave-larga-de-ana",
+    "1", ANA, "clave-larga-de-ana",
     "2", "Valle del Elqui", "Norte Chico", "Observación astronómica y pisco", "3", "120.000", ENTER,
     "2", "valle del  elqui", "Norte", "Repetido a propósito (R1)", "2", "1", ENTER,
-    "2", "Salar de Surire", "Altiplano", "Flamencos y termas", "4", "0", ENTER,
-    "2", "Salar de Surire", "Altiplano", "Flamencos y termas", "4", "310.000", ENTER,
+    "2", SURIRE, "Altiplano", FLAMENCOS, "4", "0", ENTER,
+    "2", SURIRE, "Altiplano", FLAMENCOS, "4", "310.000", ENTER,
     "4", "1", "130.000", ENTER,
     "1", "n", ENTER,
     "5", "2", "s", ENTER,
     "1", "s", ENTER,
-    "2", "Salar de Surire", "Altiplano", "Flamencos y termas", "4", "310.000", ENTER,
+    "2", SURIRE, "Altiplano", FLAMENCOS, "4", "310.000", ENTER,
     # Paquetes: uno con un solo destino (R3), uno válido, publicarlo y bajar el cupo.
     "8", "Solo uno", SALIDA, REGRESO, "12", "1", ENTER, ENTER,
     "8", "Altiplano y estrellas", SALIDA, REGRESO, "12", "2,1", ENTER, "s", ENTER,
@@ -79,7 +81,7 @@ GUION = [
     "6", "Carolina Díaz Rojas", "987654321", ENTER,
     "8",
     # El administrador ve quién viaja: nombre y correo, sin RUT ni teléfono (RF-RES-11).
-    "1", "ana@viajes.cl", "clave-larga-de-ana",
+    "1", ANA, "clave-larga-de-ana",
     "13", "1", ENTER,
     "16",
     # Sin sesión también se ve la oferta (S-09).
@@ -161,8 +163,8 @@ class RelojQueSalta:
 
 def probar_inactividad() -> str:
     """RF-SEG-09: tras más de 10 minutos ante el menú, la opción elegida no se ejecuta."""
-    guion = ["ana@viajes.cl", "clave-larga-de-ana", "clave-larga-de-ana",
-             "1", "ana@viajes.cl", "clave-larga-de-ana",
+    guion = [ANA, "clave-larga-de-ana", "clave-larga-de-ana",
+             "1", ANA, "clave-larga-de-ana",
              "14",                    # crear un socio: no debe llegar a pedir el correo
              "0"]
     import main
