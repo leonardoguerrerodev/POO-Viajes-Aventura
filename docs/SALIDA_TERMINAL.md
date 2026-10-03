@@ -232,6 +232,12 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
+   Opción: 999999999999… (5000 caracteres)
+   ! Opción desconocida.
+
+   Presione Enter para continuar...
+[pantalla limpia · menú de ana@viajes.cl (administrador)]
+
    Opción: 16
    Sesión cerrada.
 
@@ -246,6 +252,11 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
    Opción: 2
 
    Registro de cliente (escriba x para cancelar)
+   Sus datos (nombre, RUT, correo y teléfono) se usan solo para registrar sus reservas
+   y contactarlo por ellas. El RUT y el teléfono se guardan cifrados y nunca se
+   muestran completos. Para pedir acceso, corrección o eliminación de sus datos,
+   escriba a la agencia. Responsable: Viajes Aventura (Ley 19.628 y Ley 21.719).
+   ¿Acepta? (s/n): s
    Nombre completo: Carolina Díaz
    RUT (12.345.678-5): 12.345.678-6
    ! El RUT no es válido: revise el dígito verificador
@@ -267,6 +278,11 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
    Opción: 2
 
    Registro de cliente (escriba x para cancelar)
+   Sus datos (nombre, RUT, correo y teléfono) se usan solo para registrar sus reservas
+   y contactarlo por ellas. El RUT y el teléfono se guardan cifrados y nunca se
+   muestran completos. Para pedir acceso, corrección o eliminación de sus datos,
+   escriba a la agencia. Responsable: Viajes Aventura (Ley 19.628 y Ley 21.719).
+   ¿Acepta? (s/n): s
    Nombre completo: Carolina Díaz
    RUT (12.345.678-5): 12.345.678-5
    Correo: carolina@correo.cl
@@ -342,6 +358,16 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
 
    Paquetes disponibles
    [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
+
+   Presione Enter para continuar...
+[pantalla limpia · menú de carolina@correo.cl (cliente)]
+
+   Opción: 2
+
+   Paquetes disponibles
+   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
+   Id del paquete: 99
+   ! Ese paquete no está en la oferta
 
    Presione Enter para continuar...
 [pantalla limpia · menú de carolina@correo.cl (cliente)]
@@ -546,6 +572,76 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 ==================================================================
 
    Opción: 14
+[pantalla limpia]
+   ! La sesión se cerró por inactividad. Inicie sesión de nuevo.
+
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Iniciar sesión
+   2. Registrarme como cliente
+   3. Ver los paquetes disponibles
+   0. Salir
+
+   Opción: 0
+   Hasta luego.
+
+[inactividad dentro de una acción]
+
+   Primer uso: cree la cuenta del primer administrador.
+   Correo: ana@viajes.cl
+   Contraseña nueva (12 caracteres o más): ••••
+   Repita la contraseña: ••••
+   Cuenta creada para ana@viajes.cl. Ahora inicie sesión.
+
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Iniciar sesión
+   2. Registrarme como cliente
+   3. Ver los paquetes disponibles
+   0. Salir
+
+   Opción: 1
+
+   Inicio de sesión (escriba x para cancelar)
+   Correo: ana@viajes.cl
+   Contraseña: ••••
+[pantalla limpia]
+==================================================================
+   Viajes Aventura · ana@viajes.cl (administrador)
+==================================================================
+
+   DESTINOS
+    1. Listar el catálogo
+    2. Registrar un destino
+    3. Editar un destino
+    4. Cambiar el costo de un destino
+    5. Eliminar un destino
+    6. Volver a ofrecer un destino
+
+   PAQUETES
+    7. Listar todos los paquetes
+    8. Crear un paquete
+    9. Publicar un paquete
+   10. Editar un paquete en borrador
+   11. Cambiar el cupo de un paquete
+   12. Eliminar un paquete
+   13. Ver las reservas de un paquete
+
+   CUENTAS
+   14. Crear la cuenta de un socio
+
+   MI CUENTA
+   15. Cambiar mi contraseña
+   16. Cerrar sesión
+
+   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+==================================================================
+
+   Opción: 14
+   Correo del socio: intruso@viajes.cl
+[pantalla limpia]
    ! La sesión se cerró por inactividad. Inicie sesión de nuevo.
 
 ==================================================================

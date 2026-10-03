@@ -56,12 +56,13 @@ GUION = [
     "14", "matias@viajes.cl", "clave-larga-de-matias", "clave-larga-de-matias", ENTER,
     "2", "Torres del Paine", "x", ENTER,
     "99", ENTER,
+    "9" * 5000, ENTER,                 # H-12: int() con más de 4.300 dígitos ya no rompe el menú
     "16",
     # Registro público de un cliente: el RUT con el dígito verificador malo se rechaza al
     # escribirlo, y se vuelve a pedir; una contraseña corta la rechaza el dominio.
-    "2", "Carolina Díaz", "12.345.678-6", "12.345.678-5", CAROLINA, "9 1234 5678",
+    "2", "s", "Carolina Díaz", "12.345.678-6", "12.345.678-5", CAROLINA, "9 1234 5678",
     "corta", "corta",
-    "2", "Carolina Díaz", "12.345.678-5", CAROLINA, "9 1234 5678",
+    "2", "s", "Carolina Díaz", "12.345.678-5", CAROLINA, "9 1234 5678",
     "clave-de-carolina", "clave-de-carolina",
     # Contraseña errónea y correo inexistente: el mismo mensaje (RF-SEG-02).
     "1", CAROLINA, "clave-equivocada",
@@ -69,6 +70,7 @@ GUION = [
     # Sesión de cliente: oferta, reserva, segunda reserva advertida, sobre el cupo, anulación.
     "1", CAROLINA, "clave-de-carolina",
     "1", ENTER,
+    "2", "99", ENTER,                  # H-13: un id inexistente recibe el mismo mensaje
     "2", "1", "2", ENTER,
     "2", "1", "n", ENTER,
     "2", "1", "s", "20", ENTER,
@@ -104,6 +106,8 @@ ESPERADO = [
     "El RUT no es válido: revise el dígito verificador",
     "La contraseña debe tener entre 12 y 128 caracteres",
     "Cuenta creada para carolina@correo.cl.",
+    "Ley 21.719",
+    "Ese paquete no está en la oferta",
     "carolina@correo.cl (cliente)",
     "Reserva confirmada por $1.056.000.",
     "Ya tiene una reserva vigente en este paquete",
@@ -125,7 +129,10 @@ def ejecutar(guion: list[str] = GUION, esperado: list[str] = ESPERADO) -> str:
         if not pendientes:
             raise EOFError("el guion se acabó antes que la sesión")
         valor = pendientes.pop(0)
-        print(f"{mensaje}{'••••' if oculto and valor else valor}")
+        visible = "••••" if oculto and valor else valor
+        if len(visible) > 60:
+            visible = f"{visible[:12]}… ({len(visible)} caracteres)"
+        print(f"{mensaje}{visible}")
         return valor
 
     originales = builtins.input, getpass.getpass
@@ -154,14 +161,13 @@ def ejecutar(guion: list[str] = GUION, esperado: list[str] = ESPERADO) -> str:
 
 
 class RelojQueSalta:
-    """time.monotonic falso: el primer llamado da 0 y los siguientes, 11 minutos después."""
+    """time.monotonic falso: devuelve los instantes dados, y después repite el último."""
 
-    def __init__(self):
-        self.__llamados = 0
+    def __init__(self, instantes: list[float]):
+        self.__instantes = list(instantes)
 
     def monotonic(self) -> float:
-        self.__llamados += 1
-        return 0.0 if self.__llamados == 1 else 11 * 60.0
+        return self.__instantes.pop(0) if len(self.__instantes) > 1 else self.__instantes[0]
 
 
 def probar_inactividad() -> str:
@@ -170,15 +176,27 @@ def probar_inactividad() -> str:
              "1", ANA, "clave-larga-de-ana",
              "14",                    # crear un socio: no debe llegar a pedir el correo
              "0"]
+    texto = con_reloj(RelojQueSalta([0, 11 * 60]), guion)
+    assert "Correo del socio" not in texto, "la sesión caducada ejecutó la opción"
+    # H-11: también dentro de una acción. Se elige «crear socio» a tiempo, pero el correo llega
+    # 11 minutos después: la cuenta no se crea.
+    guion = ["ana@viajes.cl", "clave-larga-de-ana", "clave-larga-de-ana",
+             "1", "ana@viajes.cl", "clave-larga-de-ana",
+             "14", "intruso@viajes.cl",
+             "0"]
+    dentro = con_reloj(RelojQueSalta([0, 10, 10, 11 * 60 + 20]), guion)
+    assert "Cuenta de administrador creada" not in dentro, "la acción vencida se completó"
+    return texto + "\n[inactividad dentro de una acción]\n" + dentro
+
+
+def con_reloj(reloj: RelojQueSalta, guion: list[str]) -> str:
     import main
     original = main.time
-    main.time = RelojQueSalta()
+    main.time = reloj
     try:
-        texto = ejecutar(guion, ["La sesión se cerró por inactividad"])
+        return ejecutar(guion, ["La sesión se cerró por inactividad"])
     finally:
         main.time = original
-    assert "Correo del socio" not in texto, "la sesión caducada ejecutó la opción"
-    return texto
 
 
 def condensar(texto: str) -> str:
