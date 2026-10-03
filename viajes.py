@@ -1316,6 +1316,7 @@ def _verificar_destinos() -> None:
                      (dias, costo))
 
     # RF-DES-04 y RF-DES-05: editar y cambiar el costo, que registra la fecha.
+    elqui.editar("Valle del Elqui", "Norte Chico", "Observación astronómica y pisco", 3, admin)
     elqui.cambiar_costo(130_000, admin)
     assert Destino.buscar(id_elqui).obtener_costo_base() == 130_000
 
@@ -1507,7 +1508,8 @@ def _verificar_auditoria() -> None:
     acciones = {f["accion"] for f in filas}
     esperadas = {"cuenta.crear", "sesion.inicio", "sesion.fallida", "sesion.bloqueo",
                  "sesion.rechazada_bloqueada", "sesion.correo_inexistente", "cuenta.cambiar_clave",
-                 "cliente.contacto", "destino.crear", "destino.costo", "destino.eliminar",
+                 "cliente.contacto", "destino.crear", "destino.editar", "destino.costo",
+                 "destino.eliminar",
                  "destino.no_disponible", "destino.reactivar", "paquete.crear", "paquete.editar",
                  "paquete.destinos", "paquete.publicar", "paquete.cupo", "paquete.eliminar",
                  "reserva.crear", "reserva.anular"}
