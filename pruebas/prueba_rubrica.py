@@ -164,9 +164,11 @@ def g17() -> None:
     inicio = time.perf_counter()
     v.HASHER.verify(h, clave)
     duracion = time.perf_counter() - inicio
-    assert 0.05 <= duracion <= 1.0, duracion
-    ok("G.17", f"verificar una contraseña tarda {duracion * 1000:.0f} ms (RNF-REN-02 pide 0,1 a 1 s"
-               " en el equipo de la oficina)")
+    # El piso de 0,1 s depende del equipo (un servidor de GitHub tardó 48 ms): lo que se garantiza
+    # es el costo fijado en el hash, 64 MiB de memoria y 4 pasadas. El techo de 1 s sí se exige.
+    assert "m=65536,t=4" in h and duracion <= 1.0, duracion
+    ok("G.17", f"verificar una contraseña tarda {duracion * 1000:.0f} ms en este equipo, con 64 MiB y 4"
+               " pasadas (RNF-REN-02: 0,1 a 1 s en el equipo de la oficina)")
 
 
 # --- 4.1.5.G.18: validación rigurosa de credenciales en todos los escenarios ---
