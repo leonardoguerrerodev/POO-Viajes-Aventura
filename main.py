@@ -22,6 +22,9 @@ CREDENCIALES_INVALIDAS = ("   ! Correo o contraseña incorrectos, o la cuenta es
 SESION_CADUCADA = "   ! La sesión se cerró por inactividad. Inicie sesión de nuevo."
 INTERRUMPIDO = "\n   Interrumpido. Hasta luego."
 PIDE_ID_DESTINO = "   Id del destino: "
+PIDE_CORREO = "   Correo: "
+PIDE_NOMBRE = "   Nombre: "
+MI_CUENTA = "Mi cuenta"
 
 
 class Cancelado(Exception):
@@ -117,7 +120,7 @@ def registrarse() -> None:
     print("\n   Registro de cliente (escriba x para cancelar)")
     cliente = Cliente.registrar(pedir_texto("   Nombre completo: "),
                                 pedir_valido("   RUT (12.345.678-5): ", validar_rut),
-                                pedir_valido("   Correo: ", validar_correo),
+                                pedir_valido(PIDE_CORREO, validar_correo),
                                 pedir_valido("   Teléfono (9 1234 5678): ", validar_telefono),
                                 pedir_clave_nueva())
     print(f"   Cuenta creada para {cliente.obtener_correo()}. Ya puede iniciar sesión.")
@@ -126,7 +129,7 @@ def registrarse() -> None:
 def iniciar_sesion() -> Usuario | None:
     print("\n   Inicio de sesión (escriba x para cancelar)")
     try:
-        usuario = Usuario.autenticar(pedir_texto("   Correo: "), pedir_clave())
+        usuario = Usuario.autenticar(pedir_texto(PIDE_CORREO), pedir_clave())
     except Cancelado:
         print("   Acción cancelada.")
         return None
@@ -152,7 +155,7 @@ def listar_destinos(_sesion: Usuario) -> None:
 
 
 def registrar_destino(sesion: Usuario) -> None:
-    destino = Destino(pedir_texto("   Nombre: "), pedir_texto("   Zona: "),
+    destino = Destino(pedir_texto(PIDE_NOMBRE), pedir_texto("   Zona: "),
                       pedir_texto("   Descripción: "), pedir_entero("   Duración en días: "),
                       pedir_entero("   Costo base por persona ($): "))
     destino.guardar(sesion)
@@ -162,7 +165,7 @@ def registrar_destino(sesion: Usuario) -> None:
 def editar_destino(sesion: Usuario) -> None:
     destino = pedir_destino()
     print(f"   Actual: {destino}")
-    destino.editar(pedir_texto("   Nombre: "), pedir_texto("   Zona: "),
+    destino.editar(pedir_texto(PIDE_NOMBRE), pedir_texto("   Zona: "),
                    pedir_texto("   Descripción: "), pedir_entero("   Duración en días: "), sesion)
     print(f"   Guardado: {destino}")
 
@@ -207,7 +210,7 @@ def mis_datos(sesion: Cliente) -> None:
 
 
 def actualizar_contacto(sesion: Cliente) -> None:
-    sesion.actualizar_contacto(pedir_texto("   Nombre: "),
+    sesion.actualizar_contacto(pedir_texto(PIDE_NOMBRE),
                                pedir_valido("   Teléfono: ", validar_telefono))
     print("   Datos actualizados.")
     mis_datos(sesion)
@@ -232,10 +235,10 @@ OPCIONES = [
     ("Destinos", "Eliminar un destino", "catalogo", eliminar_destino),
     ("Destinos", "Volver a ofrecer un destino", "catalogo", reactivar_destino),
     ("Cuentas", "Crear la cuenta de un socio", "cuentas", crear_socio),
-    ("Mi cuenta", "Ver mis datos", "reservar", mis_datos),
-    ("Mi cuenta", "Actualizar nombre y teléfono", "reservar", actualizar_contacto),
-    ("Mi cuenta", "Cambiar mi contraseña", None, cambiar_clave),
-    ("Mi cuenta", "Cerrar sesión", None, cerrar_sesion),
+    (MI_CUENTA, "Ver mis datos", "reservar", mis_datos),
+    (MI_CUENTA, "Actualizar nombre y teléfono", "reservar", actualizar_contacto),
+    (MI_CUENTA, "Cambiar mi contraseña", None, cambiar_clave),
+    (MI_CUENTA, "Cerrar sesión", None, cerrar_sesion),
 ]
 
 
@@ -308,20 +311,26 @@ def usar_sesion(sesion: Usuario) -> bool:
         if time.monotonic() - ultima > INACTIVIDAD_MAXIMA:
             print(SESION_CADUCADA)
             return True
-        if eleccion == "0":
-            return False
-        if not (eleccion.isdecimal() and 1 <= int(eleccion) <= len(opciones)):
-            print("   ! Opción desconocida.")
-        else:
-            try:
-                if not atender(opciones[int(eleccion) - 1][3], sesion):
-                    return False
-            except CerrarSesion:
-                print("   Sesión cerrada.")
-                return True
+        resultado = ejecutar_opcion(eleccion, opciones, sesion)
+        if resultado is not None:
+            return resultado
         if not pausar():
             return False
         ultima = time.monotonic()
+
+
+def ejecutar_opcion(eleccion: str, opciones: list[tuple], sesion: Usuario) -> bool | None:
+    """None: seguir en el menú. True: volver al inicio. False: salir del programa."""
+    if eleccion == "0":
+        return False
+    if not (eleccion.isdecimal() and 1 <= int(eleccion) <= len(opciones)):
+        print("   ! Opción desconocida.")
+        return None
+    try:
+        return None if atender(opciones[int(eleccion) - 1][3], sesion) else False
+    except CerrarSesion:
+        print("   Sesión cerrada.")
+        return True
 
 
 def alta_inicial() -> None:
@@ -329,7 +338,7 @@ def alta_inicial() -> None:
     print("\n   Primer uso: cree la cuenta del primer administrador.")
     while True:
         try:
-            admin = Administrador.crear_primero(pedir_texto("   Correo: "), pedir_clave_nueva())
+            admin = Administrador.crear_primero(pedir_texto(PIDE_CORREO), pedir_clave_nueva())
             print(f"   Cuenta creada para {admin.obtener_correo()}. Ahora inicie sesión.")
             return
         except (ReglaNegocioError, ValueError, TypeError) as error:
@@ -363,8 +372,9 @@ def main() -> None:
         crear_tablas()
         if not hay_usuarios():
             alta_inicial()
-        while inicio():
-            pass
+        seguir = True
+        while seguir:
+            seguir = inicio()
         print("   Hasta luego.")
     except sqlite3.Error:
         print("   ! No se pudo abrir la base de datos. El programa se cierra.")

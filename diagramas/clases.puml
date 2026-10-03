@@ -25,7 +25,6 @@ package "Cuentas y acceso" {
     - id: int
     - correo: str
     - hashClave: str
-    - intentosFallidos: int
     - bloqueadoHasta: datetime
     + {static} autenticar(correo: str, clave: str): Usuario
     + cambiarClave(actual: str, nueva: str): void
