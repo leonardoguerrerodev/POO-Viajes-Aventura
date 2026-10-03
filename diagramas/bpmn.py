@@ -41,7 +41,7 @@ def tarea(g, cx, cy, texto, w=TW, fill=GRIS):
     g.ctext(cx, cy, texto, 7.8)
 
 
-def compuerta(g, cx, cy, pregunta, lado="izq", ancho=90):
+def compuerta(g, cx, cy, pregunta, lado="izq"):
     d = GD
     g.el.append(f'<path d="M{cx},{cy-d} L{cx+d},{cy} L{cx},{cy+d} L{cx-d},{cy} Z" fill="{AMARILLO}" stroke="{BORDE}" stroke-width="0.9"/>')
     k = 5.5

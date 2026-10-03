@@ -15,7 +15,7 @@ g = SVG(470, 470)
 XC, XS, XR = 101, 290, 414
 pool(g, 4, 4, 462, 462, "Viajes Aventura · Armar y publicar paquete (TO-BE)", [("Administrador", 150), ("Sistema", 292)])
 
-Y = dict(ini=44, a1=90, s1=138, g1=190, s2=244, s3=290, a2=336, g2=388, fin=430)
+Y = {"ini": 44, "a1": 90, "s1": 138, "g1": 190, "s2": 244, "s3": 290, "a2": 336, "g2": 388, "fin": 430}
 evento(g, XC, Y["ini"], "Temporada\npor armar", lado="der")
 tarea(g, XC, Y["a1"], "Ingresar nombre, fechas,\ncupo, margen y destinos")
 tarea(g, XS, Y["s1"], "Validar los datos\ny los destinos")
