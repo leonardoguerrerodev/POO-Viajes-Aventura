@@ -33,3 +33,6 @@ jobs:
 
       - name: Sesión completa del menú con los dos roles
         run: python herramientas/driver.py
+
+      - name: El código implementa el diagrama de clases sin diferencias
+        run: python herramientas/uml_vs_codigo.py

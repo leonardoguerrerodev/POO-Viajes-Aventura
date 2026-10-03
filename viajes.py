@@ -21,10 +21,12 @@ import re                                   # patrones de correo, RUT y teléfon
 import secrets                              # contraseña aleatoria del hash señuelo
 import sqlite3                              # la base de datos: un archivo, sin servidor
 import tempfile                             # base temporal para la autoverificación
+import threading                            # prueba de dos reservas simultáneas (RNF-FIA-02)
 import unicodedata                          # quita tildes al comparar nombres de destinos (RF-DES-02)
 from abc import ABC, abstractmethod         # Usuario es abstracta: no existe «solo un usuario»
 from contextlib import contextmanager       # `with conectar()`: abre y siempre cierra la conexión
 from datetime import date, datetime, timedelta  # fechas, y el bloqueo temporal del inicio de sesión
+from enum import Enum                       # estado de la reserva: un valor mal escrito falla al crearse
 from functools import lru_cache             # la clave de cifrado se lee una sola vez
 from pathlib import Path                    # ubica la base y la clave junto a este archivo
 
@@ -40,6 +42,9 @@ from cryptography.fernet import Fernet, InvalidToken  # cifrado autenticado: AES
 # termina en OverflowError al guardarlo (regla 8 de EcoTech).
 COSTO_MAXIMO = 100_000_000
 DURACION_MAXIMA = 365
+CUPO_MAXIMO = 1000
+MARGEN_PROPUESTO, MARGEN_MAXIMO = 20, 1000      # porcentaje (R6, S-05, RF-PAQ-11)
+DESTINOS_MINIMO, DESTINOS_MAXIMO = 2, 5         # R3
 
 # Correo: lineal, sin retroceso exponencial (regla 11 de EcoTech). RUT con o sin puntos y guion.
 PATRON_CORREO = re.compile(r"[^@\s]+@[^@\s.]+(?:\.[^@\s.]+)+")
@@ -103,6 +108,18 @@ def entero(valor: int, campo: str, minimo: int, maximo: int, regla: str) -> int:
     if not minimo <= valor <= maximo:
         raise ReglaNegocioError(regla, f"{campo} debe estar entre {minimo:,} y {maximo:,}".replace(",", "."))
     return valor
+
+
+def fecha(valor: date, campo: str) -> date:
+    """Una fecha sin hora. datetime hereda de date, pero compararía también la hora."""
+    if not isinstance(valor, date) or isinstance(valor, datetime):
+        raise TypeError(f"{campo} debe ser una fecha")
+    return valor
+
+
+def pesos(monto: int) -> str:
+    """$1.050.000, como la planilla de la agencia (RNF-USA-02)."""
+    return "$" + f"{monto:,}".replace(",", ".")
 
 
 def normalizar(nombre: str) -> str:
@@ -488,6 +505,10 @@ class Cliente(Usuario):
         cliente._insertar("CLIENTE", (cliente.__nombre, cliente.__rut, cliente.__telefono))
         return cliente
 
+    def historial(self) -> list["Reserva"]:
+        """R: todas las reservas propias, pasadas, vigentes y anuladas; nunca las de otro (R11)."""
+        return Reserva._listar("r.cliente_id = ?", (self.obtener_id(),))
+
     def actualizar_contacto(self, nombre: str, telefono: str) -> None:
         """U: nombre y teléfono propios (RF-RES-12). El RUT y el correo no cambian."""
         nombre, telefono = texto(nombre, CAMPO_NOMBRE, 80), validar_telefono(telefono)
@@ -557,9 +578,11 @@ class Destino:
 
     def __str__(self) -> str:
         estado = "disponible" if self.__disponible else "no disponible"
-        costo = f"{self.__costo_base:,}".replace(",", ".")       # RNF-USA-02
         return (f"[{self.__id}] {self.__nombre} · {self.__zona} · {self.__duracion_dias} días · "
-                f"${costo} (costo al {self.__fecha_costo:%d-%m-%Y}) · {estado}")
+                f"{pesos(self.__costo_base)} (costo al {self.__fecha_costo:%d-%m-%Y}) · {estado}")
+
+    def obtener_nombre(self) -> str:
+        return self.__nombre
 
     def obtener_id(self) -> int | None:
         return self.__id
@@ -663,6 +686,332 @@ class Destino:
                    fecha_costo=date.fromisoformat(fila["fecha_costo"]))
 
 
+class Paquete:
+    """tabla: paquete, y paquete_destino para la agregación con Destino. R3 a R8 y R14."""
+
+    COLUMNAS = ("id, nombre, fecha_salida, fecha_regreso, cupo_maximo, margen,"
+                " precio_por_persona, publicado")
+
+    def __init__(self, nombre: str, fecha_salida: date, fecha_regreso: date, cupo_maximo: int,
+                 destinos: list[Destino], margen: int = MARGEN_PROPUESTO, id: int | None = None,
+                 precio_por_persona: int | None = None, publicado: bool = False):
+        self.__id = id
+        self.__fijar_datos(nombre, fecha_salida, fecha_regreso, margen)
+        self.__cupo_maximo = entero(cupo_maximo, "El cupo máximo", 1, CUPO_MAXIMO, "R5")
+        # Un paquete nuevo solo combina destinos disponibles (R8); uno guardado conserva los que
+        # tenía aunque después hayan quedado no disponibles (S-15).
+        self.__destinos = self.__validar_destinos(destinos, exigir_disponibles=id is None)
+        self.__precio_por_persona = precio_por_persona
+        self.__publicado = bool(publicado)
+
+    def __fijar_datos(self, nombre, fecha_salida, fecha_regreso, margen) -> None:
+        self.__nombre = texto(nombre, CAMPO_NOMBRE, 80)
+        self.__fecha_salida = fecha(fecha_salida, "La fecha de salida")
+        self.__fecha_regreso = fecha(fecha_regreso, "La fecha de regreso")
+        if self.__fecha_regreso <= self.__fecha_salida:
+            raise ReglaNegocioError("R5", "La fecha de regreso debe ser posterior a la de salida")
+        self.__margen = entero(margen, "El margen (%)", 0, MARGEN_MAXIMO, "R6")
+
+    @staticmethod
+    def __validar_destinos(destinos: list[Destino], exigir_disponibles: bool) -> list[Destino]:
+        if not isinstance(destinos, list) or not all(isinstance(d, Destino) for d in destinos):
+            raise TypeError("Los destinos deben ser una lista de destinos")
+        if not DESTINOS_MINIMO <= len(destinos) <= DESTINOS_MAXIMO:
+            raise ReglaNegocioError("R3", f"Un paquete combina entre {DESTINOS_MINIMO} y"
+                                    f" {DESTINOS_MAXIMO} destinos")
+        ids = [d.obtener_id() for d in destinos]
+        if None in ids:
+            raise ValueError("Todos los destinos deben estar guardados en el catálogo")
+        if len(set(ids)) != len(ids):
+            raise ReglaNegocioError("R3", "Un destino no puede repetirse en el mismo paquete")
+        if exigir_disponibles and not all(d.esta_disponible() for d in destinos):
+            raise ReglaNegocioError("R8", "Un destino no disponible no se ofrece en paquetes nuevos")
+        return list(destinos)
+
+    def __str__(self) -> str:
+        precio = pesos(self.__precio_por_persona or self.calcular_precio())
+        nombres = ", ".join(d.obtener_nombre() for d in self.__destinos)
+        return (f"[{self.__id}] {self.__nombre} · {self.__fecha_salida:%d-%m-%Y} a "
+                f"{self.__fecha_regreso:%d-%m-%Y} · {nombres} · {precio} por persona · "
+                f"cupo {self.cupo_disponible()} de {self.__cupo_maximo} · {self.estado()}")
+
+    def obtener_id(self) -> int | None:
+        return self.__id
+
+    def calcular_precio(self) -> int:
+        """Suma de los costos base más el margen, redondeado al peso (R6, S-05).
+
+        Aritmética entera: (suma × (100 + margen) + 50) // 100 redondea al peso más cercano sin
+        pasar por float, que arrastraría errores de representación (IA C3).
+        """
+        suma = sum(d.obtener_costo_base() for d in self.__destinos)
+        return (suma * (100 + self.__margen) + 50) // 100
+
+    def publicar(self, solicitante: "Usuario") -> None:
+        """U: fija el precio por persona (R7). Desde aquí ya no cambia aunque cambien los costos."""
+        autorizar(solicitante, "catalogo")
+        if self.__publicado:
+            raise ReglaNegocioError("R7", "El paquete ya está publicado")
+        if self.__fecha_salida <= date.today():
+            raise ReglaNegocioError("R15", "No se publica un paquete cuya fecha de salida ya llegó")
+        if not all(d.esta_disponible() for d in self.__destinos):
+            raise ReglaNegocioError("R8", "El paquete tiene un destino que ya no está disponible")
+        precio = self.calcular_precio()
+        with conectar() as con:
+            cur = con.execute("UPDATE paquete SET publicado = 1, precio_por_persona = ?"
+                              " WHERE id = ? AND publicado = 0", (precio, self.__id))
+        if cur.rowcount != 1:
+            raise ReglaNegocioError("R7", "El paquete ya está publicado")
+        self.__publicado, self.__precio_por_persona = True, precio
+
+    def cupo_disponible(self) -> int:
+        """Cupo máximo menos las personas de las reservas vigentes (R14). Se calcula, no se guarda."""
+        with conectar() as con:
+            reservadas = con.execute(
+                "SELECT COALESCE(SUM(personas), 0) FROM reserva"
+                " WHERE paquete_id = ? AND estado = 'VIGENTE'", (self.__id,)).fetchone()[0]
+        return self.__cupo_maximo - reservadas
+
+    def estado(self, hoy: date | None = None) -> str:
+        """borrador, publicado o vencido. «Vencido» se calcula con la fecha: nadie tiene que
+        acordarse de sacarlo (S-02, P-03)."""
+        hoy = hoy or date.today()
+        if self.__fecha_salida <= hoy:
+            return "vencido"
+        return "publicado" if self.__publicado else "borrador"
+
+    def esta_disponible(self, hoy: date | None = None) -> bool:
+        return self.estado(hoy) == "publicado" and self.cupo_disponible() > 0
+
+    def listar_destinos(self) -> list[Destino]:
+        return list(self.__destinos)          # una copia: nadie cambia los destinos por fuera
+
+    # --- Persistencia (CRUD) ---------------------------------------------
+
+    def guardar(self, solicitante: "Usuario") -> int:
+        """C: el paquete y sus destinos en una sola transacción: nunca queda uno sin destinos."""
+        autorizar(solicitante, "catalogo")
+        if self.__id is not None:
+            raise ValueError("El paquete ya está guardado")
+        with conectar() as con:
+            self.__exigir_disponibles_en_base(con)
+            cur = con.execute(
+                "INSERT INTO paquete (nombre, fecha_salida, fecha_regreso, cupo_maximo, margen)"
+                " VALUES (?, ?, ?, ?, ?)",
+                (self.__nombre, self.__fecha_salida.isoformat(), self.__fecha_regreso.isoformat(),
+                 self.__cupo_maximo, self.__margen))
+            con.executemany("INSERT INTO paquete_destino (paquete_id, destino_id) VALUES (?, ?)",
+                            [(cur.lastrowid, d.obtener_id()) for d in self.__destinos])
+        self.__id = cur.lastrowid
+        return self.__id
+
+    def __exigir_disponibles_en_base(self, con: sqlite3.Connection) -> None:
+        """R8 contra la base, dentro de la transacción: el objeto en memoria puede estar viejo."""
+        ids = [d.obtener_id() for d in self.__destinos]
+        disponibles = con.execute(
+            f"SELECT COUNT(*) FROM destino WHERE disponible = 1 AND id IN ({','.join('?' * len(ids))})",
+            ids).fetchone()[0]                  # solo signos «?»: el SQL no lleva datos del usuario
+        if disponibles != len(ids):
+            raise ReglaNegocioError("R8", "Un destino no disponible no se ofrece en paquetes nuevos")
+
+    def __exigir_borrador(self) -> None:
+        if self.__publicado:
+            raise ReglaNegocioError("R7", "Un paquete publicado solo puede cambiar su cupo (S-07)")
+
+    def editar(self, nombre: str, fecha_salida: date, fecha_regreso: date, margen: int,
+               solicitante: "Usuario") -> None:
+        """U: solo en borrador (S-07). Publicado, cambiaría lo que ya se vendió."""
+        autorizar(solicitante, "catalogo")
+        self.__exigir_borrador()
+        self.__fijar_datos(nombre, fecha_salida, fecha_regreso, margen)
+        with conectar() as con:
+            con.execute("UPDATE paquete SET nombre = ?, fecha_salida = ?, fecha_regreso = ?,"
+                        " margen = ? WHERE id = ? AND publicado = 0",
+                        (self.__nombre, self.__fecha_salida.isoformat(),
+                         self.__fecha_regreso.isoformat(), self.__margen, self.__id))
+
+    def reemplazar_destinos(self, destinos: list[Destino], solicitante: "Usuario") -> None:
+        """U: los destinos de un borrador, con R3 y R8, en una sola transacción."""
+        autorizar(solicitante, "catalogo")
+        self.__exigir_borrador()
+        anteriores = self.__destinos
+        self.__destinos = self.__validar_destinos(destinos, exigir_disponibles=True)
+        try:
+            with conectar() as con:
+                self.__exigir_disponibles_en_base(con)
+                con.execute("DELETE FROM paquete_destino WHERE paquete_id = ?", (self.__id,))
+                con.executemany("INSERT INTO paquete_destino (paquete_id, destino_id) VALUES (?, ?)",
+                                [(self.__id, d.obtener_id()) for d in self.__destinos])
+        except ReglaNegocioError:
+            self.__destinos = anteriores
+            raise
+
+    def cambiar_cupo(self, cupo_maximo: int, solicitante: "Usuario") -> None:
+        """U: también publicado (S-07), pero nunca por debajo de las personas ya reservadas (R14)."""
+        autorizar(solicitante, "catalogo")
+        cupo = entero(cupo_maximo, "El cupo máximo", 1, CUPO_MAXIMO, "R5")
+        # Una sola sentencia: la suma de reservas y el cambio no se pueden separar.
+        with conectar() as con:
+            cur = con.execute(
+                "UPDATE paquete SET cupo_maximo = ? WHERE id = ? AND ? >= (SELECT"
+                " COALESCE(SUM(personas), 0) FROM reserva WHERE paquete_id = ? AND estado = 'VIGENTE')",
+                (cupo, self.__id, cupo, self.__id))
+        if cur.rowcount != 1:
+            raise ReglaNegocioError("R14", "El cupo no puede quedar bajo las personas ya reservadas")
+        self.__cupo_maximo = cupo
+
+    def eliminar(self, solicitante: "Usuario") -> None:
+        """D: solo sin reservas, ni siquiera anuladas: son historial (RF-PAQ-09, R11)."""
+        autorizar(solicitante, "catalogo")
+        with conectar() as con:
+            cur = con.execute("DELETE FROM paquete WHERE id = ? AND NOT EXISTS"
+                              " (SELECT 1 FROM reserva WHERE paquete_id = ?)", (self.__id, self.__id))
+        if cur.rowcount != 1:
+            raise ReglaNegocioError("RF-PAQ-09", "Un paquete con reservas no se elimina")
+
+    @classmethod
+    def listar_disponibles(cls, hoy: date | None = None) -> list["Paquete"]:
+        """R: la oferta (RF-PAQ-06, RF-PAQ-07). Sin sesión también se puede ver (S-09)."""
+        hoy = hoy or date.today()
+        return [p for p in cls._listar("publicado = 1 AND fecha_salida > ?", (hoy.isoformat(),))
+                if p.esta_disponible(hoy)]
+
+    @classmethod
+    def listar_todos(cls, solicitante: "Usuario") -> list["Paquete"]:
+        """R: todos, con su estado, para el administrador (RF-PAQ-10)."""
+        autorizar(solicitante, "catalogo")
+        return cls._listar("1 = 1", ())
+
+    @classmethod
+    def buscar(cls, id: int) -> "Paquete | None":
+        encontrados = cls._listar("id = ?", (id,))
+        return encontrados[0] if encontrados else None
+
+    @classmethod
+    def _listar(cls, condicion: str, parametros: tuple) -> list["Paquete"]:
+        # condicion es siempre un texto fijo de esta clase; los datos van como parámetros.
+        with conectar() as con:
+            filas = con.execute(f"SELECT {cls.COLUMNAS} FROM paquete WHERE {condicion}"
+                                " ORDER BY fecha_salida, id", parametros).fetchall()
+            destinos = {}
+            for fila in filas:
+                ids = [r[0] for r in con.execute(
+                    "SELECT destino_id FROM paquete_destino WHERE paquete_id = ? ORDER BY rowid",
+                    (fila["id"],))]
+                destinos[fila["id"]] = [Destino.buscar(i) for i in ids]
+        return [cls(f["nombre"], date.fromisoformat(f["fecha_salida"]),
+                    date.fromisoformat(f["fecha_regreso"]), f["cupo_maximo"], destinos[f["id"]],
+                    margen=f["margen"], id=f["id"], precio_por_persona=f["precio_por_persona"],
+                    publicado=f["publicado"]) for f in filas]
+
+
+class EstadoReserva(Enum):
+    """Una reserva no se borra: queda vigente o anulada (S-01, S-08)."""
+    VIGENTE = "VIGENTE"
+    ANULADA = "ANULADA"
+
+
+class Reserva:
+    """tabla: reserva. R11 a R16. El total queda fijo al reservar y no se vuelve a calcular."""
+
+    def __init__(self, cliente: Cliente, paquete: Paquete, personas: int, total: int,
+                 fecha_emision: date, estado: EstadoReserva = EstadoReserva.VIGENTE,
+                 id: int | None = None):
+        if not isinstance(cliente, Cliente) or not isinstance(paquete, Paquete):
+            raise TypeError("Una reserva corresponde a un cliente y a un paquete (R12)")
+        if not isinstance(estado, EstadoReserva):
+            raise TypeError("El estado de la reserva no es válido")
+        self.__id = id
+        self.__cliente, self.__paquete = cliente, paquete
+        self.__personas = entero(personas, "La cantidad de personas", 1, CUPO_MAXIMO, "R16")
+        self.__total = entero(total, "El total", 1, COSTO_MAXIMO * CUPO_MAXIMO, "R13")
+        self.__fecha_emision = fecha(fecha_emision, "La fecha de emisión")
+        self.__estado = estado
+
+    def __str__(self) -> str:
+        return (f"[{self.__id}] {self.__cliente.obtener_nombre()} <{self.__cliente.obtener_correo()}>"
+                f" · paquete {self.__paquete.obtener_id()} · {self.__personas} persona(s) · "
+                f"{pesos(self.__total)} · emitida el {self.__fecha_emision:%d-%m-%Y} · "
+                f"{self.__estado.value.lower()}")
+
+    def obtener_total(self) -> int:
+        return self.__total
+
+    @staticmethod
+    def reservar(paquete: Paquete, personas: int, solicitante: Cliente,
+                 hoy: date | None = None) -> "Reserva":
+        """C: comprueba fecha (R15) y cupo (R14) y guarda, todo en una transacción BEGIN IMMEDIATE.
+
+        IMMEDIATE toma el permiso de escritura antes de leer el cupo: una segunda reserva
+        simultánea espera a que esta termine y después ve el cupo ya descontado. Así dos personas
+        no pueden quedarse con el mismo último lugar (RNF-FIA-02, P-02).
+        """
+        autorizar(solicitante, "reservar")
+        hoy = fecha(hoy or date.today(), "La fecha de hoy")
+        personas = entero(personas, "La cantidad de personas", 1, CUPO_MAXIMO, "R16")
+        with conectar() as con:
+            con.execute("BEGIN IMMEDIATE")
+            fila = con.execute(
+                "SELECT p.fecha_salida, p.publicado, p.precio_por_persona, p.cupo_maximo"
+                " - COALESCE((SELECT SUM(personas) FROM reserva WHERE paquete_id = p.id"
+                " AND estado = 'VIGENTE'), 0) AS disponible FROM paquete p WHERE p.id = ?",
+                (paquete.obtener_id(),)).fetchone()
+            if fila is None or not fila["publicado"]:
+                raise ReglaNegocioError("R7", "Ese paquete no está publicado")
+            # Se compara contra la base y no contra el objeto: la regla se cumple aunque el
+            # paquete esté oculto de la oferta o el objeto esté viejo (RF-RES-06).
+            if date.fromisoformat(fila["fecha_salida"]) <= hoy:
+                raise ReglaNegocioError("R15", "No se puede reservar: la fecha de salida ya llegó")
+            if personas > fila["disponible"]:
+                raise ReglaNegocioError("R14", f"No hay cupo: quedan {fila['disponible']} lugares")
+            total = fila["precio_por_persona"] * personas          # R13: se calcula una vez
+            cur = con.execute("INSERT INTO reserva (cliente_id, paquete_id, fecha_emision,"
+                              " personas, total) VALUES (?, ?, ?, ?, ?)",
+                              (solicitante.obtener_id(), paquete.obtener_id(), hoy.isoformat(),
+                               personas, total))
+        return Reserva(solicitante, paquete, personas, total, hoy, id=cur.lastrowid)
+
+    def anular(self, solicitante: Cliente) -> None:
+        """U: solo el titular, solo vigente y hasta el día anterior a la salida (S-01, R11)."""
+        autorizar(solicitante, "reservar")
+        if solicitante.obtener_id() != self.__cliente.obtener_id():
+            raise PermissionError("Solo el titular puede anular su reserva")
+        with conectar() as con:
+            cur = con.execute(
+                "UPDATE reserva SET estado = 'ANULADA' WHERE id = ? AND cliente_id = ?"
+                " AND estado = 'VIGENTE' AND (SELECT fecha_salida FROM paquete"
+                " WHERE id = reserva.paquete_id) > ?",
+                (self.__id, solicitante.obtener_id(), date.today().isoformat()))
+        if cur.rowcount != 1:
+            raise ReglaNegocioError("S-01", "Solo se anula una reserva vigente, antes del día de salida")
+        self.__estado = EstadoReserva.ANULADA
+
+    @staticmethod
+    def listar_por_paquete(paquete: Paquete, solicitante: "Usuario") -> list["Reserva"]:
+        """R: quién viaja en un paquete, con nombre y correo; nunca RUT ni teléfono (RF-RES-11, S-16)."""
+        autorizar(solicitante, "ver_reservas")
+        return Reserva._listar("r.paquete_id = ?", (paquete.obtener_id(),))
+
+    @staticmethod
+    def _listar(condicion: str, parametros: tuple) -> list["Reserva"]:
+        # condicion es siempre un texto fijo de esta clase; los datos van como parámetros.
+        with conectar() as con:
+            filas = con.execute(
+                f"SELECT r.id, r.paquete_id, r.fecha_emision, r.personas, r.total, r.estado,"
+                f" {', '.join('u.' + c.strip() for c in Usuario.COLUMNAS.split(','))}"
+                f" FROM reserva r JOIN usuario u ON u.id = r.cliente_id WHERE {condicion}"
+                f" ORDER BY r.fecha_emision, r.id", parametros).fetchall()
+        paquetes: dict[int, Paquete] = {}
+        reservas = []
+        for f in filas:
+            if f["paquete_id"] not in paquetes:
+                paquetes[f["paquete_id"]] = Paquete.buscar(f["paquete_id"])
+            reservas.append(Reserva(_usuario_desde_fila(f), paquetes[f["paquete_id"]],
+                                    f["personas"], f["total"], date.fromisoformat(f["fecha_emision"]),
+                                    EstadoReserva(f["estado"]), id=f[0]))
+        return reservas
+
+
 # =====================================================================
 # 4. AUTOVERIFICACIÓN
 # =====================================================================
@@ -682,6 +1031,7 @@ def autoverificar() -> None:
             _verificar_clave_y_permisos(carpeta)
             _verificar_cuentas()
             _verificar_destinos()
+            _verificar_paquetes_y_reservas()
         finally:
             RUTA_CLAVE = original
             cifrador.cache_clear()
@@ -845,6 +1195,161 @@ def _verificar_destinos() -> None:
     surire.reactivar(admin)
     assert len(Destino.listar(solo_disponibles=True)) == 2
     assert elqui.eliminar(admin) is True and Destino.buscar(id_elqui) is None
+    # El paquete de apoyo se insertó por SQL con un solo destino, cosa que R3 prohíbe y que la
+    # base no puede impedir (la regla abarca varias filas): se borra para no dejar un dato inválido.
+    with conectar() as con:
+        con.execute("DELETE FROM paquete WHERE id = 1")
+
+
+
+def _verificar_paquetes_y_reservas() -> None:
+    admin, carolina = _verificar_cuentas.cuentas
+    pedro = Cliente.registrar("Pedro Soto", "11.111.111-1", "pedro@correo.cl", "922223333",
+                              "clave-de-pedro-1")
+    salida, regreso = date.today() + timedelta(days=30), date.today() + timedelta(days=35)
+    surire = Destino("Salar de Surire 2", "Altiplano", "Flamencos", 4, 310_000)
+    elqui = Destino("Valle del Elqui 2", "Norte Chico", "Estrellas", 3, 120_000)
+    otros = [Destino(f"Destino {i}", "Zona", "d", 1, 10_000) for i in range(4)]
+    for d in (surire, elqui, *otros):
+        d.guardar(admin)
+
+    # RF-PAQ-02 (R3, R8): uno o seis destinos, uno repetido o uno no disponible.
+    for destinos in ([surire], [surire, elqui, *otros], [surire, surire]):
+        _rechaza(ReglaNegocioError, Paquete, "P", salida, regreso, 10, destinos, regla="R3")
+    otros[3].eliminar(admin)                        # sin paquetes: se elimina
+    otros[2].eliminar(admin)
+    no_disponible = otros[1]
+    with conectar() as con:
+        con.execute("UPDATE destino SET disponible = 0 WHERE id = ?", (no_disponible.obtener_id(),))
+    no_disponible = Destino.buscar(no_disponible.obtener_id())
+    _rechaza(ReglaNegocioError, Paquete, "P", salida, regreso, 10, [surire, no_disponible], regla="R8")
+
+    # RF-PAQ-03 (R5, R6): regreso no posterior, cupo 0 y margen negativo.
+    _rechaza(ReglaNegocioError, Paquete, "P", salida, salida, 10, [surire, elqui], regla="R5")
+    _rechaza(ReglaNegocioError, Paquete, "P", salida, regreso, 0, [surire, elqui], regla="R5")
+    _rechaza(ReglaNegocioError, Paquete, "P", salida, regreso, 10, [surire, elqui], -5, regla="R6")
+    _rechaza(TypeError, Paquete, "P", datetime.now(), regreso, 10, [surire, elqui])
+
+    # RF-PAQ-01, RF-PAQ-04 y RF-PAQ-11: borrador con 20 % por omisión; 310.000 + 120.000 = 516.000.
+    altiplano = Paquete("Altiplano y estrellas", salida, regreso, 12, [surire, elqui])
+    altiplano.guardar(admin)
+    assert altiplano.calcular_precio() == 516_000 and altiplano.estado() == "borrador"
+    otro = Paquete("Otro con Surire", salida, regreso, 5, [surire, otros[0]])   # R4
+    otro.guardar(admin)
+    _rechaza(PermissionError, Paquete("Del cliente", salida, regreso, 5, [elqui, otros[0]]).guardar,
+             carolina)
+
+    # S-07 y RF-PAQ-08: el borrador se edita completo.
+    altiplano.editar("Altiplano y estrellas", salida, regreso, 20, admin)
+    altiplano.reemplazar_destinos([surire, elqui], admin)
+    _rechaza(ReglaNegocioError, Reserva.reservar, altiplano, 1, carolina, regla="R7")   # sin publicar
+
+    # RF-PAQ-05 (R7): publicado, el precio no cambia aunque cambie un costo; el borrador sí.
+    altiplano.publicar(admin)
+    elqui.cambiar_costo(150_000, admin)
+    assert Paquete.buscar(altiplano.obtener_id()).calcular_precio() == 552_000      # costo nuevo
+    assert "516.000" in str(Paquete.buscar(altiplano.obtener_id()))                 # precio fijo
+    assert Paquete.buscar(otro.obtener_id()).calcular_precio() == (310_000 + 10_000) * 120 // 100
+    _rechaza(ReglaNegocioError, altiplano.editar, "X", salida, regreso, 20, admin, regla="R7")
+    _rechaza(ReglaNegocioError, altiplano.publicar, admin, regla="R7")
+
+    # RF-RES-04, RF-RES-07 (R13) y R16: total fijo = precio publicado × personas.
+    _rechaza(PermissionError, Reserva.reservar, altiplano, 1, admin)
+    _rechaza(ReglaNegocioError, Reserva.reservar, altiplano, 0, carolina, regla="R16")
+    reserva = Reserva.reservar(altiplano, 2, carolina)
+    assert reserva.obtener_total() == 1_032_000
+    elqui.cambiar_costo(200_000, admin)
+    assert carolina.historial()[0].obtener_total() == 1_032_000
+
+    # RF-PAQ-06 y R14: cupo 12, vigentes por 10 y una anulada por 2: quedan 2.
+    Reserva.reservar(altiplano, 2, carolina)
+    Reserva.reservar(altiplano, 6, pedro)
+    anulada = Reserva.reservar(altiplano, 2, pedro)
+    _rechaza(PermissionError, anulada.anular, carolina)                 # R11: solo el titular
+    anulada.anular(pedro)                                               # RF-RES-09, S-01
+    _rechaza(ReglaNegocioError, anulada.anular, pedro, regla="S-01")
+    assert Paquete.buscar(altiplano.obtener_id()).cupo_disponible() == 2
+    try:
+        Reserva.reservar(altiplano, 3, carolina)
+        raise AssertionError("aceptó una reserva sobre el cupo")
+    except ReglaNegocioError as e:
+        assert e.obtener_regla() == "R14" and "quedan 2" in str(e)        # RF-RES-05
+
+    # RF-PAQ-08: un publicado solo cambia el cupo, y nunca bajo lo reservado (10).
+    _rechaza(ReglaNegocioError, altiplano.cambiar_cupo, 9, admin, regla="R14")
+    altiplano.cambiar_cupo(11, admin)
+
+    # RNF-FIA-02: dos reservas simultáneas por el último lugar; solo una se guarda.
+    resultado = {}
+
+    def reservar_en_paralelo():
+        try:
+            Reserva.reservar(altiplano, 1, pedro)
+            resultado["otra"] = "guardada"
+        except ReglaNegocioError as e:
+            resultado["otra"] = e.obtener_regla()
+
+    con = sqlite3.connect(RUTA_ACTIVA, timeout=5, isolation_level=None)
+    con.execute("BEGIN IMMEDIATE")                      # esta sesión toma el último lugar primero
+    hilo = threading.Thread(target=reservar_en_paralelo)
+    hilo.start()
+    hilo.join(0.3)
+    assert hilo.is_alive(), "la segunda reserva no esperó a la primera"
+    con.execute("INSERT INTO reserva (cliente_id, paquete_id, fecha_emision, personas, total)"
+                " VALUES (?, ?, ?, 1, 516000)",
+                (carolina.obtener_id(), altiplano.obtener_id(), date.today().isoformat()))
+    con.execute("COMMIT")
+    con.close()
+    hilo.join()
+    assert resultado["otra"] == "R14", resultado
+    assert Paquete.buscar(altiplano.obtener_id()).cupo_disponible() == 0
+
+    # RF-PAQ-07, RF-RES-06 (R15) y S-02: el día de salida ya no se ofrece ni se reserva,
+    # pero el paquete sigue en el listado del administrador, como vencido.
+    altiplano.cambiar_cupo(15, admin)
+    ofertas = Paquete.listar_disponibles()
+    assert [p.obtener_id() for p in ofertas] == [altiplano.obtener_id()]
+    assert Paquete.listar_disponibles(hoy=salida) == []
+    _rechaza(ReglaNegocioError, Reserva.reservar, altiplano, 1, carolina, salida, regla="R15")
+    assert Paquete.buscar(altiplano.obtener_id()).estado(salida) == "vencido"
+    assert len(Paquete.listar_todos(admin)) == 2
+    _rechaza(PermissionError, Paquete.listar_todos, carolina)
+
+    # RF-RES-08 (R11): cada cliente ve todas las suyas, incluida la anulada, y ninguna ajena.
+    assert len(carolina.historial()) == 3 and len(pedro.historial()) == 2
+    assert {r.obtener_total() for r in pedro.historial()} == {6 * 516_000, 2 * 516_000}
+
+    # RF-RES-11 y S-16: el administrador ve nombre y correo, nunca RUT ni teléfono.
+    lista = Reserva.listar_por_paquete(altiplano, admin)
+    assert len(lista) == 5 and all("12.345" not in str(r) and "2222" not in str(r) for r in lista)
+    _rechaza(PermissionError, Reserva.listar_por_paquete, altiplano, carolina)
+
+    # RF-PAQ-09: con reservas no se elimina; sin reservas, sí (y se llevan sus destinos).
+    _rechaza(ReglaNegocioError, altiplano.eliminar, admin, regla="RF-PAQ-09")
+    otro.eliminar(admin)
+    assert Paquete.buscar(otro.obtener_id()) is None
+
+    # R8 con paquetes: Surire está en un paquete, así que queda no disponible y el paquete lo
+    # conserva (S-15); un paquete nuevo ya no puede usarlo, ni en memoria ni en la base.
+    assert surire.eliminar(admin) is False
+    assert surire.obtener_id() in [d.obtener_id() for d in
+                                   Paquete.buscar(altiplano.obtener_id()).listar_destinos()]
+    _rechaza(ReglaNegocioError, Paquete("Nuevo", salida, regreso, 5, [elqui, otros[0]])
+             .reemplazar_destinos, [surire, elqui], admin, regla="R8")
+
+    # La base rechaza por sí misma lo que violan R3, R5, R13 y R16 (RNF-FIA-01).
+    with conectar() as con:
+        for sql, datos in (
+                ("INSERT INTO paquete (nombre, fecha_salida, fecha_regreso, cupo_maximo, margen)"
+                 " VALUES ('x', '2030-01-05', '2030-01-01', 5, 20)", ()),                    # R5
+                ("INSERT INTO paquete_destino VALUES (?, ?)",
+                 (altiplano.obtener_id(), elqui.obtener_id())),                            # R3
+                ("INSERT INTO reserva (cliente_id, paquete_id, fecha_emision, personas, total)"
+                 " VALUES (?, ?, '2030-01-01', 0, 1)", (pedro.obtener_id(), altiplano.obtener_id())),
+                ("INSERT INTO reserva (cliente_id, paquete_id, fecha_emision, personas, total,"
+                 " estado) VALUES (?, ?, '2030-01-01', 1, 1, 'PAGADA')",
+                 (pedro.obtener_id(), altiplano.obtener_id()))):
+            _rechaza(sqlite3.IntegrityError, con.execute, sql, datos)
 
 
 if __name__ == "__main__":
