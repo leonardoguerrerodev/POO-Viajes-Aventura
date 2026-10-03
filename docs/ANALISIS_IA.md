@@ -42,7 +42,8 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
   - `pruebas/prueba_rubrica.py`: una afirmación por indicador.
   - Bandit, pip-audit y SonarCloud.
   - **Pruebas de mutación:** romper a propósito una regla y comprobar que alguna prueba falla.
-    Detectaron 46 de 46 mutaciones en total.
+    Detectaron 46 de 46 mutaciones en total. Una de ellas, un atributo público, recién se detectó
+    después de corregir el comparador (K-08).
 
 ## 1. Requerimientos, modelos y planificación (asistente)
 
@@ -71,7 +72,7 @@ CLARO que adjuntaba el caso. Cada propuesta se comparó con el modelo del proyec
 | C4 | Clase `Rut` como objeto valor que se oculta en las trazas | **Modificado** | La idea vale (que el RUT no se filtre, R17), pero no hace falta otra clase: `Cliente.__repr__` no muestra el RUT ni el teléfono, y una prueba lo verifica | `Cliente.__repr__` |
 | C5 a C8 | Enumeración `Accion`, clase `Catalogo`, `Paquete.reservar()`, sin anulación | **Descartados (4)** | Ver la sección de descartes | Ninguno |
 | C9 | Nombre de destino único y normalizado, con `UNIQUE` en la base | **Modificado** | La normalización ya estaba en RF-DES-02, y era más amplia, porque también ignora las tildes, que la IA no consideró. Se tomó la idea de poner el `UNIQUE` sobre la columna normalizada | Tabla `destino` |
-| C10 | `Usuario` abstracta, precio fijado al publicar, total guardado, cupo calculado, agregación 2..5, Argon2id, Fernet | Coincidencias | Dos diseños hechos por separado llegan a lo mismo: confirma las decisiones 1 a 6. No se cuentan como contribución | Ninguno |
+| C10 | `Usuario` abstracta, precio fijado al publicar, total guardado, cupo calculado, agregación 2..5, Argon2id, Fernet, autorización en el dominio | Coincidencias (8) | Dos diseños hechos por separado llegan a lo mismo: confirma las decisiones 1 a 6. No se cuentan como contribución | Ninguno |
 
 ## 3. Código y pruebas (asistente)
 
@@ -143,7 +144,7 @@ mutaciones que lo vigilan, está en [`AUDITORIA.md`](AUDITORIA.md).
 ## Qué se aprendió del uso de la IA
 
 1. **El prompt CLARO cambia el resultado.** El prompt pobre produjo 7 propuestas que contradecían el caso,
-   y todas se descartaron. El CLARO produjo 5 ideas que se aprovecharon modificadas, más 7 coincidencias
+   y todas se descartaron. El CLARO produjo 5 ideas que se aprovecharon modificadas, más 8 coincidencias
    con el modelo del proyecto.
 2. **La IA acierta en lo que se le pregunta y falla en las consecuencias.** La auditoría encontró
    errores reales, pero no vio el efecto de su propia corrección (K-06).
