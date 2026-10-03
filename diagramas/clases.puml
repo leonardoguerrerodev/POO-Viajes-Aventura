@@ -29,6 +29,7 @@ package "Cuentas y acceso" {
     - bloqueadoHasta: datetime
     + {static} autenticar(correo: str, clave: str): Usuario
     + cambiarClave(actual: str, nueva: str): void
+    + obtenerId(): int
     + obtenerCorreo(): str
     + {abstract} puede(accion: str): bool
     # validarClave(clave: str): void
@@ -69,6 +70,7 @@ package "Catálogo" {
     + cambiarCosto(costoBase: int, solicitante: Usuario): void
     + eliminar(solicitante: Usuario): bool
     + reactivar(solicitante: Usuario): void
+    + obtenerId(): int
     + obtenerCostoBase(): int
     + estaDisponible(): bool
     + {static} listar(soloDisponibles: bool): list
@@ -84,6 +86,7 @@ package "Catálogo" {
     - margen: int
     - precioPorPersona: int
     - publicado: bool
+    + obtenerId(): int
     + calcularPrecio(): int
     + publicar(solicitante: Usuario): void
     + cupoDisponible(): int
