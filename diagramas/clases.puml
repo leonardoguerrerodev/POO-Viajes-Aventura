@@ -44,6 +44,7 @@ package "Cuentas y acceso" {
     + rutEnmascarado(): str
     + telefonoEnmascarado(): str
     + historial(): list
+    + tieneReservaVigente(paquete: Paquete): bool
     + puede(accion: str): bool
   }
 

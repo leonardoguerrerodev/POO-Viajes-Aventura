@@ -509,6 +509,13 @@ class Cliente(Usuario):
         """R: todas las reservas propias, pasadas, vigentes y anuladas; nunca las de otro (R11)."""
         return Reserva._listar("r.cliente_id = ?", (self.obtener_id(),))
 
+    def tiene_reserva_vigente(self, paquete: "Paquete") -> bool:
+        """RF-RES-10: el menú advierte antes de una segunda reserva en el mismo paquete (P-01)."""
+        with conectar() as con:
+            return con.execute("SELECT 1 FROM reserva WHERE cliente_id = ? AND paquete_id = ?"
+                               " AND estado = 'VIGENTE' LIMIT 1",
+                               (self.obtener_id(), paquete.obtener_id())).fetchone() is not None
+
     def actualizar_contacto(self, nombre: str, telefono: str) -> None:
         """U: nombre y teléfono propios (RF-RES-12). El RUT y el correo no cambian."""
         nombre, telefono = texto(nombre, CAMPO_NOMBRE, 80), validar_telefono(telefono)
@@ -997,7 +1004,8 @@ class Reserva:
         # condicion es siempre un texto fijo de esta clase; los datos van como parámetros.
         with conectar() as con:
             filas = con.execute(
-                f"SELECT r.id, r.paquete_id, r.fecha_emision, r.personas, r.total, r.estado,"
+                # r.id va con alias: sin él, fila["id"] sería el de la reserva y no el del cliente.
+                f"SELECT r.id AS reserva_id, r.paquete_id, r.fecha_emision, r.personas, r.total, r.estado,"
                 f" {', '.join('u.' + c.strip() for c in Usuario.COLUMNAS.split(','))}"
                 f" FROM reserva r JOIN usuario u ON u.id = r.cliente_id WHERE {condicion}"
                 f" ORDER BY r.fecha_emision, r.id", parametros).fetchall()
@@ -1008,7 +1016,7 @@ class Reserva:
                 paquetes[f["paquete_id"]] = Paquete.buscar(f["paquete_id"])
             reservas.append(Reserva(_usuario_desde_fila(f), paquetes[f["paquete_id"]],
                                     f["personas"], f["total"], date.fromisoformat(f["fecha_emision"]),
-                                    EstadoReserva(f["estado"]), id=f[0]))
+                                    EstadoReserva(f["estado"]), id=f["reserva_id"]))
         return reservas
 
 
@@ -1256,8 +1264,10 @@ def _verificar_paquetes_y_reservas() -> None:
     # RF-RES-04, RF-RES-07 (R13) y R16: total fijo = precio publicado × personas.
     _rechaza(PermissionError, Reserva.reservar, altiplano, 1, admin)
     _rechaza(ReglaNegocioError, Reserva.reservar, altiplano, 0, carolina, regla="R16")
+    assert not carolina.tiene_reserva_vigente(altiplano)
     reserva = Reserva.reservar(altiplano, 2, carolina)
     assert reserva.obtener_total() == 1_032_000
+    assert carolina.tiene_reserva_vigente(altiplano) and not pedro.tiene_reserva_vigente(altiplano)
     elqui.cambiar_costo(200_000, admin)
     assert carolina.historial()[0].obtener_total() == 1_032_000
 
@@ -1328,6 +1338,11 @@ def _verificar_paquetes_y_reservas() -> None:
     _rechaza(ReglaNegocioError, altiplano.eliminar, admin, regla="RF-PAQ-09")
     otro.eliminar(admin)
     assert Paquete.buscar(otro.obtener_id()) is None
+
+    # Una reserva leída del historial (el camino del menú) conoce a su verdadero titular.
+    vigente = next(r for r in pedro.historial() if r.obtener_total() == 6 * 516_000)
+    _rechaza(PermissionError, vigente.anular, carolina)
+    vigente.anular(pedro)
 
     # R8 con paquetes: Surire está en un paquete, así que queda no disponible y el paquete lo
     # conserva (S-15); un paquete nuevo ya no puede usarlo, ni en memoria ni en la base.
