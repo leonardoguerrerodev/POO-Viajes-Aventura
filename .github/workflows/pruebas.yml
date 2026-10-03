@@ -27,3 +27,6 @@ jobs:
 
       - name: Las librerías de seguridad cargan
         run: python -c "import argon2, cryptography.fernet; print('OK')"
+
+      - name: Autoverificación del dominio
+        run: python viajes.py
