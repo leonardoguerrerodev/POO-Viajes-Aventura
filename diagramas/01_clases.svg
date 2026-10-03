@@ -70,8 +70,8 @@
 <text x="21" y="510.00000000000006" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">ANULADA</tspan></text>
 <rect x="290" y="4" width="43.22071875" height="12" rx="0" fill="#eeeeee" stroke="#333333" stroke-width="0.8"/>
 <text x="295" y="13" font-family="Liberation Sans" font-size="7.8" text-anchor="start" fill="#000" font-weight="bold"><tspan x="295" dy="0">Catálogo</tspan></text>
-<rect x="290" y="16" width="262" height="515.9000000000001" rx="0" fill="none" stroke="#333333" stroke-width="0.8"/>
-<rect x="296" y="24" width="250" height="202.70000000000002" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<rect x="290" y="16" width="262" height="525.2" rx="0" fill="none" stroke="#333333" stroke-width="0.8"/>
+<rect x="296" y="24" width="250" height="212.0" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
 <text x="421.0" y="35" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="421.0" dy="0">Destino</tspan></text>
 <path d="M296,40 L546,40" fill="none" stroke="#333333" stroke-width="0.7"/>
 <text x="301" y="49.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-id: int</tspan></text>
@@ -90,55 +90,56 @@
 <text x="301" y="166.10000000000002" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+eliminar(solicitante: Usuario): bool</tspan></text>
 <text x="301" y="175.4" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+reactivar(solicitante: Usuario): void</tspan></text>
 <text x="301" y="184.70000000000002" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+obtenerId(): int</tspan></text>
-<text x="301" y="194.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+obtenerCostoBase(): int</tspan></text>
-<text x="301" y="203.3" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+estaDisponible(): bool</tspan></text>
-<text x="301" y="212.60000000000002" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+listar(soloDisponibles: bool): list</tspan></text>
-<text x="301" y="221.9" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+buscar(id: int): Destino</tspan></text>
-<rect x="296" y="272.70000000000005" width="250" height="249.20000000000002" rx="0" fill="#fff6d6" stroke="#333333" stroke-width="0.8"/>
-<text x="421.0" y="283.70000000000005" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="421.0" dy="0">Paquete</tspan></text>
-<path d="M296,288.70000000000005 L546,288.70000000000005" fill="none" stroke="#333333" stroke-width="0.7"/>
-<text x="301" y="298.20000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-id: int</tspan></text>
-<text x="301" y="307.50000000000006" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-nombre: str</tspan></text>
-<text x="301" y="316.80000000000007" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-fechaSalida: date</tspan></text>
-<text x="301" y="326.1" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-fechaRegreso: date</tspan></text>
-<text x="301" y="335.40000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-cupoMaximo: int</tspan></text>
-<text x="301" y="344.70000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-margen: int</tspan></text>
-<text x="301" y="354.00000000000006" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-precioPorPersona: int</tspan></text>
-<text x="301" y="363.30000000000007" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-publicado: bool</tspan></text>
-<path d="M296,368.1 L546,368.1" fill="none" stroke="#333333" stroke-width="0.7"/>
-<text x="301" y="377.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+obtenerId(): int</tspan></text>
-<text x="301" y="386.90000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+calcularPrecio(): int</tspan></text>
-<text x="301" y="396.20000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+publicar(solicitante: Usuario): void</tspan></text>
-<text x="301" y="405.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+cupoDisponible(): int</tspan></text>
-<text x="301" y="414.8" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+estado(hoy: date = today()): str</tspan></text>
-<text x="301" y="424.1" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+estaDisponible(hoy: date = today()): bool</tspan></text>
-<text x="301" y="433.40000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+listarDestinos(): list</tspan></text>
-<text x="301" y="442.70000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+guardar(solicitante: Usuario): int</tspan></text>
-<text x="301" y="452.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+editar(nombre: str, fechaSalida: date, fechaRegreso: date, margen: int,</tspan></text>
-<text x="309" y="461.3" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="309" dy="0">solicitante: Usuario): void</tspan></text>
-<text x="301" y="470.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+reemplazarDestinos(destinos: list, solicitante: Usuario): void</tspan></text>
-<text x="301" y="479.90000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+cambiarCupo(cupoMaximo: int, solicitante: Usuario): void</tspan></text>
-<text x="301" y="489.20000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+eliminar(solicitante: Usuario): void</tspan></text>
-<text x="301" y="498.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+listarDisponibles(hoy: date = today()): list</tspan></text>
-<text x="301" y="507.80000000000007" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+listarTodos(solicitante: Usuario): list</tspan></text>
-<text x="301" y="517.1" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+buscar(id: int): Paquete</tspan></text>
-<rect x="296" y="555.9000000000001" width="130" height="44.6" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="361.0" y="566.9000000000001" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="361.0" dy="0">ReglaNegocioError</tspan></text>
-<path d="M296,571.9000000000001 L426,571.9000000000001" fill="none" stroke="#333333" stroke-width="0.7"/>
-<text x="301" y="581.4000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-regla: str</tspan></text>
-<path d="M296,586.2 L426,586.2" fill="none" stroke="#333333" stroke-width="0.7"/>
-<text x="301" y="595.7" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+obtenerRegla(): str</tspan></text>
-<rect x="472" y="555.9000000000001" width="74" height="25" rx="0" fill="#ffffff" stroke="#333333" stroke-width="0.8"/>
-<text x="509.0" y="565.9000000000001" font-family="Liberation Sans" font-size="7" text-anchor="middle" fill="#000" font-style="italic"><tspan x="509.0" dy="0">«Python»</tspan></text>
-<text x="509.0" y="575.9000000000001" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="509.0" dy="0">Exception</tspan></text>
-<path d="M426,568.4000000000001 L472,568.4000000000001" fill="none" stroke="#333333" stroke-width="0.8"/>
-<path d="M465.0,571.9000000000001 L472,568.4000000000001 L465.0,564.9000000000001 Z" fill="#fff" stroke="#333333" stroke-width="0.9"/>
-<path d="M421.0,272.70000000000005 l4,-6 l-4,-6 l-4,6 Z" fill="#fff" stroke="#333333" stroke-width="0.8"/>
-<path d="M421.0,260.70000000000005 L421.0,226.70000000000002" fill="none" stroke="#333333" stroke-width="0.8"/>
-<text x="427.0" y="268.70000000000005" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="427.0" dy="0">0..*</tspan></text>
-<text x="427.0" y="236.70000000000002" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="427.0" dy="0">2..5</tspan></text>
-<text x="411.0" y="252.70000000000005" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="411.0" dy="0">combina</tspan></text>
-<path d="M412.0,247.70000000000005 h6 l-3,-5 Z" fill="#333333"/>
+<text x="301" y="194.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+obtenerNombre(): str</tspan></text>
+<text x="301" y="203.3" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+obtenerCostoBase(): int</tspan></text>
+<text x="301" y="212.60000000000002" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+estaDisponible(): bool</tspan></text>
+<text x="301" y="221.9" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+listar(soloDisponibles: bool): list</tspan></text>
+<text x="301" y="231.20000000000002" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+buscar(id: int): Destino</tspan></text>
+<rect x="296" y="282.0" width="250" height="249.20000000000002" rx="0" fill="#fff6d6" stroke="#333333" stroke-width="0.8"/>
+<text x="421.0" y="293.0" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="421.0" dy="0">Paquete</tspan></text>
+<path d="M296,298.0 L546,298.0" fill="none" stroke="#333333" stroke-width="0.7"/>
+<text x="301" y="307.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-id: int</tspan></text>
+<text x="301" y="316.8" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-nombre: str</tspan></text>
+<text x="301" y="326.1" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-fechaSalida: date</tspan></text>
+<text x="301" y="335.4" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-fechaRegreso: date</tspan></text>
+<text x="301" y="344.7" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-cupoMaximo: int</tspan></text>
+<text x="301" y="354.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-margen: int</tspan></text>
+<text x="301" y="363.3" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-precioPorPersona: int</tspan></text>
+<text x="301" y="372.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-publicado: bool</tspan></text>
+<path d="M296,377.4 L546,377.4" fill="none" stroke="#333333" stroke-width="0.7"/>
+<text x="301" y="386.9" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+obtenerId(): int</tspan></text>
+<text x="301" y="396.2" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+calcularPrecio(): int</tspan></text>
+<text x="301" y="405.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+publicar(solicitante: Usuario): void</tspan></text>
+<text x="301" y="414.79999999999995" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+cupoDisponible(): int</tspan></text>
+<text x="301" y="424.09999999999997" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+estado(hoy: date = today()): str</tspan></text>
+<text x="301" y="433.4" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+estaDisponible(hoy: date = today()): bool</tspan></text>
+<text x="301" y="442.7" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+listarDestinos(): list</tspan></text>
+<text x="301" y="452.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+guardar(solicitante: Usuario): int</tspan></text>
+<text x="301" y="461.29999999999995" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+editar(nombre: str, fechaSalida: date, fechaRegreso: date, margen: int,</tspan></text>
+<text x="309" y="470.59999999999997" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="309" dy="0">solicitante: Usuario): void</tspan></text>
+<text x="301" y="479.9" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+reemplazarDestinos(destinos: list, solicitante: Usuario): void</tspan></text>
+<text x="301" y="489.2" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+cambiarCupo(cupoMaximo: int, solicitante: Usuario): void</tspan></text>
+<text x="301" y="498.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+eliminar(solicitante: Usuario): void</tspan></text>
+<text x="301" y="507.79999999999995" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+listarDisponibles(hoy: date = today()): list</tspan></text>
+<text x="301" y="517.1" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+listarTodos(solicitante: Usuario): list</tspan></text>
+<text x="301" y="526.4" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="301" dy="0">+buscar(id: int): Paquete</tspan></text>
+<rect x="296" y="565.2" width="130" height="44.6" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="361.0" y="576.2" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="361.0" dy="0">ReglaNegocioError</tspan></text>
+<path d="M296,581.2 L426,581.2" fill="none" stroke="#333333" stroke-width="0.7"/>
+<text x="301" y="590.7" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">-regla: str</tspan></text>
+<path d="M296,595.5 L426,595.5" fill="none" stroke="#333333" stroke-width="0.7"/>
+<text x="301" y="605.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="301" dy="0">+obtenerRegla(): str</tspan></text>
+<rect x="472" y="565.2" width="74" height="25" rx="0" fill="#ffffff" stroke="#333333" stroke-width="0.8"/>
+<text x="509.0" y="575.2" font-family="Liberation Sans" font-size="7" text-anchor="middle" fill="#000" font-style="italic"><tspan x="509.0" dy="0">«Python»</tspan></text>
+<text x="509.0" y="585.2" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="509.0" dy="0">Exception</tspan></text>
+<path d="M426,577.7 L472,577.7" fill="none" stroke="#333333" stroke-width="0.8"/>
+<path d="M465.0,581.2 L472,577.7 L465.0,574.2 Z" fill="#fff" stroke="#333333" stroke-width="0.9"/>
+<path d="M421.0,282.0 l4,-6 l-4,-6 l-4,6 Z" fill="#fff" stroke="#333333" stroke-width="0.8"/>
+<path d="M421.0,270.0 L421.0,236.0" fill="none" stroke="#333333" stroke-width="0.8"/>
+<text x="427.0" y="278.0" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="427.0" dy="0">0..*</tspan></text>
+<text x="427.0" y="246.0" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="427.0" dy="0">2..5</tspan></text>
+<text x="411.0" y="262.0" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="411.0" dy="0">combina</tspan></text>
+<path d="M412.0,257.0 h6 l-3,-5 Z" fill="#333333"/>
 <path d="M175.0,380.20000000000005 L175.0,436.20000000000005" fill="none" stroke="#333333" stroke-width="0.8"/>
 <text x="180.0" y="390.20000000000005" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="180.0" dy="0">1</tspan></text>
 <text x="170.0" y="433.20000000000005" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="170.0" dy="0">0..*</tspan></text>

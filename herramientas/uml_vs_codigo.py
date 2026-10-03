@@ -6,6 +6,8 @@ Para cada clase del diagrama comprueba, leyendo el código con `ast` (sin ejecut
   - cada método: mismo nombre (camelCase en el diagrama, snake_case en el código), mismos
     parámetros y en el mismo orden, y la marca {static} o {abstract} cuando la tiene;
   - que el código no tenga métodos públicos que el diagrama no dibuja.
+Un atributo con el nombre de una clase asociada (paquete, destinos) es el extremo de una asociación
+del diagrama, y se acepta solo si esa asociación existe.
 No se dibujan, por convención: el constructor, los métodos especiales de Python (__str__,
 __repr__) y los auxiliares que empiezan con guion bajo (lectura de filas, INSERT común).
 
@@ -54,6 +56,11 @@ def leer_diagrama(texto: str) -> dict:
     for padre, hija in re.findall(r"^(\w+) <\|-+\w*-* (\w+)$", texto, re.M):
         if hija in clases:
             clases[hija]["padre"] = padre
+    # asociaciones y agregaciones: cada extremo puede ser un atributo de la otra clase
+    for a, flecha, b in re.findall(r'^(\w+) (?:"[^"]+" )?(\S+) (?:"[^"]+" )?(\w+)', texto, re.M):
+        if "<|" not in flecha and "hidden" not in flecha and a in clases and b in clases:
+            clases[a].setdefault("asociadas", set()).update({snake(b), snake(b) + "s"})
+            clases[b].setdefault("asociadas", set()).update({snake(a), snake(a) + "s"})
     return clases
 
 
@@ -103,7 +110,7 @@ def comparar(diagrama: dict, codigo: dict) -> list[str]:
         difs += [f"{clase}: atributo público {a}; el modelo los declara privados"
                  for a in sorted(c["publicos"])]
         difs += [f"{clase}: atributo privado {a} que el diagrama no dibuja"
-                 for a in sorted(c["atributos"] - d["atributos"])]
+                 for a in sorted(c["atributos"] - d["atributos"] - d.get("asociadas", set()))]
         for nombre, (params, static, abstract) in d["metodos"].items():
             if nombre not in c["metodos"]:
                 difs.append(f"{clase}: falta el método {nombre}()")
