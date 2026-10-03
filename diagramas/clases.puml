@@ -1,0 +1,137 @@
+@startuml clases
+' Diagrama de clases de Viajes Aventura (paso 5 del plan). Convención de la ES1: nombres en camelCase,
+' privado con «-», protegido con «#», sin constructor, «void» cuando no devuelve nada. El código usa
+' snake_case y herramientas/uml_vs_codigo.py convierte uno en otro para compararlos.
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "Liberation Sans"
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor white
+  BorderColor black
+  ArrowColor black
+}
+skinparam note {
+  BackgroundColor #f6f6f6
+  BorderColor #666666
+}
+hide empty fields
+skinparam nodesep 40
+skinparam ranksep 50
+
+package "Cuentas y acceso" {
+  abstract class Usuario {
+    - id: int
+    - correo: str
+    - hashClave: str
+    - intentosFallidos: int
+    - bloqueadoHasta: datetime
+    + {static} autenticar(correo: str, clave: str): Usuario
+    + cambiarClave(actual: str, nueva: str): void
+    + obtenerCorreo(): str
+    + {abstract} puede(accion: str): bool
+    # validarClave(clave: str): void
+  }
+
+  class Cliente {
+    - nombre: str
+    - rut: str
+    - telefono: str
+    + {static} registrar(nombre: str, rut: str, correo: str, telefono: str, clave: str): Cliente
+    + actualizarContacto(nombre: str, telefono: str): void
+    + obtenerNombre(): str
+    + rutEnmascarado(): str
+    + telefonoEnmascarado(): str
+    + historial(): list
+    + puede(accion: str): bool
+  }
+
+  class Administrador {
+    + {static} crearPrimero(correo: str, clave: str): Administrador
+    + crearAdministrador(correo: str, clave: str): Administrador
+    + puede(accion: str): bool
+  }
+}
+
+package "Catálogo" {
+  class Destino {
+    - id: int
+    - nombre: str
+    - zona: str
+    - descripcion: str
+    - duracionDias: int
+    - costoBase: int
+    - disponible: bool
+    - fechaCosto: date
+    + guardar(solicitante: Usuario): int
+    + editar(nombre: str, zona: str, descripcion: str, duracionDias: int, solicitante: Usuario): void
+    + cambiarCosto(costoBase: int, solicitante: Usuario): void
+    + eliminar(solicitante: Usuario): bool
+    + reactivar(solicitante: Usuario): void
+    + obtenerCostoBase(): int
+    + estaDisponible(): bool
+    + {static} listar(soloDisponibles: bool): list
+    + {static} buscar(id: int): Destino
+  }
+
+  class Paquete {
+    - id: int
+    - nombre: str
+    - fechaSalida: date
+    - fechaRegreso: date
+    - cupoMaximo: int
+    - margen: int
+    - precioPorPersona: int
+    - publicado: bool
+    + calcularPrecio(): int
+    + publicar(solicitante: Usuario): void
+    + cupoDisponible(): int
+    + estado(hoy: date = today()): str
+    + estaDisponible(hoy: date = today()): bool
+    + listarDestinos(): list
+    + guardar(solicitante: Usuario): int
+    + editar(nombre: str, fechaSalida: date, fechaRegreso: date, margen: int, solicitante: Usuario): void
+    + reemplazarDestinos(destinos: list, solicitante: Usuario): void
+    + cambiarCupo(cupoMaximo: int, solicitante: Usuario): void
+    + eliminar(solicitante: Usuario): void
+    + {static} listarDisponibles(hoy: date = today()): list
+    + {static} listarTodos(solicitante: Usuario): list
+    + {static} buscar(id: int): Paquete
+  }
+}
+
+package "Reservas" {
+  class Reserva {
+    - id: int
+    - fechaEmision: date
+    - personas: int
+    - total: int
+    - estado: EstadoReserva
+    + {static} reservar(paquete: Paquete, personas: int, solicitante: Cliente, hoy: date = today()): Reserva
+    + anular(solicitante: Cliente): void
+    + obtenerTotal(): int
+    + {static} listarPorPaquete(paquete: Paquete, solicitante: Usuario): list
+  }
+
+  enum EstadoReserva {
+    VIGENTE
+    ANULADA
+  }
+}
+
+class ReglaNegocioError {
+  - regla: str
+  + obtenerRegla(): str
+}
+
+Usuario <|-- Cliente
+Usuario <|-right- Administrador
+Cliente "1" -down- "0..*" Reserva : realiza >
+Reserva -[hidden]right- EstadoReserva
+Administrador -[hidden]right- Paquete
+Paquete "0..*" o-down- "2..5" Destino : combina >
+Reserva "0..*" -- "1" Paquete : sobre >
+Exception <|-- ReglaNegocioError
+
+@enduml
