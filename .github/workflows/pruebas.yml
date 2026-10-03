@@ -30,3 +30,6 @@ jobs:
 
       - name: Autoverificación del dominio
         run: python viajes.py
+
+      - name: Sesión completa del menú con los dos roles
+        run: python herramientas/driver.py
