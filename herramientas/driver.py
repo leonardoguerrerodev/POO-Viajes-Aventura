@@ -20,8 +20,6 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 
-from cryptography.fernet import Fernet  # noqa: E402
-
 import viajes  # noqa: E402
 
 ENTER = ""
@@ -133,15 +131,20 @@ def ejecutar(guion: list[str] = GUION, esperado: list[str] = ESPERADO) -> str:
     originales = builtins.input, getpass.getpass
     builtins.input = lambda mensaje="": teclear(mensaje)
     getpass.getpass = lambda mensaje="Password: ", stream=None: teclear(mensaje, oculto=True)
-    os.environ[viajes.VARIABLE_CLAVE] = Fernet.generate_key().decode()
-    viajes.cifrador.cache_clear()
+    # Sin variable de entorno: la clave se crea como en una instalación nueva, en la carpeta temporal.
+    os.environ.pop(viajes.VARIABLE_CLAVE, None)
+    clave_original = viajes.RUTA_CLAVE
     try:
         with tempfile.TemporaryDirectory() as carpeta, redirect_stdout(salida):
+            viajes.RUTA_CLAVE = Path(carpeta) / ".env"
+            viajes.cifrador.cache_clear()
             viajes.usar_base(os.path.join(carpeta, "sesion.db"))
             import main
             main.main()
     finally:
         builtins.input, getpass.getpass = originales
+        viajes.RUTA_CLAVE = clave_original
+        viajes.cifrador.cache_clear()
     texto = condensar(salida.getvalue())
     assert "Traceback" not in texto, "la sesión mostró un Traceback"
     assert not pendientes, f"quedaron {len(pendientes)} respuestas sin usar: {pendientes[:3]}"

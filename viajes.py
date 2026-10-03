@@ -175,8 +175,13 @@ def cifrador() -> Fernet:
             if nombre.strip() == VARIABLE_CLAVE:
                 clave = valor.strip()
     if not clave:
-        if hay_usuarios():
-            # Sin la clave, los RUT ya guardados son ilegibles: crear otra los perdería para siempre.
+        # Sin la clave, los RUT ya guardados son ilegibles: crear otra los perdería para siempre.
+        # La condición es que haya datos cifrados, no usuarios: el primer administrador no tiene
+        # RUT, y la clave se crea recién con el primer cliente.
+        with conectar() as con:
+            cifrados = con.execute("SELECT 1 FROM usuario WHERE rut_cifrado IS NOT NULL LIMIT 1"
+                                   ).fetchone()
+        if cifrados:
             raise RuntimeError("Falta la clave de cifrado de los datos personales (.env)")
         clave = Fernet.generate_key().decode()
         # O_EXCL: si dos procesos la crean a la vez, uno falla en vez de pisar la clave del otro.
@@ -1047,9 +1052,15 @@ def autoverificar() -> None:
 
 
 def _verificar_clave_y_permisos() -> None:
-    # S-12: la clave se crea en el primer uso, fuera de la base, con un nombre de variable fijo.
+    # S-12: la clave se crea en el primer uso, fuera de la base, con un nombre de variable fijo,
+    # aunque ya exista el primer administrador (que no tiene datos cifrados).
+    with conectar() as con:
+        con.execute("INSERT INTO usuario (correo, hash_clave, rol) VALUES ('primero@x.cl',"
+                    " '$argon2id$prueba', 'ADMINISTRADOR')")
     cifrador()
     assert RUTA_CLAVE.read_text(encoding="utf-8").startswith(f"{VARIABLE_CLAVE}=")
+    with conectar() as con:
+        con.execute("DELETE FROM usuario")
     # RNF-SEG-04: la base y la clave quedan solo para su dueño. Windows no tiene estos permisos.
     if os.name == "posix":
         for archivo in (RUTA_ACTIVA, RUTA_CLAVE):
