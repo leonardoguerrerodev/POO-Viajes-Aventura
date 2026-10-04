@@ -1,6 +1,6 @@
 # Sesión real del menú
 
-Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas se teclearon sin eco y aquí se ven como ••••.
+Generada por `herramientas/driver.py` sobre una base temporal, con datos ficticios (ningún nombre, RUT ni teléfono corresponde a una persona). Las contraseñas se teclearon sin eco y aquí se ven como ••••.
 
 ```text
 
@@ -47,10 +47,11 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
 
    CUENTAS
    14. Crear la cuenta de un socio
+   15. Respaldar la base de datos
 
    MI CUENTA
-   15. Cambiar mi contraseña
-   16. Cerrar sesión
+   16. Cambiar mi contraseña
+   17. Cerrar sesión
 
    Escriba «x» para cancelar la acción en curso  ·  0. Salir
 ==================================================================
@@ -238,7 +239,14 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
-   Opción: 16
+   Opción: 15
+   Respaldo guardado en /tmp/tmpagl3embd/respaldos/viajes_20261004_010234_497434.db.
+   La clave de cifrado no va en el respaldo: respáldela aparte (ver README).
+
+   Presione Enter para continuar...
+[pantalla limpia · menú de ana@viajes.cl (administrador)]
+
+   Opción: 17
    Sesión cerrada.
 
 ==================================================================
@@ -252,10 +260,15 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
    Opción: 2
 
    Registro de cliente (escriba x para cancelar)
-   Sus datos (nombre, RUT, correo y teléfono) se usan solo para registrar sus reservas
-   y contactarlo por ellas. El RUT y el teléfono se guardan cifrados y nunca se
-   muestran completos. Para pedir acceso, corrección o eliminación de sus datos,
-   escriba a la agencia. Responsable: Viajes Aventura (Ley 19.628 y Ley 21.719).
+   Responsable: Viajes Aventura, Valparaíso.
+   Datos: nombre, RUT, correo y teléfono. Finalidad: registrar sus reservas y contactarlo
+   por ellas; no se usan para nada más. Base legal: la ejecución de la reserva que usted
+   solicita. Destinatarios: solo los socios de la agencia; no se ceden a terceros.
+   Conservación: mientras su cuenta exista; las reservas, como respaldo de lo cobrado.
+   Protección: el RUT y el teléfono se guardan cifrados y nunca se muestran completos.
+   Derechos: acceso, rectificación, supresión, oposición, portabilidad y bloqueo; se
+   ejercen ante los socios de la agencia, que responden en 30 días corridos
+   (Ley 19.628 modificada por la Ley 21.719).
    ¿Acepta? (s/n): s
    Nombre completo: Carolina Díaz
    RUT (12.345.678-5): 12.345.678-6
@@ -278,10 +291,15 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
    Opción: 2
 
    Registro de cliente (escriba x para cancelar)
-   Sus datos (nombre, RUT, correo y teléfono) se usan solo para registrar sus reservas
-   y contactarlo por ellas. El RUT y el teléfono se guardan cifrados y nunca se
-   muestran completos. Para pedir acceso, corrección o eliminación de sus datos,
-   escriba a la agencia. Responsable: Viajes Aventura (Ley 19.628 y Ley 21.719).
+   Responsable: Viajes Aventura, Valparaíso.
+   Datos: nombre, RUT, correo y teléfono. Finalidad: registrar sus reservas y contactarlo
+   por ellas; no se usan para nada más. Base legal: la ejecución de la reserva que usted
+   solicita. Destinatarios: solo los socios de la agencia; no se ceden a terceros.
+   Conservación: mientras su cuenta exista; las reservas, como respaldo de lo cobrado.
+   Protección: el RUT y el teléfono se guardan cifrados y nunca se muestran completos.
+   Derechos: acceso, rectificación, supresión, oposición, portabilidad y bloqueo; se
+   ejercen ante los socios de la agencia, que responden en 30 días corridos
+   (Ley 19.628 modificada por la Ley 21.719).
    ¿Acepta? (s/n): s
    Nombre completo: Carolina Díaz
    RUT (12.345.678-5): 12.345.678-5
@@ -377,6 +395,8 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
    Paquetes disponibles
    [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
    Id del paquete: 1
+   Cantidad de personas: 2.5
+   ! Escriba un número entero, sin letras ni decimales.
    Cantidad de personas: 2
    Reserva confirmada por $1.056.000.
 
@@ -486,7 +506,7 @@ Generada por `herramientas/driver.py` sobre una base temporal. Las contraseñas 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
-   Opción: 16
+   Opción: 17
    Sesión cerrada.
 
 ==================================================================
@@ -563,10 +583,11 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 
    CUENTAS
    14. Crear la cuenta de un socio
+   15. Respaldar la base de datos
 
    MI CUENTA
-   15. Cambiar mi contraseña
-   16. Cerrar sesión
+   16. Cambiar mi contraseña
+   17. Cerrar sesión
 
    Escriba «x» para cancelar la acción en curso  ·  0. Salir
 ==================================================================
@@ -631,10 +652,11 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 
    CUENTAS
    14. Crear la cuenta de un socio
+   15. Respaldar la base de datos
 
    MI CUENTA
-   15. Cambiar mi contraseña
-   16. Cerrar sesión
+   16. Cambiar mi contraseña
+   17. Cerrar sesión
 
    Escriba «x» para cancelar la acción en curso  ·  0. Salir
 ==================================================================

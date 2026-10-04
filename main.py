@@ -8,6 +8,7 @@ rol puede hacer. No contiene ninguna sentencia SQL: todo el acceso a datos vive 
 
 import getpass                              # contraseñas sin eco en pantalla
 import os                                   # umask: archivos nuevos solo para su dueño (H-15)
+import re                                   # números con separador de miles (1.050.000)
 import sqlite3                              # solo para reconocer sus errores, nunca para consultar
 import time                                 # inactividad de la sesión (RF-SEG-09)
 from datetime import date, datetime         # fechas como día-mes-año (RNF-USA-02)
@@ -25,10 +26,16 @@ CREDENCIALES_INVALIDAS = ("   ! Correo o contraseña incorrectos, o la cuenta es
 SESION_CADUCADA = "   ! La sesión se cerró por inactividad. Inicie sesión de nuevo."
 # Deber de información (Ley 19.628 modificada por la Ley 21.719, art. 14 ter): para qué se piden los
 # datos, cómo se protegen y cómo se ejercen los derechos (H-14).
-AVISO_DATOS = ("   Sus datos (nombre, RUT, correo y teléfono) se usan solo para registrar sus reservas\n"
-               "   y contactarlo por ellas. El RUT y el teléfono se guardan cifrados y nunca se\n"
-               "   muestran completos. Para pedir acceso, corrección o eliminación de sus datos,\n"
-               "   escriba a la agencia. Responsable: Viajes Aventura (Ley 19.628 y Ley 21.719).")
+AVISO_DATOS = (
+    "   Responsable: Viajes Aventura, Valparaíso.\n"
+    "   Datos: nombre, RUT, correo y teléfono. Finalidad: registrar sus reservas y contactarlo\n"
+    "   por ellas; no se usan para nada más. Base legal: la ejecución de la reserva que usted\n"
+    "   solicita. Destinatarios: solo los socios de la agencia; no se ceden a terceros.\n"
+    "   Conservación: mientras su cuenta exista; las reservas, como respaldo de lo cobrado.\n"
+    "   Protección: el RUT y el teléfono se guardan cifrados y nunca se muestran completos.\n"
+    "   Derechos: acceso, rectificación, supresión, oposición, portabilidad y bloqueo; se\n"
+    "   ejercen ante los socios de la agencia, que responden en 30 días corridos\n"
+    "   (Ley 19.628 modificada por la Ley 21.719).")
 NO_DISPONIBLE = "Ese paquete no está en la oferta"
 INTERRUMPIDO = "\n   Interrumpido. Hasta luego."
 PIDE_ID_DESTINO = "   Id del destino: "
@@ -101,12 +108,19 @@ def pedir_valido(mensaje: str, validar) -> str:
             print(f"   ! {error}")
 
 
+# Un entero, con o sin separador de miles: 1050000 o 1.050.000, como la planilla. «2.5» no calza:
+# antes se borraban todos los puntos y «2.5» personas se registraba como 25 (hallazgo 3).
+ENTERO_CON_MILES = re.compile(r"\d{1,3}(?:\.\d{3})+", re.ASCII)
+
+
 def pedir_entero(mensaje: str) -> int:
     while True:
-        valor = leer(mensaje).replace(".", "")       # acepta 1.050.000, como la planilla
+        valor = leer(mensaje)
+        if ENTERO_CON_MILES.fullmatch(valor):
+            valor = valor.replace(".", "")
         # isdecimal y no isdigit: isdigit acepta caracteres como «²» que int() rechaza.
         if not valor.isdecimal():
-            print("   ! Escriba un número entero, sin letras.")
+            print("   ! Escriba un número entero, sin letras ni decimales.")
         elif len(valor) > 12 or int(valor) > MAXIMO_ENTERO:
             print(f"   ! Demasiado grande. El máximo es {MAXIMO_ENTERO:,}.".replace(",", "."))
         else:
@@ -122,13 +136,15 @@ def pedir_fecha(mensaje: str) -> date:
 
 
 def pedir_margen() -> int:
-    """Enter deja el margen habitual de 20 % (RF-PAQ-11)."""
-    valor = leer(f"   Margen de operación en % (Enter = {MARGEN_PROPUESTO}): ")
-    if not valor:
-        return MARGEN_PROPUESTO
-    if not valor.isdecimal() or len(valor) > 4:
-        raise ValueError("El margen debe ser un número entero de 0 a 1000")
-    return int(valor)
+    """Enter deja el margen habitual de 20 % (RF-PAQ-11). Un margen mal escrito se vuelve a pedir,
+    sin perder el resto del paquete ya ingresado."""
+    while True:
+        valor = leer(f"   Margen de operación en % (Enter = {MARGEN_PROPUESTO}): ")
+        if not valor:
+            return MARGEN_PROPUESTO
+        if valor.isdecimal() and len(valor) <= 4:
+            return int(valor)
+        print("   ! El margen es un número entero de 0 a 1000, sin el signo %.")
 
 
 def pedir_si_no(mensaje: str) -> bool:
@@ -349,6 +365,12 @@ def reservas_de_paquete(sesion: Usuario) -> None:
         print("   (sin reservas)")
 
 
+def respaldar(sesion: Administrador) -> None:
+    ruta = sesion.respaldar_base()
+    print(f"   Respaldo guardado en {ruta}.")
+    print("   La clave de cifrado no va en el respaldo: respáldela aparte (ver README).")
+
+
 def crear_socio(sesion: Administrador) -> None:
     nuevo = sesion.crear_administrador(pedir_texto("   Correo del socio: "), pedir_clave_nueva())
     print(f"   Cuenta de administrador creada para {nuevo.obtener_correo()}.")
@@ -432,6 +454,7 @@ OPCIONES = [
     ("Paquetes", "Eliminar un paquete", "catalogo", eliminar_paquete),
     ("Paquetes", "Ver las reservas de un paquete", "ver_reservas", reservas_de_paquete),
     ("Cuentas", "Crear la cuenta de un socio", "cuentas", crear_socio),
+    ("Cuentas", "Respaldar la base de datos", "respaldo", respaldar),
     ("Reservas", "Ver los paquetes disponibles", "reservar", ver_oferta),
     ("Reservas", "Reservar un paquete", "reservar", reservar),
     ("Reservas", "Mis reservas", "reservar", mis_reservas),

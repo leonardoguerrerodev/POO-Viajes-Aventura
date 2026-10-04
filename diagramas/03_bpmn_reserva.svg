@@ -17,10 +17,15 @@
 <text x="290" y="132.04999999999998" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="290" dy="0">Mostrar paquetes disponibles</tspan><tspan x="290" dy="9.36">con precio y cupo</tspan></text>
 <rect x="45.0" y="165.0" width="112" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
 <text x="101" y="178.04999999999998" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="101" dy="0">Elegir paquete e</tspan><tspan x="101" dy="9.36">indicar personas</tspan></text>
-<rect x="234.0" y="211.0" width="112" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="290" y="224.04999999999998" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="290" dy="0">Calcular el total</tspan><tspan x="290" dy="9.36">(precio fijado × personas)</tspan></text>
+<rect x="215.0" y="211.0" width="150" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="290" y="224.04999999999998" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="290" dy="0">Calcular el total y advertir si ya</tspan><tspan x="290" dy="9.36">tiene una reserva vigente (RF-RES-10)</tspan></text>
 <rect x="45.0" y="257.0" width="112" height="30" rx="6" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="101" y="274.73" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="101" dy="0">Confirmar reserva</tspan></text>
+<text x="101" y="270.05" font-family="Liberation Sans" font-size="7.8" text-anchor="middle" fill="#000"><tspan x="101" dy="0">Revisar el total</tspan><tspan x="101" dy="9.36">y confirmar</tspan></text>
+<path d="M101,305 L118,322 L101,339 L84,322 Z" fill="#fff6d6" stroke="#333333" stroke-width="0.9"/>
+<path d="M95.5,316.5 L106.5,327.5 M106.5,316.5 L95.5,327.5" stroke="#333333" stroke-width="1.6"/>
+<text x="79" y="325.0" font-family="Liberation Sans" font-size="7.5" text-anchor="end" fill="#000" font-style="italic"><tspan x="79" dy="0">¿Confirma?</tspan></text>
+<circle cx="101" cy="374" r="9" fill="#fff" stroke="#333333" stroke-width="2.6"/>
+<text x="101" y="393" font-family="Liberation Sans" font-size="7.3" text-anchor="middle" fill="#000"><tspan x="101" dy="0">Reserva no realizada</tspan></text>
 <path d="M290,305 L307,322 L290,339 L273,322 Z" fill="#fff6d6" stroke="#333333" stroke-width="0.9"/>
 <path d="M284.5,316.5 L295.5,327.5 M295.5,316.5 L284.5,327.5" stroke="#333333" stroke-width="1.6"/>
 <text x="268" y="320.5" font-family="Liberation Sans" font-size="7.5" text-anchor="end" fill="#000" font-style="italic"><tspan x="268" dy="0">¿La fecha de salida</tspan></text>
@@ -49,12 +54,18 @@
 <path d="M228.0,136.8 L234,134 L228.0,131.2 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
 <path d="M290,149.0 L290,160 L101,160 L101,165.0" fill="none" stroke="#333333" stroke-width="0.9"/>
 <path d="M98.2,159.0 L101,165.0 L103.8,159.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M101,195.0 L101,226 L234,226" fill="none" stroke="#333333" stroke-width="0.9"/>
-<path d="M228.0,228.8 L234,226 L228.0,223.2 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M101,195.0 L101,226 L215,226" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M209.0,228.8 L215,226 L209.0,223.2 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
 <path d="M290,241.0 L290,252 L101,252 L101,257.0" fill="none" stroke="#333333" stroke-width="0.9"/>
 <path d="M98.2,251.0 L101,257.0 L103.8,251.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M101,287.0 L101,292 L290,292 L290,305" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M101,287.0 L101,305" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M98.2,299.0 L101,305 L103.8,299.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M118,322 L145,322 L145,290 L290,290 L290,305" fill="none" stroke="#333333" stroke-width="0.9"/>
 <path d="M287.2,299.0 L290,305 L292.8,299.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<text x="121" y="318" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" font-style="italic" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="121" dy="0">sí</tspan></text>
+<path d="M101,339 L101,365" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M98.2,359.0 L101,365 L103.8,359.0 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<text x="105" y="350" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" font-style="italic" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="105" dy="0">no</tspan></text>
 <path d="M307,322 L371,322" fill="none" stroke="#333333" stroke-width="0.9"/>
 <path d="M365.0,324.8 L371,322 L365.0,319.2 Z" fill="#333333" stroke="#333333" stroke-width="0.9"/>
 <text x="310" y="318" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" font-style="italic" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="310" dy="0">sí</tspan></text>
