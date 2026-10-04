@@ -8,3 +8,6 @@
 # Entorno y cachés de Python
 .venv/
 __pycache__/
+
+# Respaldos de la base (RNF-FIA-03): datos de clientes, nunca al repositorio
+respaldos/

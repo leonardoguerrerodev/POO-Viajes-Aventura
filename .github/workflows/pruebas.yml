@@ -4,6 +4,10 @@ on:
   push:
   workflow_dispatch:
 
+# El token del workflow solo puede leer el repositorio: ninguna acción puede escribir en él (A03).
+permissions:
+  contents: read
+
 env:
   PYTHONUTF8: "1"   # la consola de Windows no es UTF-8 por omisión
 
@@ -39,3 +43,20 @@ jobs:
 
       - name: Prueba por indicador de la rúbrica
         run: python pruebas/prueba_rubrica.py
+
+  mutaciones:
+    # Rompe cada regla a propósito y exige que alguna prueba lo detecte. Tarda unos minutos, por
+    # eso corre en una sola combinación.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Dependencias fijadas, verificadas por hash
+        run: "pip install --only-binary :all: --require-hashes -r requirements.txt"
+
+      - name: Cada regla tiene una prueba que la vigila
+        run: python herramientas/mutaciones.py
