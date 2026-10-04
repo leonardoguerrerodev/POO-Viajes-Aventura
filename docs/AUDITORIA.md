@@ -21,7 +21,8 @@ apoyo de IA. Sábado 3 de octubre de 2026.
 | bandit | 6 B608 (posible inyección SQL), 93 B101 (`assert`; 102 al final, por las pruebas nuevas) | los 6 B608 | los B101: solo están en código de verificación |
 | pip-audit | 0 vulnerabilidades en las 5 dependencias | | |
 | Secretos en el historial | 0 (ningún `.env`, `.db` ni clave subida, en ningún commit) | | |
-| SonarCloud | 7 observaciones de las pruebas nuevas | 7 | |
+| SonarCloud | 8 observaciones de las pruebas nuevas | 8 | |
+| Auditoría final (corrector independiente y revisión propia, 3-oct 22:00) | 10 de seguridad y privacidad (§2.3) | 9 | 1 (plazo de conservación) y 6 riesgos nuevos declarados en §3 |
 
 De la IA: **4 adoptados tal como vinieron, 12 modificados y 1 descartado**. Cada decisión, con su
 fundamento, está en la sección 2. Tres hallazgos eran errores reales del código y se comprobaron por
@@ -69,25 +70,59 @@ Severidad según la IA. «Decisión» clasifica la recomendación de la IA: **ad
 | H-17 | Info. | A07 | Bloqueo con hora local; sin bloqueo progresivo | **Modificada** | Hora UTC (un cambio de horario ya no alarga ni anula el bloqueo). El bloqueo progresivo se descarta (§3) | autoverificación |
 | B608 ×6 | Media | A05 | SQL armado con f-string (solo constantes, no explotable) | Corregido | Contradecía RNF-SEG-03, que pide cero. Consultas como constantes literales y `json_each(?)` para la lista de ids | bandit: 0 B608 |
 
-### Pruebas de mutación: cada corrección tiene una prueba que la vigila
+### 2.1 Los 17 hallazgos de la IA en las cinco partes del docente
 
-Se deshizo cada corrección por separado en una copia del código y se corrieron las tres pruebas
-(autoverificación, driver del menú y prueba por indicador). Las 12 mutaciones fueron detectadas.
+Formato de la diapositiva 59: el hallazgo, su evidencia en el código auditado (commit `525ab10`), el
+impacto si sigue ocurriendo, la recomendación tomada y el esfuerzo real de la corrección.
 
-| Corrección deshecha | Detectada por |
-|---|---|
-| H-08 `BEGIN` diferido en vez de `BEGIN IMMEDIATE` | autoverificación, prueba por indicador |
-| H-09 techo antiguo del total | autoverificación, prueba por indicador |
-| H-04/H-05 descifrar al leer de la base | autoverificación, prueba por indicador |
-| H-10 cambiar la contraseña sin comparar el hash | autoverificación, prueba por indicador |
-| H-16 sin la lista de contraseñas comunes | autoverificación, prueba por indicador |
-| H-14 aceptar el RUT 0 | autoverificación, prueba por indicador |
-| H-02 reserva sin registro de auditoría | autoverificación, prueba por indicador |
-| H-17 hora local en el bloqueo | autoverificación, prueba por indicador |
-| H-01 clave dentro de la carpeta del proyecto | prueba por indicador |
-| H-11 plazo de inactividad solo en el menú | driver |
-| H-12 `int()` sin límite de largo | driver |
-| H-13 mensajes distintos para «no existe» y «no publicado» | driver |
+| ID | Hallazgo | Evidencia | Impacto | Recomendación aplicada | Esfuerzo |
+|---|---|---|---|---|---|
+| H-01 | La clave de cifrado estaba en la carpeta del proyecto, junto a la base | `viajes.py`: `RUTA_CLAVE = Path(__file__).with_name(".env")` | Un zip o una copia de la carpeta llevaba el RUT cifrado y su clave juntos: el cifrado no protegía nada | Clave en `~/.config/viajes-aventura/`, permisos 0600 corregidos al leerla | 15 min |
+| H-02 | No había registro de quién hizo cada cambio ni de los intentos de acceso | Ninguna escritura usaba `solicitante` después de autorizar | Sin rastro ante un cambio de precio, un paquete borrado o un ataque de fuerza bruta; nada que mostrar ante la Ley 21.719 | Tabla `auditoria` en la misma transacción, sin datos personales | 40 min |
+| H-03 | No se puede desactivar una cuenta ni suprimir los datos de un cliente | La acción `cuentas` solo crea | Un socio que se va conserva su acceso; el derecho de supresión no se atiende en el sistema | Declarado (§3): queda para la versión 2 | 120 min estimados |
+| H-04 | Listar reservas descifraba el RUT y el teléfono de todos | `_listar` construía cada `Cliente` con `descifrar(...)` | RUT en claro en memoria en cada listado; un registro alterado tumbaba el listado completo | Descifrado diferido: solo al enmascarar | 30 min, junto con H-05 |
+| H-05 | Iniciar sesión descifraba antes de verificar la contraseña | `autenticar` → `_usuario_desde_fila` | Con una clave equivocada, el mensaje delataba el correo y el intento no contaba para el bloqueo | Resuelto por H-04 | incluido en H-04 |
+| H-06 | El registro revela qué correos existen; el señuelo se calculaba en el primer intento | `_insertar`: R9; `_senuelo` perezoso | Permite saber quién es cliente y bloquear su cuenta a propósito | Señuelo al cargar el módulo; R9 solo para el `UNIQUE` del correo; la enumeración, declarada | 10 min |
+| H-07 | El bloqueo se decidía con un dato leído en otra conexión | `bloqueada = self.__bloqueado_hasta …` | Dos sesiones en paralelo podían sumar más de 5 intentos | Releer el bloqueo dentro de la transacción del intento | 15 min |
+| H-08 | La consulta previa a una escritura no entraba en la transacción | `sqlite3` abre la transacción en la primera escritura (comprobado: `in_transaction` es `False` tras un `SELECT`) | «Revisar y escribir» no era atómico (R8 al guardar paquetes) | `BEGIN IMMEDIATE` explícito en `conectar()` | 30 min |
+| H-09 | El techo del total era menor que el total posible | `COSTO_MAXIMO * CUPO_MAXIMO` (10^11) contra 5,5 × 10^12 | Una reserva grande se guardaba y después rompía el historial para siempre | Techo derivado del precio máximo, validado antes del INSERT | 10 min |
+| H-10 | Cambiar la contraseña comparaba con el hash en memoria | `cambiar_clave` | Una sesión vieja podía volver a cambiar una contraseña ya cambiada | UPDATE condicionado al hash leído; la nueva distinta de la actual | 15 min |
+| H-11 | La inactividad solo se medía en el menú | `usar_sesion` | Una pregunta abierta podía responderse horas después | Plazo revisado en cada espera de un dato | 25 min |
+| H-12 | `int()` con más de 4.300 dígitos cerraba el programa con traza | `ejecutar_opcion` (comprobado) | Traza con rutas en pantalla (RNF-SEG-05) | Largo antes de `int()`; `except Exception` final en `main()` | 10 min |
+| H-13 | Un cliente distinguía «no existe» de «no publicado» | `reservar` en el menú | Podía deducir los ids de los borradores | Mismo mensaje para los dos casos | 5 min |
+| H-14 | Sin aviso de datos; el RUT 0 pasaba la validación | `registrarse`; `validar_rut("0.000.000-0")` (comprobado) | Brecha con el deber de información; cuentas con RUT inválido | Aviso que hay que aceptar y RUT 0 rechazado; el aviso se completó en §2.3 | 15 min |
+| H-15 | El diario de la base nacía con permisos abiertos | `crear_tablas` hacía `chmod` después | Otro usuario del equipo podía leer el diario durante una transacción | `os.umask(0o077)` al arrancar | 2 min |
+| H-16 | No se rechazaban contraseñas comunes | `_validar_clave` | «contraseña123» era aceptada | Lista local y mínimo de 5 caracteres distintos | 15 min |
+| H-17 | Bloqueo con hora local | `datetime.now()` | Un cambio de horario alargaba o anulaba el bloqueo | Hora UTC; el bloqueo progresivo, declarado | 10 min |
+
+### 2.2 Pruebas de mutación: cada corrección tiene una prueba que la vigila
+
+`herramientas/mutaciones.py` deshace cada corrección y rompe cada regla principal, una por vez, en una
+copia temporal del proyecto, y corre las pruebas que deben detectarlo. Falla si alguna mutación
+sobrevive. Corre en el workflow, en el job «mutaciones», en cada envío al repositorio.
+
+Resultado: **27 de 27 detectadas**. Son 9 reglas del negocio y 6 de cuentas y permisos; las 12
+correcciones de esta auditoría; las de la auditoría final (sesión iniciada, edición a medias,
+`rowcount` y «2.5» personas); y los dos errores reales del desarrollo (K-04 y K-05).
+
+### 2.3 Auditoría final (3-oct, 22:00): seguridad y privacidad
+
+Un corrector independiente (agente nuevo, sin contexto) y una revisión propia de todo lo que se
+publica y se entrega encontraron estos hallazgos de seguridad y privacidad. Cada uno se comprobó antes
+de corregirlo.
+
+| # | Hallazgo | Evidencia | Impacto | Recomendación aplicada | Esfuerzo |
+|---|---|---|---|---|---|
+| 5 | Un `Administrador` creado sin iniciar sesión tenía permisos | Prueba: `Destino(...).guardar(Administrador("x@y.cl", ...))` guardaba | Contradecía el criterio de RF-SEG-05 («por cualquier vía»); H-13 lo había aceptado como riesgo | `autorizar()` exige una cuenta con sesión iniciada (decisión 13): solo `autenticar()` y el alta de la propia cuenta la dan | 40 min |
+| 4 | `editar` dejaba el objeto a medias si fallaba una validación | Prueba: el objeto quedaba con el nombre nuevo y la base con el anterior | Memoria y base dejaban de coincidir | Validar en valores locales y asignar solo después de guardar | 20 min |
+| 6 | Quedaba una consulta armada pegando textos | `_insertar`: `"… SELECT ?, …" + condicion` | Contradecía RNF-SEG-03 y lo afirmado en esta auditoría (bandit no lo detecta: no es un f-string) | Dos consultas literales completas | 10 min |
+| 20 | Tres escrituras no revisaban si guardaron algo | `cambiar_costo`, `reactivar`, `Destino.editar` | El menú decía «Guardado» aunque otra sesión hubiera borrado el registro | `exigir_una_fila()`: `rowcount` igual a 1 o error | 15 min |
+| 3 | «2.5» personas se registraba como 25 | `pedir_entero` borraba todos los puntos | Una reserva de 25 personas cobrada sin querer | El punto solo se acepta como separador de miles | 15 min |
+| 14 | El aviso de datos no cumplía el art. 14 ter completo | Faltaban la base legal, la conservación, los destinatarios y tres de los derechos | Deber de información incompleto (Ley 21.719) | Aviso con responsable, finalidad, base legal, destinatarios, conservación, protección y los seis derechos con su plazo | 20 min |
+| 25 | El token del workflow no tenía permisos limitados | `pruebas.yml` sin `permissions:` | Una acción comprometida podría escribir en el repositorio (A03) | `permissions: contents: read` | 5 min |
+| 10 | Las mutaciones citadas no se podían repetir | No había un script en el repositorio | Una afirmación que el corrector no puede verificar | `herramientas/mutaciones.py` en el workflow | 45 min |
+| 16 | No había forma de respaldar la base | P-14: «si se pierde, se pierde con todo» | La pérdida del equipo era la pérdida de todas las reservas | `Administrador.respaldarBase()`: copia consistente en `respaldos/`, 0600, ignorada por git (RNF-FIA-03) | 30 min |
+| 28 | RUT de prueba con dígito verificador válido | `12.345.678-5` y `11.111.111-1` en pruebas y en la sesión del menú | Podrían coincidir con personas reales | Declarado como datos ficticios en el código y en la sesión del menú | 5 min |
 
 ## 3. Declarados: riesgos aceptados y su motivo
 
@@ -96,9 +131,15 @@ Se deshizo cada corrección por separado en una copia del código y se corrieron
 | **H-03** No se puede desactivar la cuenta de un socio que se va, ni suprimir los datos de un cliente | El alcance del caso (§6) no lo pide, y exige cambiar el esquema y el CHECK de cliente, más una acción nueva en el modelo. La Ley 21.719 rige desde el 1-dic-2026 | El derecho de supresión se atiende a mano (el aviso del registro indica escribir a la agencia); el plazo legal es de 30 días | Columna `activa`, filtro en `autenticar`, `Administrador.desactivarCuenta()` sin permitir desactivar al último, y anonimizar al cliente conservando sus reservas |
 | H-06 Enumeración de correos por el registro público | Sin verificación por correo no se puede evitar: el registro tiene que decir que el correo ya existe | El bloqueo de 5 × 5 minutos y que los intentos quedan en el registro de auditoría | Verificar el correo con un enlace (envío de correos fuera del alcance, §6) |
 | H-10 No se cuentan los intentos de la contraseña actual al cambiarla | Para llegar a esa opción ya hay una sesión iniciada | La sesión vence tras 10 minutos sin uso, también dentro de la acción (H-11) | Reutilizar el contador de `__intentar` |
-| H-13 La autorización del dominio confía en la instancia | La frontera de confianza es el proceso: quien puede importar `viajes.py` ya puede abrir la base | Los permisos se revisan en el dominio y en el menú | Un servidor con sesiones firmadas (fuera del alcance) |
+| H-13 (resuelto en la auditoría final) Quien puede ejecutar código dentro del proceso puede saltarse cualquier regla | La autorización exige ahora una sesión iniciada (§2.3, hallazgo 5); por debajo de eso, la frontera es el proceso y la cuenta del sistema | Permisos del sistema, base y clave en 0600 | Un servidor con sesiones firmadas (fuera del alcance) |
 | H-17 Bloqueo fijo, no progresivo | RF-SEG-03 fija 5 intentos y 5 minutos; cambiarlo cambia un requerimiento del cliente | Con Argon2id y contraseñas de 12 o más caracteres no comunes, unos 1.440 intentos diarios por cuenta no alcanzan para adivinar | Bloqueo de 5, 15 y 60 minutos, previa conversación con los socios |
 | Quien tiene la cuenta del sistema operativo lee la base y la clave | Es el modelo de una aplicación de escritorio sin servidor (S-11) | Permisos 0600, clave fuera del proyecto, equipo con usuario propio | Un servidor con la clave en un gestor de secretos |
+| Plazo de conservación | La ley pide conservar los datos solo el tiempo necesario; el caso no fija plazos y las reservas respaldan lo cobrado. El aviso informa el criterio | Las cuentas sin uso se pueden borrar a mano; el registro de auditoría no guarda datos personales | Una tarea de depuración periódica con el plazo que acuerden los socios |
+| Registro de incidentes (art. 14 sexies) | Es un procedimiento de la agencia, no una función del sistema | El registro de auditoría deja la evidencia de accesos y bloqueos | Un formato de registro de incidentes y a quién avisar, fuera del software |
+| La clave de cifrado no se puede rotar | Rotarla exige volver a cifrar todos los RUT; con un solo equipo y sin incidente, el riesgo es bajo | La clave está fuera del proyecto, en 0600 | `MultiFernet` con la clave nueva y la vieja, y una tarea que vuelva a cifrar |
+| Cambiar la contraseña no cierra las otras sesiones abiertas | Las sesiones viven solo en la terminal donde se abrieron y vencen a los 10 minutos sin uso | Inactividad dentro de las acciones (H-11) | Un contador de versión de credenciales en la cuenta, revisado en cada acción |
+| Nadie lee el registro de auditoría desde el menú ni recibe alertas | Con tres socios, la consulta es ocasional y se hace con sqlite3 | Los eventos quedan en la misma transacción y sin datos personales | Una opción de consulta para el administrador y un aviso tras N bloqueos |
+| Las acciones del workflow se fijan por versión (`@v7`), no por hash | Son acciones oficiales de GitHub, y el token es de solo lectura | `permissions: contents: read` | Fijarlas por hash de commit |
 | bandit B101: 102 `assert` | Están solo en la autoverificación, el driver y las pruebas; ninguna regla del programa depende de un `assert` | Las reglas usan `ReglaNegocioError`, `ValueError` y `PermissionError` | No aplica |
 
 ## 4. Qué aportó la IA y qué no
@@ -118,15 +159,15 @@ Se deshizo cada corrección por separado en una copia del código y se corrieron
 
 | Categoría | Controles en el sistema |
 |---|---|
-| A01 Broken Access Control | Permiso revisado en el dominio (`autorizar`) y en el menú; anular exige ser el titular en el objeto y en el SQL; el historial filtra por el id propio; el menú se arma con `puede()` |
+| A01 Broken Access Control | Permiso revisado en el dominio (`autorizar`, que exige una sesión iniciada) y en el menú; anular exige ser el titular en el objeto y en el SQL; el historial filtra por el id propio; el menú se arma con `puede()` |
 | A02 Security Misconfiguration | Base y clave en 0600, `umask` 077, clave fuera del proyecto, ninguna credencial por omisión (S-04) |
-| A03 Software Supply Chain Failures | Dependencias fijadas con `==` y hash de todas las plataformas, `pip-audit` sin hallazgos, workflow en 6 combinaciones |
+| A03 Software Supply Chain Failures | Dependencias fijadas con `==` y hash de todas las plataformas, `pip-audit` sin hallazgos, workflow en 6 combinaciones con un token de solo lectura |
 | A04 Cryptographic Failures | Argon2id para contraseñas; Fernet (AES-128-CBC + HMAC-SHA256) para RUT y teléfono, que da confidencialidad e integridad; clave en archivo aparte |
 | A05 Injection | SQL solo con parámetros y como texto literal; `texto()` rechaza caracteres de control y marcas bidireccionales que se reimprimen en la terminal |
 | A06 Insecure Design | Transacciones atómicas (H-08), cupo calculado y no guardado, precio fijado al publicar, descifrado diferido (H-04), reglas repetidas en CHECK de la base |
 | A07 Authentication Failures | Bloqueo 5 × 5 min en una sentencia atómica y con hora UTC, mismo mensaje y demora en los tres fallos, política de contraseña con lista de comunes, sesión que vence a los 10 minutos también dentro de una acción |
 | A08 Software or Data Integrity Failures | Fernet rechaza un dato alterado; hashes en `requirements.txt` |
-| A09 Security Logging and Alerting Failures | Registro de auditoría de 22 acciones, en la misma transacción, sin datos personales (H-02) |
+| A09 Security Logging and Alerting Failures | Registro de auditoría de 23 acciones, en la misma transacción, sin datos personales (H-02) |
 | A10 Mishandling of Exceptional Conditions | Cadena de `except` por tipo con `except Exception` final en el menú y en `main()`; ningún mensaje con trazas, rutas ni datos; techo de todo entero (H-12) y del total (H-09) |
 
 ## 6. Cómo repetir la auditoría
@@ -137,4 +178,5 @@ bandit -r viajes.py main.py herramientas pruebas     # esperado: 0 B608; solo B1
 pip-audit -r requirements.txt --require-hashes        # esperado: No known vulnerabilities found
 git log --all --name-only --format= | sort -u | grep -E '\.env$|\.db$'   # esperado: nada
 python viajes.py && python herramientas/driver.py && python pruebas/prueba_rubrica.py
+python herramientas/mutaciones.py                    # esperado: 27 de 27 mutaciones detectadas
 ```

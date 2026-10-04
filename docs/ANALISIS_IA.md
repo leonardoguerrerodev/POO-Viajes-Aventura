@@ -12,11 +12,12 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
 | 2. Iteraciones independientes sobre el modelo de clases | 0 | 5 | 11 | 16 |
 | 3. Código y pruebas (asistente) | 4 | 16 | 2 | 22 |
 | 4. Auditoría de seguridad independiente | 4 | 12 | 1 | 17 |
-| **Total** | **10** | **36** | **17** | **63** |
+| 5. Corrector independiente del informe y el repositorio | 20 | 4 | 6 | 30 |
+| **Total** | **30** | **40** | **23** | **93** |
 
 **Adoptado:** se usó tal como vino, después de verificarlo con una prueba o con una medición.
 **Modificado:** se tomó la idea y se cambió la forma, o se corrigió un error que encontró una prueba.
-**Descartado:** no se usó; el motivo está en la [sección de descartes](#descartados-17).
+**Descartado:** no se usó; el motivo está en la [sección de descartes](#descartados-23).
 
 ## Cómo se usó la IA
 
@@ -33,6 +34,8 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
     Alcance, Rol y Orden): [`ia/modelo_iteracion_1_prompt_pobre_respuesta.md`](ia/modelo_iteracion_1_prompt_pobre_respuesta.md)
     y [`ia/modelo_iteracion_2_prompt_claro_respuesta.md`](ia/modelo_iteracion_2_prompt_claro_respuesta.md).
   - Auditoría de seguridad del código: [`ia/auditoria_seguridad_ia.md`](ia/auditoria_seguridad_ia.md).
+  - Corrección del informe y del repositorio con la rúbrica, como lo haría el docente (3-oct, 22:00).
+    Su respuesta se resume en la sección 5; el texto completo queda en el registro de trabajo.
 - **Ningún resultado se aceptó por haberlo producido la IA.** Todo pasó por al menos una de estas
   verificaciones:
   - `herramientas/trazabilidad.py`: el catálogo de requerimientos contra el caso.
@@ -119,7 +122,47 @@ mutaciones que lo vigilan, está en [`AUDITORIA.md`](AUDITORIA.md).
 - La IA no vio que su propia recomendación H-08 dejaba conexiones anidadas esperando: es el K-06 de
   arriba.
 
-## Descartados (17)
+## 5. Corrector independiente
+
+Un agente nuevo, sin contexto, recibió la rúbrica, las diapositivas del bloque 6, el caso, el texto del
+informe y el repositorio, con el pedido de calificar como el docente y encontrar lo que faltaba para el
+nivel Experto. Estimó 82 de 100. Cada afirmación que se podía comprobar se comprobó antes de actuar:
+cinco eran errores reales del código o del informe, y se confirmaron con una prueba.
+
+| ID | Lo que encontró o recomendó | Decisión | Fundamento y dónde quedó |
+|---|---|---|---|
+| X-01 | El índice ponía todas las secciones en la página 3 | **Adoptado** | Confirmado: `indice.py` buscaba desde una página fija. Ahora empieza donde empieza el cuerpo |
+| X-02 | «2.5» personas se registraba como 25 | **Adoptado** | Confirmado. El punto solo se acepta como separador de miles (`main.py`, `ENTERO_CON_MILES`); el driver lo prueba |
+| X-03 | `editar` dejaba el objeto a medias si fallaba una validación | **Adoptado** | Confirmado con una prueba. Se valida en valores locales y se asigna después de guardar |
+| X-04 | Un `Administrador` armado sin contraseña tenía permisos | **Adoptado** | Confirmado. De las dos salidas que propuso (ligar el permiso a la sesión o reescribir el criterio), se eligió la primera: decisión 13 |
+| X-05 | Una consulta seguía armada con `+ condicion` | **Adoptado** | Confirmado: bandit no la marcaba. Dos consultas literales |
+| X-06 | Escrituras que no revisaban `rowcount` | **Adoptado** | `exigir_una_fila()` en las tres |
+| X-07 | Faltaban los RNF en la matriz de trazabilidad | **Adoptado** | La matriz tiene una fila por requerimiento, RF y RNF, con la comprobación concreta |
+| X-08 | La tabla de IA del informe solo contaba | **Adoptado** | El capítulo 6 tiene ahora la tabla «qué se pidió, qué devolvió, decisión y fundamento» |
+| X-09 | Los hallazgos no tenían las cinco partes | **Adoptado** | `AUDITORIA.md` §2.1 y §2.3 |
+| X-10 | Las mutaciones no se podían repetir | **Adoptado** | `herramientas/mutaciones.py`, 27 de 27, en el workflow |
+| X-11 | Referencias cruzadas que quedaron del orden anterior | **Adoptado** | Corregidas las cinco |
+| X-12 | Adjetivos sin medida | **Adoptado** | Reemplazados por el dato |
+| X-13 | Los RF Should y Could no tenían criterio de aceptación | **Adoptado** | 13 criterios nuevos; `trazabilidad.py` exige ahora un criterio por RF |
+| X-14 | Backlog sin orden de prioridad ni Objetivo del Producto | **Adoptado** | Ordenado (Must, Should, Could) y con su Objetivo; HU-00 y HU-23 marcadas como técnicas |
+| X-15 | El BPMN no coincidía con las fichas; faltaba la anulación | **Adoptado** | Reserva con la advertencia de RF-RES-10 y la cancelación; paquete con el rechazo al publicar; proceso nuevo de anulación |
+| X-16 | Las «include» se juntaban en una sola punta | **Adoptado** | Una dependencia por caso |
+| X-17 | El cifrado no aparecía en el modelo | **Adoptado** | Restricción `{cifrado}` en `rut` y `telefono` |
+| X-18 | El capítulo 1 adelantaba soluciones técnicas | **Adoptado** | La columna de protección nombra el requerimiento, no la tecnología |
+| X-19 | El S3 seguía abierto y sus fechas no coincidían con los commits | **Adoptado** | Cerrado con las fechas y horas del historial |
+| X-20 | Notas internas visibles en el entregable | **Adoptado** | Pasadas al texto cuando aportaban; las demás, quitadas |
+| X-21 | Faltaba un RNF de respaldo (P-14) | **Modificado** | Se agregó RNF-FIA-03 y además se implementó: `Administrador.respaldarBase()` (decisión 14) |
+| X-22 | P-07 se daba por resuelto con un RNF de rendimiento | **Modificado** | No se puede resolver sin un informe de gestión, que es Won't: la matriz lo dice así (W-06) en vez de darlo por resuelto |
+| X-23 | `trazabilidad.py` se presentaba como script del repositorio | **Modificado** | Sigue fuera del repositorio, porque revisa el informe; se corrigió la frase |
+| X-24 | Los prompts no se entregan | **Modificado** | El registro completo no viaja (decisión de Leo: es un registro de trabajo, no un entregable); la tabla del capítulo 6 cita qué se pidió en cada caso |
+| X-25 | Fichas para los 13 casos de uso | **Descartado** | La diapositiva 31 pide la ficha de «Reservar paquete»; hay tres |
+| X-26 | Las lecturas toman el candado de escritura y hay consultas N+1 | **Descartado** | Es el costo medido de la atomicidad (H-08): con 10 veces el volumen, la oferta tarda 0,14 s |
+| X-27 | Separar los RF con varias condiciones | **Descartado** | Cada uno es una sola regla de validación sobre un mismo dato; separarlos cambia siete ID ya trazados a casos de uso, historias, commits y pruebas |
+| X-28 | RNF-POR-01 (Windows, macOS, Linux) no lo pide el caso | **Descartado** | Los socios usan sus computadores personales (S-11) y el docente abre la entrega en su propio equipo |
+| X-29 | Convertir HU-00 y HU-23 en tareas técnicas | **Descartado** | Se marcan como técnicas en el backlog; renombrarlas rompería su cita en los commits |
+| X-30 | Estado global con `global` (ruta de la base, ruta de la clave, plazo de sesión) | **Descartado** | Es un programa de un solo proceso, y las pruebas necesitan cambiar la base activa; el patrón se defendió en la ES2 |
+
+## Descartados (23)
 
 | ID | Propuesta | Por qué se descartó |
 |---|---|---|
@@ -140,6 +183,7 @@ mutaciones que lo vigilan, está en [`AUDITORIA.md`](AUDITORIA.md).
 | K-17 | `intentosFallidos` como atributo del objeto | El contador vive solo en la base; nadie lo leía (SonarCloud S4487). Decisión 11 |
 | K-18 | Método `Paquete.precio_por_persona()` | Sobraba: `calcular_precio()` y la representación del paquete ya cubren el uso; el comparador lo marcó como no dibujado |
 | H-03 | Desactivar cuentas y suprimir datos | Fuera del alcance (§6) y exige cambiar el esquema y el modelo; declarado como riesgo aceptado en `AUDITORIA.md` §3 |
+| X-25 a X-30 | Seis recomendaciones del corrector independiente | Ver la sección 5: cada una con su motivo |
 
 ## Qué se aprendió del uso de la IA
 
@@ -151,3 +195,6 @@ mutaciones que lo vigilan, está en [`AUDITORIA.md`](AUDITORIA.md).
 3. **Los errores más graves los encontraron las pruebas que recorren el sistema como lo usa una
    persona:** K-04 y K-05. Las pruebas que preparaban el escenario por fuera los escondían.
 4. **Una medición vale más que un valor por omisión:** K-01 y K-13.
+5. **Una segunda opinión sin contexto ve lo que el autor ya no ve:** el corrector encontró cinco errores
+   reales en un trabajo que ya pasaba todas sus pruebas. Ninguna prueba los cubría, porque nadie había
+   pensado en ellos: ahora cada uno tiene la suya.

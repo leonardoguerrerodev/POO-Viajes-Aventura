@@ -30,6 +30,8 @@ pantalla de inicio.
 - La clave que cifra el RUT y el teléfono se crea con el primer cliente en
   `~/.config/viajes-aventura/clave.env`, fuera del proyecto. **Respáldela aparte:** sin ella, los
   RUT y teléfonos guardados no se pueden leer.
+- El socio puede respaldar la base desde el menú (opción «Respaldar la base de datos»): la copia queda
+  en `respaldos/`, junto a la base, con permisos solo para su dueño y fuera del repositorio.
 
 ## Verificar
 
@@ -38,9 +40,10 @@ python viajes.py                     # autoverificación de las reglas R1 a R17:
 python herramientas/driver.py        # recorre el menú con los dos roles y guarda docs/SALIDA_TERMINAL.md
 python herramientas/uml_vs_codigo.py # el diagrama de clases contra el código: 0 diferencias
 python pruebas/prueba_rubrica.py     # una afirmación verificable por indicador de la rúbrica
+python herramientas/mutaciones.py    # rompe 27 reglas a propósito y exige que alguna prueba lo detecte
 ```
 
-Las cuatro corren en cada envío al repositorio, en Windows, macOS y Linux con Python 3.12 y 3.14
+Las cinco corren en cada envío al repositorio, en Windows, macOS y Linux con Python 3.12 y 3.14
 (sello «Pruebas» de arriba). Ninguna toca `viajes.db` ni la clave real: trabajan sobre archivos
 temporales.
 
@@ -51,6 +54,6 @@ temporales.
 | `viajes.py` | Dominio: las clases del diagrama, su persistencia (todo el SQL) y la autoverificación |
 | `main.py` | Menú de terminal, sin SQL |
 | `diagramas/` | Diagrama de clases (`clases.puml`, la fuente), casos de uso y BPMN, con sus generadores |
-| `herramientas/` | Driver del menú y comparador del diagrama con el código |
+| `herramientas/` | Driver del menú, comparador del diagrama con el código y pruebas de mutación |
 | `pruebas/` | Prueba por indicador de la rúbrica |
 | `docs/` | Auditoría de seguridad, análisis del uso de IA, sesión real del menú, transcripciones de la IA e informe técnico |
