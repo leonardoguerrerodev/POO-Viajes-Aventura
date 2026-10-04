@@ -4,7 +4,7 @@ Disposición según Scott Ambler, *The Elements of UML 2.0 Style*: actor primari
 todos los actores fuera del límite del sistema; casos de uso apilados en el orden en que ocurren;
 asociaciones sin punta de flecha. Dos actores, como pide la guía del curso (Cliente y Administrador):
 el actor es un rol, no una persona. La gestión de cada entidad es un solo caso («Gestionar destinos»),
-no una elipse por operación CRUD. Los casos que exigen sesión la incluyen por un bus común.
+no una elipse por operación CRUD. Cada caso que exige sesión la incluye con su propia flecha.
 Cada caso lleva los RF que cumple; la tabla de la sección 2.1 repite esa asignación y trazabilidad.py
 comprueba que todo RF funcional esté en algún caso de uso.
 """
@@ -60,13 +60,23 @@ cu(XR, Y[4], "CU-13 Crear\nadministrador", "RF-SEG-06 · 07")
 YC = 418
 cu(XC, YC, "CU-08 Cambiar contraseña", "RF-SEG-11 · 04", rx=72)
 
-# «include» Iniciar sesión: bus vertical al centro, una sola punta
-g.path([(XC, YC - RY), (XC, YS + RY)], dash=True, end="vee")
-g.text(XC + 4, YS + RY + 13, "«include»", 7.5, anchor="start", halo=True)
-for x, filas in ((XL + RX, (2, 3, 5)), (XR - RX, (0, 1, 2, 3, 4))):
-    for k in filas:
-        g.path([(x, Y[k]), (XC, Y[k])], dash=True)
-        g.circle(XC, Y[k], 1.4, fill=BORDE)
+# «include» Iniciar sesión: una dependencia por caso, cada una con su punta (UML 2.5.1). Cada
+# flecha sube por su propio carril y entra al borde inferior de CU-02; el carril de un caso más
+# abajo queda más cerca del centro, para que ninguna vertical cruce una horizontal.
+def borde_inferior(x):
+    """Punto del borde inferior de la elipse de CU-02 sobre la vertical x."""
+    return YS + 20 * (1 - ((x - XC) / 72) ** 2) ** 0.5
+
+
+# Entre las dos columnas hay 54 pt (de x = 208 a 262): nueve carriles separados por 6 pt.
+carriles = [(XL + RX, Y[2], XC - 25), (XL + RX, Y[3], XC - 19), (XL + RX, Y[5], XC - 13),
+            (XR - RX, Y[0], XC + 25), (XR - RX, Y[1], XC + 19), (XR - RX, Y[2], XC + 13),
+            (XR - RX, Y[3], XC + 7), (XR - RX, Y[4], XC + 1)]
+for x0, y0, xc in carriles:
+    g.path([(x0, y0), (xc, y0), (xc, borde_inferior(xc))], dash=True, end="vee")
+XU = XC - 7                                     # CU-08 sube desde abajo por su propio carril
+g.path([(XU, YC - 20 * (1 - ((XU - XC) / 72) ** 2) ** 0.5), (XU, borde_inferior(XU))], dash=True, end="vee")
+g.text(XC - 36, YS + RY + 13, "«include»", 7.5, anchor="end", halo=True)
 
 # «extend»: anular es opcional dentro de ver mis reservas (la flecha va al caso base)
 g.path([(XL, Y[4] - RY), (XL, Y[3] + RY)], dash=True, end="vee")

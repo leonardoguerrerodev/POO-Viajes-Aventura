@@ -38,8 +38,8 @@ package "Cuentas y acceso" {
 
   class Cliente {
     - nombre: str
-    - rut: str
-    - telefono: str
+    - rut: str {cifrado}
+    - telefono: str {cifrado}
     + {static} registrar(nombre: str, rut: str, correo: str, telefono: str, clave: str): Cliente
     + actualizarContacto(nombre: str, telefono: str): void
     + obtenerNombre(): str

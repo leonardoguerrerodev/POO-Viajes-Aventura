@@ -29,8 +29,8 @@
 <text x="138.0" y="290.8" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="138.0" dy="0">Cliente</tspan></text>
 <path d="M16,295.8 L260,295.8" fill="none" stroke="#333333" stroke-width="0.7"/>
 <text x="21" y="305.3" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-nombre: str</tspan></text>
-<text x="21" y="314.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-rut: str</tspan></text>
-<text x="21" y="323.90000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-telefono: str</tspan></text>
+<text x="21" y="314.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-rut: str {cifrado}</tspan></text>
+<text x="21" y="323.90000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-telefono: str {cifrado}</tspan></text>
 <path d="M16,328.70000000000005 L260,328.70000000000005" fill="none" stroke="#333333" stroke-width="0.7"/>
 <text x="21" y="338.20000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="21" dy="0">+registrar(nombre: str, rut: str, correo: str, telefono: str,</tspan></text>
 <text x="29" y="347.50000000000006" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="29" dy="0">clave: str): Cliente</tspan></text>

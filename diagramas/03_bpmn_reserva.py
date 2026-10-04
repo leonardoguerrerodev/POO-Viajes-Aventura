@@ -2,7 +2,8 @@
 
 Las dos compuertas son las dos fallas de la temporada que el caso separa en su «pista»: la fecha de
 salida vencida (R15, 3 reservas) se compara contra la fecha del día, y el cupo (R14, 6 reservas) contra
-un dato que el sistema lleva. Cada camino termina en su propio evento de fin.
+un dato que el sistema lleva. Cada camino termina en su propio evento de fin. El cálculo del total advierte si el cliente ya tiene
+una reserva vigente en ese paquete (RF-RES-10), y el cliente puede no confirmar.
 """
 import os
 import sys
@@ -20,8 +21,10 @@ evento(g, XC, Y["ini"], "Quiere viajar", lado="der")
 tarea(g, XC, Y["c1"], "Iniciar sesión")
 tarea(g, XS, Y["s1"], "Mostrar paquetes disponibles\ncon precio y cupo")
 tarea(g, XC, Y["c2"], "Elegir paquete e\nindicar personas")
-tarea(g, XS, Y["s2"], "Calcular el total\n(precio fijado × personas)")
-tarea(g, XC, Y["c3"], "Confirmar reserva")
+tarea(g, XS, Y["s2"], "Calcular el total y advertir si ya\ntiene una reserva vigente (RF-RES-10)", w=150)
+tarea(g, XC, Y["c3"], "Revisar el total\ny confirmar")
+compuerta(g, XC, Y["g1"], "¿Confirma?")
+evento(g, XC, Y["g1"] + 52, "Reserva no realizada", fin=True)
 compuerta(g, XS, Y["g1"], "¿La fecha de salida\nya llegó? (R15)")
 tarea(g, XR, Y["g1"], "Informar fecha\nvencida", w=86)
 evento(g, XR, Y["g1"] + 40, "Reserva rechazada", fin=True)
@@ -36,9 +39,13 @@ h = TH / 2
 flujo(g, [(XC, Y["ini"] + R_EV), (XC, Y["c1"] - h)])
 flujo(g, [(XC, Y["c1"] + h), (XC, Y["s1"]), (XS - 56, Y["s1"])])
 flujo(g, [(XS, Y["s1"] + h), (XS, Y["s1"] + 26), (XC, Y["s1"] + 26), (XC, Y["c2"] - h)])
-flujo(g, [(XC, Y["c2"] + h), (XC, Y["s2"]), (XS - 56, Y["s2"])])
+flujo(g, [(XC, Y["c2"] + h), (XC, Y["s2"]), (XS - 75, Y["s2"])])
 flujo(g, [(XS, Y["s2"] + h), (XS, Y["s2"] + 26), (XC, Y["s2"] + 26), (XC, Y["c3"] - h)])
-flujo(g, [(XC, Y["c3"] + h), (XC, Y["g1"] - 30), (XS, Y["g1"] - 30), (XS, Y["g1"] - GD)])
+flujo(g, [(XC, Y["c3"] + h), (XC, Y["g1"] - GD)])
+# el cliente puede no confirmar (por ejemplo, tras la advertencia de reserva duplicada)
+# entra por arriba a la compuerta de R15, para no cruzar su pregunta
+flujo(g, [(XC + GD, Y["g1"]), (XC + 44, Y["g1"]), (XC + 44, Y["g1"] - 32), (XS, Y["g1"] - 32), (XS, Y["g1"] - GD)], "sí", (XC + GD + 3, Y["g1"] - 4))
+flujo(g, [(XC, Y["g1"] + GD), (XC, Y["g1"] + 52 - R_EV)], "no", (XC + 4, Y["g1"] + GD + 11))
 # R15
 flujo(g, [(XS + GD, Y["g1"]), (XR - 43, Y["g1"])], "sí", (XS + GD + 3, Y["g1"] - 4))
 flujo(g, [(XR, Y["g1"] + h), (XR, Y["g1"] + 40 - R_EV)])
