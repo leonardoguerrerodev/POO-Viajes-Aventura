@@ -26,9 +26,11 @@ package "Cuentas y acceso" {
     - correo: str
     - hashClave: str
     - bloqueadoHasta: datetime
+    - sesionIniciada: bool
     + {static} autenticar(correo: str, clave: str): Usuario
     + cambiarClave(actual: str, nueva: str): void
     + obtenerId(): int
+    + tieneSesion(): bool
     + obtenerCorreo(): str
     + {abstract} puede(accion: str): bool
     # validarClave(clave: str): void
@@ -51,6 +53,7 @@ package "Cuentas y acceso" {
   class Administrador {
     + {static} crearPrimero(correo: str, clave: str): Administrador
     + crearAdministrador(correo: str, clave: str): Administrador
+    + respaldarBase(): str
     + puede(accion: str): bool
   }
 }

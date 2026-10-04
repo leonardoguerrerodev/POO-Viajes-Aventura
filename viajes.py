@@ -80,7 +80,7 @@ CAMPO_NOMBRE = "El nombre"
 
 # Acciones que un rol puede tener. Un texto fuera de este conjunto es un error de
 # programación y se rechaza: así un permiso mal escrito no se convierte en un «no» silencioso.
-ACCIONES = frozenset({"catalogo", "ver_reservas", "cuentas", "reservar"})
+ACCIONES = frozenset({"catalogo", "ver_reservas", "cuentas", "respaldo", "reservar"})
 
 
 class ReglaNegocioError(Exception):
@@ -229,7 +229,10 @@ def autorizar(solicitante: "Usuario", accion: str) -> None:
     if accion not in ACCIONES:
         raise ValueError(f"Acción desconocida: {accion!r}")
     # Usuario se define más abajo; la función se llama recién en tiempo de ejecución.
-    if not isinstance(solicitante, Usuario) or not solicitante.puede(accion):
+    # Además del rol, exige una cuenta con sesión iniciada: un objeto armado a mano, sin pasar por
+    # la contraseña, no tiene permisos «por cualquier vía» (RF-SEG-05, auditoría final, hallazgo 5).
+    if (not isinstance(solicitante, Usuario) or not solicitante.tiene_sesion()
+            or not solicitante.puede(accion)):
         raise PermissionError("No tiene permiso para esta operación")
 
 
@@ -364,6 +367,12 @@ def registrar_evento(con: sqlite3.Connection, usuario_id: int | None, accion: st
                 (datetime.now(timezone.utc).isoformat(timespec="seconds"), usuario_id, accion, detalle))
 
 
+def exigir_una_fila(cur: sqlite3.Cursor, que: str) -> None:
+    """Una escritura que no tocó ninguna fila no se informa como «guardado» (hallazgo 20)."""
+    if cur.rowcount != 1:
+        raise ValueError(f"El {que} ya no existe: otra sesión lo eliminó")
+
+
 def hay_usuarios() -> bool:
     with conectar() as con:
         return con.execute("SELECT 1 FROM usuario LIMIT 1").fetchone() is not None
@@ -384,6 +393,11 @@ class Usuario(ABC):
     # El contador de intentos fallidos vive solo en la base: lo suma y lo reinicia una sentencia
     # SQL (ver __intentar), y el objeto nunca lo necesita (decisión 11 del modelo).
     # El SQL completo es texto literal: ninguna consulta se arma pegando textos (RNF-SEG-03, bandit B608).
+    SQL_INSERTAR = ("INSERT INTO usuario (correo, hash_clave, rol, nombre, rut_cifrado, telefono_cifrado)"
+                    " VALUES (?, ?, ?, ?, ?, ?)")
+    SQL_INSERTAR_SI_VACIA = ("INSERT INTO usuario (correo, hash_clave, rol, nombre, rut_cifrado,"
+                             " telefono_cifrado) SELECT ?, ?, ?, ?, ?, ?"
+                             " WHERE NOT EXISTS (SELECT 1 FROM usuario)")
     SQL_POR_CORREO = ("SELECT id, correo, hash_clave, rol, nombre, rut_cifrado, telefono_cifrado, bloqueado_hasta"
                       " FROM usuario WHERE correo = ?")
     MAX_INTENTOS = 5
@@ -402,9 +416,14 @@ class Usuario(ABC):
             hash_clave = HASHER.hash(clave)
         self.__hash_clave = hash_clave
         self.__bloqueado_hasta = bloqueado_hasta
+        # Solo autenticar() y el alta de la propia cuenta la ponen en True (decisión 13 del modelo).
+        self.__sesion_iniciada = False
 
     def obtener_id(self) -> int | None:
         return self.__id
+
+    def tiene_sesion(self) -> bool:
+        return self.__sesion_iniciada
 
     def obtener_correo(self) -> str:
         return self.__correo
@@ -472,7 +491,10 @@ class Usuario(ABC):
                 registrar_evento(con, None, "sesion.correo_inexistente")
             return None
         usuario = _usuario_desde_fila(fila)
-        return usuario if usuario.__intentar(clave) else None
+        if not usuario.__intentar(clave):
+            return None
+        usuario.__sesion_iniciada = True
+        return usuario
 
     @classmethod
     def __senuelo(cls, clave: str) -> None:
@@ -530,13 +552,11 @@ class Usuario(ABC):
         nombre, rut_cifrado, telefono_cifrado = datos_cliente or (None, None, None)
         # Sin sesión, la primera cuenta solo entra si la tabla está vacía: la comprobación y la
         # escritura son una sola sentencia, sin carrera entre las dos (S-04).
-        condicion = " WHERE NOT EXISTS (SELECT 1 FROM usuario)" if solo_si_vacia else ""
+        sql = self.SQL_INSERTAR_SI_VACIA if solo_si_vacia else self.SQL_INSERTAR
         try:
             with conectar() as con:
-                cur = con.execute(
-                    "INSERT INTO usuario (correo, hash_clave, rol, nombre, rut_cifrado,"
-                    " telefono_cifrado) SELECT ?, ?, ?, ?, ?, ?" + condicion,
-                    (self.__correo, self.__hash_clave, rol, nombre, rut_cifrado, telefono_cifrado))
+                cur = con.execute(sql, (self.__correo, self.__hash_clave, rol, nombre, rut_cifrado,
+                                        telefono_cifrado))
                 if cur.rowcount == 1:
                     registrar_evento(con, autor.obtener_id() if autor else cur.lastrowid, "cuenta.crear",
                                      f"cuenta {cur.lastrowid} ({rol.lower()})")
@@ -548,6 +568,9 @@ class Usuario(ABC):
         if cur.rowcount != 1:
             return False
         self.__id = cur.lastrowid
+        # Quien se registra o crea la primera cuenta acaba de escribir su contraseña: queda con su
+        # sesión. Una cuenta creada por otro (un socio) no: tendrá que iniciar sesión.
+        self.__sesion_iniciada = autor is None
         return True
 
 
@@ -625,7 +648,7 @@ class Administrador(Usuario):
     """Socio de la agencia: mantiene el catálogo, arma los paquetes y crea cuentas de socios."""
 
     def puede(self, accion: str) -> bool:
-        return accion in ("catalogo", "ver_reservas", "cuentas")
+        return accion in ("catalogo", "ver_reservas", "cuentas", "respaldo")
 
     @staticmethod
     def crear_primero(correo: str, clave: str) -> "Administrador":
@@ -641,6 +664,29 @@ class Administrador(Usuario):
         nuevo = Administrador(correo, clave)
         nuevo._insertar("ADMINISTRADOR", autor=self)
         return nuevo
+
+    def respaldar_base(self) -> str:
+        """Copia consistente de la base en respaldos/, junto a ella (RNF-FIA-03, P-14).
+
+        Usa la API de respaldo de sqlite3, que copia una foto coherente aunque otra sesión esté
+        escribiendo. La carpeta es fija: ningún dato del usuario forma la ruta. La clave de cifrado
+        no se copia aquí a propósito: va aparte (S-12), para que una copia no lleve dato y clave.
+        """
+        autorizar(self, "respaldo")
+        carpeta = Path(RUTA_ACTIVA).parent / "respaldos"
+        carpeta.mkdir(mode=0o700, exist_ok=True)
+        destino = carpeta / f"viajes_{datetime.now(timezone.utc):%Y%m%d_%H%M%S_%f}.db"
+        origen, copia = sqlite3.connect(RUTA_ACTIVA), sqlite3.connect(destino)
+        try:
+            origen.backup(copia)
+        finally:
+            copia.close()
+            origen.close()
+        if os.name == "posix":
+            os.chmod(destino, 0o600)
+        with conectar() as con:
+            registrar_evento(con, self.obtener_id(), "base.respaldo", destino.name)
+        return str(destino)
 
 
 def _usuario_desde_fila(fila: sqlite3.Row) -> Usuario:
@@ -669,17 +715,19 @@ class Destino:
         # menú, desde una prueba o desde la base (tercera capa de validación, después del menú
         # y antes del CHECK).
         self.__id = id
-        self.__fijar_datos(nombre, zona, descripcion, duracion_dias)
+        (self.__nombre, self.__zona, self.__descripcion,
+         self.__duracion_dias) = self.__validar_datos(nombre, zona, descripcion, duracion_dias)
         self.__costo_base = entero(costo_base, "El costo base", 1, COSTO_MAXIMO, "R2")
         self.__disponible = bool(disponible)
         self.__fecha_costo = fecha_costo or date.today()
 
-    def __fijar_datos(self, nombre, zona, descripcion, duracion_dias) -> None:
-        self.__nombre = texto(nombre, CAMPO_NOMBRE, 80)
-        self.__zona = texto(zona, "La zona", 80)
-        self.__descripcion = texto(descripcion, "La descripción", 500)
-        self.__duracion_dias = entero(duracion_dias, "La duración en días", 1,
-                                      DURACION_MAXIMA, "R1")
+    @staticmethod
+    def __validar_datos(nombre, zona, descripcion, duracion_dias) -> tuple:
+        """Valida los cuatro datos y los devuelve; no toca el objeto. Así, si uno falla, el objeto
+        no queda a medio cambiar (auditoría final, hallazgo 4)."""
+        return (texto(nombre, CAMPO_NOMBRE, 80), texto(zona, "La zona", 80),
+                texto(descripcion, "La descripción", 500),
+                entero(duracion_dias, "La duración en días", 1, DURACION_MAXIMA, "R1"))
 
     def __str__(self) -> str:
         estado = "disponible" if self.__disponible else "no disponible"
@@ -724,31 +772,30 @@ class Destino:
                solicitante: "Usuario") -> None:
         """U: los datos descriptivos, con las mismas validaciones del registro (RF-DES-04)."""
         autorizar(solicitante, "catalogo")
-        anterior = (self.__nombre, self.__zona, self.__descripcion, self.__duracion_dias)
-        self.__fijar_datos(nombre, zona, descripcion, duracion_dias)
+        datos = self.__validar_datos(nombre, zona, descripcion, duracion_dias)
         try:
             with conectar() as con:
-                con.execute(
+                cur = con.execute(
                     "UPDATE destino SET nombre = ?, nombre_normalizado = ?, zona = ?,"
                     " descripcion = ?, duracion_dias = ? WHERE id = ?",
-                    (self.__nombre, normalizar(self.__nombre), self.__zona, self.__descripcion,
-                     self.__duracion_dias, self.__id))
+                    (datos[0], normalizar(datos[0]), datos[1], datos[2], datos[3], self.__id))
+                exigir_una_fila(cur, "destino")
                 registrar_evento(con, solicitante.obtener_id(), "destino.editar", f"destino {self.__id}")
         except sqlite3.IntegrityError:
-            # El objeto vuelve a sus datos anteriores: memoria y base siguen diciendo lo mismo.
-            self.__nombre, self.__zona, self.__descripcion, self.__duracion_dias = anterior
             raise ReglaNegocioError("R1", "Ya existe un destino con ese nombre") from None
+        # Recién ahora, con la base guardada: memoria y base dicen siempre lo mismo.
+        self.__nombre, self.__zona, self.__descripcion, self.__duracion_dias = datos
 
     def cambiar_costo(self, costo_base: int, solicitante: "Usuario") -> None:
         """U: el costo, con la fecha del cambio (RF-DES-05). Los paquetes publicados no cambian (R7)."""
         autorizar(solicitante, "catalogo")
-        self.__costo_base = entero(costo_base, "El costo base", 1, COSTO_MAXIMO, "R2")
-        self.__fecha_costo = date.today()
+        costo, hoy = entero(costo_base, "El costo base", 1, COSTO_MAXIMO, "R2"), date.today()
         with conectar() as con:
-            con.execute("UPDATE destino SET costo_base = ?, fecha_costo = ? WHERE id = ?",
-                        (self.__costo_base, self.__fecha_costo.isoformat(), self.__id))
-            registrar_evento(con, solicitante.obtener_id(), "destino.costo",
-                             f"destino {self.__id}: {self.__costo_base}")
+            cur = con.execute("UPDATE destino SET costo_base = ?, fecha_costo = ? WHERE id = ?",
+                              (costo, hoy.isoformat(), self.__id))
+            exigir_una_fila(cur, "destino")
+            registrar_evento(con, solicitante.obtener_id(), "destino.costo", f"destino {self.__id}: {costo}")
+        self.__costo_base, self.__fecha_costo = costo, hoy
 
     def eliminar(self, solicitante: "Usuario") -> bool:
         """D, según R8: True si se eliminó; False si estaba en un paquete y quedó no disponible."""
@@ -772,7 +819,8 @@ class Destino:
         """U: vuelve a ofrecer un destino no disponible (RF-DES-09)."""
         autorizar(solicitante, "catalogo")
         with conectar() as con:
-            con.execute("UPDATE destino SET disponible = 1 WHERE id = ?", (self.__id,))
+            cur = con.execute("UPDATE destino SET disponible = 1 WHERE id = ?", (self.__id,))
+            exigir_una_fila(cur, "destino")
             registrar_evento(con, solicitante.obtener_id(), "destino.reactivar", f"destino {self.__id}")
         self.__disponible = True
 
@@ -808,7 +856,8 @@ class Paquete:
                  destinos: list[Destino], margen: int = MARGEN_PROPUESTO, id: int | None = None,
                  precio_por_persona: int | None = None, publicado: bool = False):
         self.__id = id
-        self.__fijar_datos(nombre, fecha_salida, fecha_regreso, margen)
+        (self.__nombre, self.__fecha_salida, self.__fecha_regreso,
+         self.__margen) = self.__validar_datos(nombre, fecha_salida, fecha_regreso, margen)
         self.__cupo_maximo = entero(cupo_maximo, "El cupo máximo", 1, CUPO_MAXIMO, "R5")
         # Un paquete nuevo solo combina destinos disponibles (R8); uno guardado conserva los que
         # tenía aunque después hayan quedado no disponibles (S-15).
@@ -816,13 +865,14 @@ class Paquete:
         self.__precio_por_persona = precio_por_persona
         self.__publicado = bool(publicado)
 
-    def __fijar_datos(self, nombre, fecha_salida, fecha_regreso, margen) -> None:
-        self.__nombre = texto(nombre, CAMPO_NOMBRE, 80)
-        self.__fecha_salida = fecha(fecha_salida, "La fecha de salida")
-        self.__fecha_regreso = fecha(fecha_regreso, "La fecha de regreso")
-        if self.__fecha_regreso <= self.__fecha_salida:
+    @staticmethod
+    def __validar_datos(nombre, fecha_salida, fecha_regreso, margen) -> tuple:
+        """Valida y devuelve los datos sin tocar el objeto (auditoría final, hallazgo 4)."""
+        salida, regreso = fecha(fecha_salida, "La fecha de salida"), fecha(fecha_regreso, "La fecha de regreso")
+        if regreso <= salida:
             raise ReglaNegocioError("R5", "La fecha de regreso debe ser posterior a la de salida")
-        self.__margen = entero(margen, "El margen (%)", 0, MARGEN_MAXIMO, "R6")
+        return (texto(nombre, CAMPO_NOMBRE, 80), salida, regreso,
+                entero(margen, "El margen (%)", 0, MARGEN_MAXIMO, "R6"))
 
     @staticmethod
     def __validar_destinos(destinos: list[Destino], exigir_disponibles: bool) -> list[Destino]:
@@ -940,13 +990,15 @@ class Paquete:
         """U: solo en borrador (S-07). Publicado, cambiaría lo que ya se vendió."""
         autorizar(solicitante, "catalogo")
         self.__exigir_borrador()
-        self.__fijar_datos(nombre, fecha_salida, fecha_regreso, margen)
+        datos = self.__validar_datos(nombre, fecha_salida, fecha_regreso, margen)
         with conectar() as con:
-            con.execute("UPDATE paquete SET nombre = ?, fecha_salida = ?, fecha_regreso = ?,"
-                        " margen = ? WHERE id = ? AND publicado = 0",
-                        (self.__nombre, self.__fecha_salida.isoformat(),
-                         self.__fecha_regreso.isoformat(), self.__margen, self.__id))
+            cur = con.execute("UPDATE paquete SET nombre = ?, fecha_salida = ?, fecha_regreso = ?,"
+                              " margen = ? WHERE id = ? AND publicado = 0",
+                              (datos[0], datos[1].isoformat(), datos[2].isoformat(), datos[3], self.__id))
+            if cur.rowcount != 1:      # otra sesión lo publicó o lo eliminó entre medio
+                raise ReglaNegocioError("R7", "El paquete ya no está en borrador")
             registrar_evento(con, solicitante.obtener_id(), "paquete.editar", f"paquete {self.__id}")
+        self.__nombre, self.__fecha_salida, self.__fecha_regreso, self.__margen = datos
 
     def reemplazar_destinos(self, destinos: list[Destino], solicitante: "Usuario") -> None:
         """U: los destinos de un borrador, con R3 y R8, en una sola transacción."""
@@ -1200,6 +1252,9 @@ def _rechaza(error: type[Exception], accion, *args, regla: str | None = None) ->
 
 CAROLINA = "carolina@correo.cl"            # correos de prueba de la autoverificación
 PEDRO = "pedro@correo.cl"
+ZONA_PRUEBA = "Norte Chico"
+# Los RUT y teléfonos de las pruebas son ficticios: cumplen el dígito verificador para ejercitar la
+# validación, pero no corresponden a ninguna persona del caso.
 
 
 def _verificar_cuentas() -> None:
@@ -1209,6 +1264,10 @@ def _verificar_cuentas() -> None:
     _rechaza(PermissionError, Administrador.crear_primero, "otro@viajes.cl", "clave-larga-otro")
     socio = admin.crear_administrador("matias@viajes.cl", "clave-larga-matias")
     assert socio.puede("catalogo") and not socio.puede("reservar")
+    # Hallazgo 5: la cuenta creada por otro no trae sesión; la tendrá al iniciarla con su clave.
+    assert admin.tiene_sesion() and not socio.tiene_sesion()
+    _rechaza(PermissionError, Destino("Del socio", "Z", "d", 1, 1).guardar, socio)
+    assert Usuario.autenticar("matias@viajes.cl", "clave-larga-matias").tiene_sesion()
 
     # RF-RES-01 a RF-RES-03 y RF-SEG-12: el registro público crea clientes y valida cada dato.
     carolina = Cliente.registrar("Carolina Díaz", "12.345.678-5", CAROLINA,
@@ -1298,7 +1357,7 @@ def _verificar_destinos() -> None:
     admin, cliente = _verificar_cuentas.cuentas
 
     # R1 y RF-DES-02: el nombre no se repite, aunque cambien mayúsculas, tildes o espacios.
-    elqui = Destino("Valle del Elqui", "Norte Chico", "Observación astronómica", 3, 120_000)
+    elqui = Destino("Valle del Elqui", ZONA_PRUEBA, "Observación astronómica", 3, 120_000)
     id_elqui = elqui.guardar(admin)
     for repetido in ("valle del  elqui", "Valle del Elquí"):
         _rechaza(ReglaNegocioError, Destino(repetido, "Norte", "x", 1, 1).guardar, admin, regla="R1")
@@ -1316,13 +1375,30 @@ def _verificar_destinos() -> None:
                      (dias, costo))
 
     # RF-DES-04 y RF-DES-05: editar y cambiar el costo, que registra la fecha.
-    elqui.editar("Valle del Elqui", "Norte Chico", "Observación astronómica y pisco", 3, admin)
+    elqui.editar("Valle del Elqui", ZONA_PRUEBA, "Observación astronómica y pisco", 3, admin)
     elqui.cambiar_costo(130_000, admin)
     assert Destino.buscar(id_elqui).obtener_costo_base() == 130_000
 
-    # RF-SEG-05: un cliente no toca el catálogo, aunque llame directo al dominio.
+    # RF-SEG-05: un cliente no toca el catálogo, aunque llame directo al dominio; y un
+    # administrador armado a mano, sin iniciar sesión, tampoco (hallazgo 5).
     _rechaza(PermissionError, elqui.cambiar_costo, 1, cliente)
     _rechaza(PermissionError, Destino("Nuevo", "Z", "d", 1, 1).guardar, cliente)
+    _rechaza(PermissionError, Destino("Nuevo", "Z", "d", 1, 1).guardar,
+             Administrador("intruso@viajes.cl", "clave-larga-intruso"))
+
+    # Hallazgo 4: una edición que falla no deja el objeto a medias.
+    antes = str(elqui)
+    _rechaza(ValueError, elqui.editar, "Otro nombre", "", "d", 2, admin)
+    assert str(elqui) == antes and str(Destino.buscar(id_elqui)) == antes
+
+    # Respaldo (RNF-FIA-03): copia consistente, solo para su dueño, y solo para el administrador.
+    copia = Path(admin.respaldar_base())
+    otra = sqlite3.connect(copia)
+    assert otra.execute("SELECT COUNT(*) FROM destino").fetchone()[0] == len(Destino.listar())
+    otra.close()
+    if os.name == "posix":
+        assert os.stat(copia).st_mode & 0o777 == 0o600
+    _rechaza(PermissionError, autorizar, cliente, "respaldo")
 
     # R8: sin paquetes se elimina; dentro de un paquete queda no disponible.
     surire = Destino("Salar de Surire", "Altiplano", "Flamencos", 4, 310_000)
@@ -1336,6 +1412,9 @@ def _verificar_destinos() -> None:
     surire.reactivar(admin)
     assert len(Destino.listar(solo_disponibles=True)) == 2
     assert elqui.eliminar(admin) is True and Destino.buscar(id_elqui) is None
+    # Hallazgo 20: escribir sobre un destino que ya no existe no se informa como guardado.
+    _rechaza(ValueError, elqui.cambiar_costo, 1, admin)
+    _rechaza(ValueError, elqui.reactivar, admin)
     # El paquete de apoyo se insertó por SQL con un solo destino, cosa que R3 prohíbe y que la
     # base no puede impedir (la regla abarca varias filas): se borra para no dejar un dato inválido.
     with conectar() as con:
@@ -1349,7 +1428,7 @@ def _verificar_paquetes_y_reservas() -> None:
                               "clave-de-pedro-1")
     salida, regreso = date.today() + timedelta(days=30), date.today() + timedelta(days=35)
     surire = Destino("Salar de Surire 2", "Altiplano", "Flamencos", 4, 310_000)
-    elqui = Destino("Valle del Elqui 2", "Norte Chico", "Estrellas", 3, 120_000)
+    elqui = Destino("Valle del Elqui 2", ZONA_PRUEBA, "Estrellas", 3, 120_000)
     otros = [Destino(f"Destino {i}", "Zona", "d", 1, 10_000) for i in range(4)]
     for d in (surire, elqui, *otros):
         d.guardar(admin)
