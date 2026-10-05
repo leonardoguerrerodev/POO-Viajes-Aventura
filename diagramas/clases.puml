@@ -54,7 +54,7 @@ package "Cuentas y acceso" {
   class Administrador {
     + {static} crearPrimero(correo: str, clave: str): Administrador
     + crearAdministrador(correo: str, clave: str): Administrador
-    + desactivarCuenta(correo: str)
+    + desactivarCuenta(correo: str): void
     + respaldarBase(): str
     + puede(accion: str): bool
   }

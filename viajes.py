@@ -77,7 +77,7 @@ CLAVES_COMUNES = frozenset({
     "chile1234567", "bienvenido123", "123456789abc"})
 CLAVE_DISTINTOS = 5
 
-# Argon2id con time_cost=4 y 64 MiB: unos 130 ms por verificación, dentro de lo que pide
+# Argon2id con time_cost=4 y 64 MiB: unos 120 ms por verificación, dentro de lo que pide
 # RNF-REN-02 (entre 0,1 y 1 segundo). Con los valores por omisión medía 98 ms.
 HASHER = PasswordHasher(time_cost=4)
 
@@ -839,23 +839,30 @@ class Cliente(Usuario):
         return cliente
 
     def historial(self) -> list["Reserva"]:
-        """R: todas las reservas propias, pasadas, vigentes y anuladas; nunca las de otro (R11)."""
+        """R: todas las reservas propias, pasadas, vigentes y anuladas; nunca las de otro (R11).
+
+        Solo con la sesión iniciada: un Cliente armado a mano no lee las reservas de nadie (R11,
+        RF-SEG-05 “por cualquier vía”; auditoría final contra la rúbrica, A-05)."""
+        autorizar(self, "reservar")
         return Reserva._listar(Reserva.SQL_DE_CLIENTE, (self.obtener_id(),))
 
     def tiene_reserva_vigente(self, paquete: "Paquete") -> bool:
         """RF-RES-10: el menú advierte antes de una segunda reserva en el mismo paquete (P-01)."""
+        autorizar(self, "reservar")
         with conectar() as con:
             return con.execute("SELECT 1 FROM reserva WHERE cliente_id = ? AND paquete_id = ?"
                                " AND estado = 'VIGENTE' LIMIT 1",
                                (self.obtener_id(), paquete.obtener_id())).fetchone() is not None
 
     def actualizar_contacto(self, nombre: str, telefono: str) -> None:
-        """U: nombre y teléfono propios (RF-RES-12). El RUT y el correo no cambian."""
+        """U: nombre y teléfono propios (RF-RES-12), con la sesión iniciada. El RUT y el correo no cambian."""
+        autorizar(self, "reservar")
         nombre = texto(nombre, CAMPO_NOMBRE, 80)
         telefono = cifrar(validar_telefono(telefono))    # antes de abrir la conexión
         with conectar() as con:
-            con.execute("UPDATE usuario SET nombre = ?, telefono_cifrado = ? WHERE id = ?",
-                        (nombre, telefono, self.obtener_id()))
+            cur = con.execute("UPDATE usuario SET nombre = ?, telefono_cifrado = ? WHERE id = ?",
+                              (nombre, telefono, self.obtener_id()))
+            exigir_una_fila(cur, "cliente")
             registrar_evento(con, self.obtener_id(), "cliente.contacto")
         self.__nombre, self.__telefono = nombre, telefono
 

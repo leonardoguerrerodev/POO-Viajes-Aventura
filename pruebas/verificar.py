@@ -579,6 +579,10 @@ def g14(admin: v.Administrador) -> None:
     otra.close()
     ok("G.14", "lo guardado se lee desde otra conexión: queda en disco, no en memoria")
     with v.conectar() as con:
+        # R3 necesita un paquete con un destino: se crea aquí y todo se deshace al final (ROLLBACK).
+        pid = con.execute("INSERT INTO paquete (nombre, fecha_salida, fecha_regreso, cupo_maximo, margen)"
+                          " VALUES ('p', '2030-01-01', '2030-01-05', 5, 20)").lastrowid
+        con.execute("INSERT INTO paquete_destino (paquete_id, destino_id) VALUES (?, ?)", (pid, id_destino))
         casos = {
             "R2 costo 0": "INSERT INTO destino (nombre, nombre_normalizado, zona, descripcion,"
                           " duracion_dias, costo_base, fecha_costo) VALUES ('a', 'a', 'z', 'd', 1, 0, 'x')",
@@ -593,9 +597,14 @@ def g14(admin: v.Administrador) -> None:
                                   " ('z@z.cl', 'clave', 'ADMINISTRADOR')",
             "R16 cero personas": "INSERT INTO reserva (cliente_id, paquete_id, fecha_emision, personas,"
                                  " total) VALUES (1, 1, '2030-01-01', 0, 1)",
+            "R3 destino repetido en un paquete": "INSERT INTO paquete_destino (paquete_id, destino_id)"
+                                                 " SELECT paquete_id, destino_id FROM paquete_destino LIMIT 1",
+            "R9 correo repetido": "INSERT INTO usuario (correo, hash_clave, rol) SELECT correo,"
+                                  " '$argon2id$x', 'ADMINISTRADOR' FROM usuario LIMIT 1",
         }
         for sql in casos.values():
             rechaza(sqlite3.IntegrityError, con.execute, sql)
+        con.execute("ROLLBACK")
     ok("G.14", f"la base rechaza por sí misma {len(casos)} datos inválidos ({', '.join(casos)})")
 
 
@@ -775,6 +784,17 @@ def g18_endurecido() -> None:
     rechaza(PermissionError, v.Administrador.desactivar_cuenta, rita, "admin@viajes.cl")
     ok("G.18", "una cuenta desactivada no entra (mismo mensaje), pierde sus sesiones abiertas y no cambia"
                " su contraseña; nadie desactiva la propia, y un cliente no desactiva a nadie (RF-SEG-14)")
+
+    # Un Cliente armado a mano con el id de otro, sin pasar por la contraseña (A-05).
+    intrusa = v.Cliente("Intrusa", "11.111.111-1", "intrusa@c.cl", "933334444", "volcan-osorno-42",
+                        id=rita.obtener_id())
+    rechaza(PermissionError, intrusa.historial)
+    rechaza(PermissionError, intrusa.tiene_reserva_vigente, None)
+    rechaza(PermissionError, intrusa.actualizar_contacto, "Intrusa", "933334444")
+    with v.conectar() as con:
+        assert con.execute("SELECT nombre FROM usuario WHERE id = ?", (rita.obtener_id(),)).fetchone()[0] == "Rita"
+    ok("G.18", "un cliente sin sesión iniciada no lee un historial ni cambia datos de contacto, aunque"
+               " use el id de otra cuenta (R11, RF-SEG-05, A-05)")
 
     for _ in range(v.Cliente.REPETIDOS_MAXIMO):
         rechaza(v.ReglaNegocioError, v.Cliente.registrar, "Otra", "11.111.111-1", "rita@c.cl",
@@ -1575,6 +1595,9 @@ MUTACIONES = [
      ["menu"]),
     ("RNF-USA-04 la demostración escribe en la base real", MENU,
      'viajes.usar_base(os.path.join(carpeta, "demostracion.db"))', "pass", ["seguridad"]),
+    ("A-05 historial sin sesión iniciada", VIAJES,
+     '        autorizar(self, "reservar")\n        return Reserva._listar', "        return Reserva._listar",
+     ["credenciales"]),
     ("H-13 mensajes distintos para “no existe” y “no publicado”", MENU,
      "    if paquete is None or not paquete.esta_disponible():\n        raise ValueError(NO_DISPONIBLE)",
      "    if paquete is None:\n        raise ValueError('No existe')", ["menu"]),
