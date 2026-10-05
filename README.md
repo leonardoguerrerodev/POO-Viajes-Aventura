@@ -97,7 +97,9 @@ igual.
 **Opción 1, «Entrar al sistema»:**
 - **No hay usuarios ni contraseñas en el código.** La primera vez, la base está vacía y el programa
   pide crear la cuenta del primer administrador: un correo y una contraseña de 12 caracteres o más,
-  distinta del correo, que no sea de las más comunes y con al menos 5 caracteres distintos.
+  distinta del correo, que no sea de las más comunes, con al menos 5 caracteres distintos, sin
+  secuencias como `1234` o `abcd` y sin partes del correo (en los clientes, tampoco del nombre ni del
+  teléfono). No se exigen mayúsculas ni símbolos.
 - Después aparece la pantalla de inicio:
   - **1. Iniciar sesión (socios y clientes):** la misma entrada para los dos roles; la cuenta decide
     qué menú aparece;
@@ -111,10 +113,12 @@ igual.
     administra la seguridad: crea y desactiva cuentas, respalda la base, rota la clave de cifrado y
     lee el registro de auditoría. Al entrar, se le avisa si hubo cuentas bloqueadas en las últimas 24
     horas;
-  - el cliente reserva, ve sus reservas y las anula, y actualiza su nombre y su teléfono.
+  - el cliente reserva, ve sus reservas y las anula, y actualiza su nombre y su teléfono. Sus datos
+    se muestran enmascarados, también para él: `12.***.***-5`, `j*******9@g****.com`, `+56 9 ******* 4`.
 - Toda opción que pide un id muestra antes la lista correspondiente.
-- **`x`** en cualquier dato cancela la acción sin guardar. La sesión se cierra sola tras 10 minutos sin
-  uso.
+- **`x`** en cualquier dato cancela la acción sin guardar; la primera pregunta de cada acción lo
+  recuerda. Lo que no se puede deshacer pide confirmación (eliminar, publicar, anular una reserva, crear
+  o desactivar una cuenta, rotar la clave). La sesión se cierra sola tras 10 minutos sin uso.
 
 **Dónde quedan los datos:**
 
@@ -139,7 +143,7 @@ cualquiera de los tres sistemas:
 
 ```bash
 python pruebas/verificar.py            # interfaz: elige la sección y la corre paso a paso
-python pruebas/verificar.py --todo     # todo, incluidas 36 mutaciones (unos 5 minutos)
+python pruebas/verificar.py --todo     # todo, incluidas 45 mutaciones (unos 6 minutos)
 python pruebas/verificar.py --rapido   # todo menos las mutaciones (menos de 1 minuto)
 ```
 

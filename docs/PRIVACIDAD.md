@@ -85,3 +85,36 @@ Se ejercen ante los socios, que responden en 30 días corridos.
   la condición de construirla antes de que rija la Ley 21.719). La cuenta se desactiva desde el menú.
   La supresión de los datos personales la hace un socio a mano, y las reservas se conservan como
   respaldo de lo cobrado.
+
+## 4. Qué protege el cifrado y qué no
+
+El cifrado es **por campo, no del archivo**. Quien abra `viajes.db` o un respaldo con un visor de
+SQLite ve esto:
+
+| Dato | Cómo queda en el archivo | Por qué |
+|---|---|---|
+| RUT y teléfono | Cifrados con Fernet (AES-128-CBC + HMAC-SHA256): texto ilegible, y un byte alterado da error, no un dato falso | Son los datos que R17 manda resguardar |
+| Contraseñas | Solo su resumen Argon2id, que no se puede revertir (R10) | Ni el sistema conoce la contraseña |
+| Nombre, correo, catálogo, paquetes, reservas y registro de auditoría | Legibles | El correo es el identificador de la cuenta (R9) y el nombre aparece en las reservas que ve el socio (RF-RES-11) |
+
+Lo que impide abrir el archivo en primer lugar es el sistema operativo:
+- la base, sus respaldos y la clave se crean con **permisos 0600**, solo para la cuenta de la oficina que corre el programa;
+- la clave **no viaja con la base**: vive en la carpeta de configuración del usuario, fuera del proyecto y fuera de `respaldos/`.
+
+Una copia de la base o de un respaldo, sin la clave, expone nombres, correos y reservas, pero no RUT
+ni teléfonos. En pantalla, el RUT, el correo y el teléfono se muestran enmascarados incluso a su dueño
+(`12.***.***-5`, `j*******9@g****.com`, `+56 9 ******* 4`). Cifrar el archivo completo exigiría
+SQLCipher, que no es parte de `sqlite3`: queda como alcance futuro ([`AUDITORIA.md`](AUDITORIA.md) §3.1).
+
+**Rotar la clave** («Rotar la clave de cifrado de los datos personales», RF-SEG-15):
+- **Qué hace:** genera una clave nueva y vuelve a cifrar el RUT y el teléfono de todos los clientes en
+  una sola transacción. Si algo falla, no cambia nada.
+- **Cuándo sirve:** cuando la clave pudo salir del equipo (un respaldo copiado junto con ella, un socio
+  que se fue con acceso al equipo). Desde la rotación, esa clave ya no lee la base actual.
+- **Cuándo no sirve:** si alguien ya copió la base **y** la clave antes de rotar, esa copia sigue
+  legible para siempre. Rotar evita la exposición futura; la pasada se trata como incidente (§2).
+- **Los respaldos anteriores** quedaron cifrados con la clave vieja. Por eso se archiva
+  (`clave.env.anterior-<fecha>`, 0600) junto a la nueva: se guarda mientras existan esos respaldos y
+  se borra con ellos.
+- **Perder la clave** deja ilegibles el RUT y el teléfono de todos los clientes, sin forma de
+  recuperarlos. La clave se respalda aparte de la base, como indica el README.

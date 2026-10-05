@@ -24,6 +24,7 @@ apoyo de IA. Sábado 3 de octubre de 2026; riesgos declarados cerrados el lunes 
 | SonarCloud | 8 observaciones de las pruebas nuevas | 8 | |
 | Auditoría final (corrector independiente y revisión propia, 3-oct 22:00) | 10 de seguridad y privacidad (§2.3) | 10: el plazo de conservación quedó en `PRIVACIDAD.md` | |
 | Cierre de los riesgos declarados (5-oct) | 13 riesgos de §3 reevaluados | 11 cerrados, con su prueba y su mutación (§2.5) | 2 límites del modelo de amenazas, cada uno con su mitigación (§3) |
+| Revisión manual del modo demostración (5-oct) | 13 observaciones al usar el menú (§2.6) | 7 con cambio en el código, cada uno con su prueba y su mutación | Ninguno: 5 se responden sin cambio (ya estaban cubiertas o las fija el caso) y la recuperación de contraseña queda como alcance futuro, con su diseño (§3.1) |
 
 De la IA: **4 adoptados tal como vinieron, 12 modificados y 1 descartado**. Cada decisión, con su
 fundamento, está en la sección 2. Tres hallazgos eran errores reales del código y se comprobaron por
@@ -53,7 +54,7 @@ Severidad según la IA. «Decisión» clasifica la recomendación de la IA: **ad
 | ID | Sev. | OWASP 2025 | Hallazgo | Decisión | Qué se hizo y por qué | Prueba que lo vigila |
 |---|---|---|---|---|---|---|
 | H-01 | Media | A04 | La clave Fernet vivía en `.env` dentro de la carpeta del proyecto, junto a la base | **Modificada** | La clave pasa a `~/.config/viajes-aventura/clave.env`, fuera del proyecto, con la carpeta en 0700 y el archivo en 0600. Si un respaldo la restaura con permisos abiertos, se cierran solos en vez de rechazarla como proponía la IA: rechazarla dejaría a la agencia sin poder atender. Se verificó que `.env` y `*.db` nunca estuvieron en el historial y se agregaron `*.db-wal` y `*.db-shm` al `.gitignore` | `verificar.py`, sección «datos» |
-| H-02 | Media | A09 | No había registro de auditoría | **Modificada** | Tabla `auditoria(fecha_utc, usuario_id, accion, detalle)`, escrita en la misma transacción de cada operación (si la operación se deshace, su registro también). Hoy registra 27 acciones: catálogo, paquetes, reservas, cuentas e inicios de sesión (correcto, fallido, bloqueo, rechazado por bloqueo, correo inexistente). Sin la columna «resultado» que proponía la IA: solo se registra lo que ocurrió. El detalle lleva ids y montos, nunca RUT, teléfono, correo ni contraseña; del correo inexistente no se guarda el correo, porque puede ser de otra persona | `verificar.py`, sección «reglas» (`_verificar_auditoria`) |
+| H-02 | Media | A09 | No había registro de auditoría | **Modificada** | Tabla `auditoria(fecha_utc, usuario_id, accion, detalle)`, escrita en la misma transacción de cada operación (si la operación se deshace, su registro también). Hoy registra 27 acciones: catálogo, paquetes, reservas, cuentas e inicios de sesión (correcto, fallido, bloqueo, rechazado por bloqueo, correo inexistente). Sin la columna «resultado» que proponía la IA: solo se registra lo que ocurrió. El detalle lleva ids, montos y el nombre de lo eliminado (desde el 5-oct, §2.6), nunca RUT, teléfono, correo ni contraseña; del correo inexistente no se guarda el correo, porque puede ser de otra persona | `verificar.py`, sección «reglas» (`_verificar_auditoria`) |
 | H-03 | Media | A07 | No se puede desactivar una cuenta ni suprimir los datos de un cliente | **Modificada** (5-oct) | Desactivar cuentas: `Administrador.desactivarCuenta()` (§2.5). La supresión pedida por el cliente se atiende ante los socios (W-08, `PRIVACIDAD.md`) | `verificar.py`, sección «credenciales» |
 | H-04 | Media | A06 | Listar reservas descifraba el RUT y el teléfono de todos los clientes | **Modificada** | En vez de una consulta liviana solo para ese listado, `Cliente` guarda el RUT y el teléfono **cifrados también en memoria** y los descifra solo para enmascararlos. Ninguna lectura de la base descifra nada, y un registro alterado ya no impide listar a los demás | sección «reglas» (RUT alterado: se entra y se lista) |
 | H-05 | Baja | A07 | Iniciar sesión descifraba los datos antes de verificar la contraseña | **Modificada** | Resuelto por el mismo cambio de H-04 | ídem |
@@ -103,13 +104,16 @@ principal, una por vez, en una copia temporal del proyecto, y corre las seccione
 detectarlo. Falla si alguna mutación sobrevive. Corre en el workflow, en el job «mutaciones», en cada
 envío al repositorio.
 
-Resultado: **36 de 36 detectadas**. Cubren:
+Resultado: **45 de 45 detectadas**. Cubren:
 - 9 reglas del negocio y 6 de cuentas y permisos;
 - las correcciones de esta auditoría;
 - las de la auditoría final: sesión iniciada, edición a medias, `rowcount` y «2.5» personas;
 - los dos errores reales del desarrollo, K-04 y K-05;
 - el aislamiento del modo demostración (§2.4);
-- los 9 cierres del 5-oct (§2.5), incluida una consulta SQL armada pegando textos.
+- los 9 cierres del 5-oct (§2.5), incluida una consulta SQL armada pegando textos;
+- los 9 cambios de la revisión manual (§2.6): las tres reglas nuevas de la contraseña, el correo y el
+  teléfono enmascarados, el nombre de lo eliminado en el registro, las dos confirmaciones nuevas y el
+  aviso de cómo cancelar.
 
 Esa última mutación sobrevivió la primera vez: la prueba solo miraba lo que se pasaba a `execute()`,
 no las constantes `SQL_*`. Se amplió la prueba, y ahora la detecta.
@@ -176,6 +180,28 @@ cerrar en ninguna aplicación de escritorio queda como límite, con su mitigaci�
 Cada cierre tiene su afirmación en `pruebas/verificar.py` (secciones «credenciales», «datos» y
 «seguridad») y su mutación en la sección «mutaciones».
 
+### 2.6 Revisión manual del modo demostración (5-oct)
+
+Usando el modo demostración como lo usaría un socio o un cliente, aparecieron 13 observaciones. Cada
+una se comprobó en el código antes de decidir, y no todas se aplicaron tal como se plantearon: dos
+contradecían una regla del caso o una guía vigente.
+
+| Observación | Lo que había | Decisión | Esfuerzo |
+|---|---|---|---|
+| «Eliminar un destino» no lo borró: quedó no disponible | El destino estaba en un paquete | **Sin cambio:** es la regla R8 del caso. Sin paquetes se borra, y el menú ya lo explica al terminar | 0 |
+| Una «papelera» para recuperar lo eliminado por error | Lo único que se borra de verdad es catálogo nunca vendido (R8 y RF-PAQ-09), y el registro solo guardaba su id, que deja de existir | **Modificada:** sin papelera, que agregaría una tabla, un estado y un permiso nuevos. El registro de auditoría guarda el nombre de lo eliminado (`destino 2 «Salar de Surire»`), que basta para volver a crearlo; es catálogo, no datos personales | 10 min |
+| ¿El registro de auditoría es un log? | Sí: guarda quién hizo qué y, además, los eventos de seguridad (inicios fallidos, bloqueos, correos inexistentes o repetidos) | **Adoptada:** la opción del menú dice «Ver el registro de auditoría (actividad y seguridad)» | 5 min |
+| ¿La base y su respaldo van cifrados? | Cifrado por campo (RUT y teléfono), no del archivo | **Sin cambio, respondida:** qué protege cada capa está en [`PRIVACIDAD.md`](PRIVACIDAD.md) §4; cifrar el archivo completo queda en §3.1 | 0 |
+| ¿Qué implica rotar la clave? | `rotar_clave_de_datos()` (RF-SEG-15) | **Sin cambio, respondida** en [`PRIVACIDAD.md`](PRIVACIDAD.md) §4 | 0 |
+| Contraseña con una mayúscula y un símbolo, sin números correlativos ni datos de la persona | 12 caracteres o más, lista de comunes, 5 caracteres distintos y distinta del correo | **Modificada:** se rechazan las secuencias de 4 (`1234`, `abcd`, `4321`) y las partes de 4 caracteres o más del correo, del nombre o del teléfono, también al cambiarla. **No** se exigen mayúsculas ni símbolos: NIST SP 800-63B desaconseja esas reglas, que llevan a contraseñas previsibles como «Contraseña1!» | 40 min |
+| Recuperar una contraseña olvidada | No existe ningún camino | **Alcance futuro** (§3.1), con su diseño | 0 |
+| Confirmar todas las decisiones de los menús | Ya confirmaban eliminar, publicar, desactivar y rotar. Faltaban dos | **Modificada:** se confirman también anular una reserva (no se puede deshacer) y crear la cuenta de un socio (da todos los permisos). Cambiar la contraseña no suma otra pregunta: ya exige la actual | 15 min |
+| Avisar en todo dato que «x» cancela | «x» ya cancelaba cualquier dato (`leer()`), pero solo dos formularios lo decían | **Adoptada:** la primera pregunta de cada acción lo recuerda, desde un solo lugar del menú | 15 min |
+| Enmascarar el correo en «Ver mis datos» | Correo completo ahí, en la cabecera de cada menú y en «Mis reservas» | **Adoptada en los tres lugares:** `j*******9@g****.com`, con asteriscos fijos para no delatar el largo. El socio lo sigue viendo completo en las reservas de un paquete, porque es su vía de contacto (RF-RES-11) | 20 min |
+| Teléfono: solo el primer y el último dígito | `+56 9 **** 1234` mostraba 5 de los 9 dígitos | **Adoptada:** `+56 9 ******* 4` | 10 min |
+| Frenar la fuerza bruta en todas las entradas y registrar todo error | Bloqueo progresivo en el inicio de sesión y al cambiar la contraseña, y pausa del registro (RF-SEG-03, H-10, H-17, RF-SEG-17) | **Sin cambio:** la fuerza bruta solo sirve contra una entrada que esconde un secreto, y esas ya se frenan. Frenar «elija una opción» no protege nada. Registrar cada error de tipeo llenaría el registro sin decir nada nuevo: ya guarda los eventos de seguridad | 0 |
+| El primer administrador debería dar más datos | Correo y contraseña | **Sin cambio de datos:** el riesgo del primer uso es quién llega primero, y eso ya lo resuelve `crear_primero` (solo con la base vacía, en una sentencia, S-04). Pedirle RUT o teléfono sumaría datos personales que proteger sin ganar seguridad. La política nueva de contraseña rige también para él | 0 |
+
 ## 3. Límites del modelo de amenazas
 
 Ya no hay riesgos «aceptados»: lo que se podía cerrar dentro del alcance se cerró (§2.5). Quedan dos
@@ -191,6 +217,17 @@ implementada. Y una decisión de alcance, que no es un riesgo.
 es el Won't W-08. El derecho existe y se atiende ante los socios, como indica el aviso que el cliente
 acepta (30 días corridos). La Ley 21.719, que obligaría a ofrecerlo con más formalidad, rige desde el
 1-dic-2026. El procedimiento está en [`PRIVACIDAD.md`](PRIVACIDAD.md) §3.
+
+### 3.1 Alcances futuros
+
+Ideas evaluadas el 5-oct (§2.6) que no se construyen en esta entrega, cada una con lo que pediría.
+
+| Alcance | Por qué no ahora | Cómo se haría |
+|---|---|---|
+| Recuperar una contraseña olvidada | Hoy no existe ningún camino: un cliente que la olvida no vuelve a entrar. Una cola de solicitudes abierta sin sesión serviría para averiguar qué correos existen y para llenar de pedidos a los socios, y la clave nueva tendría que llegar al cliente por otro medio | **Etapa 1, sin servidor:** el cliente llama o va a la agencia. Un socio comprueba su identidad (RUT y datos de una reserva) y usa «Restablecer contraseña», que genera una clave temporal al azar, la muestra una sola vez y obliga a cambiarla al entrar. Queda en el registro de auditoría. **Etapa 2, con dominio y servidor:** un enlace de un solo uso, con vencimiento, enviado al correo registrado |
+| Papelera de lo eliminado | Solo se borra catálogo nunca vendido, y el registro ya guarda su nombre para recrearlo. Una papelera con datos de clientes iría contra la supresión que pide la ley | Si el catálogo creciera: una baja lógica con fecha y quién la hizo, visible solo para los socios, y un plazo tras el que se borra |
+| Cifrar el archivo completo de la base | `sqlite3` de la biblioteca estándar no cifra archivos. SQLCipher es otra dependencia compilada, que complica la instalación en Windows (hoy probada en 6 combinaciones) | SQLCipher con su clave en el mismo lugar que la de Fernet. Hoy lo cubren los permisos 0600 y el cifrado del RUT y el teléfono ([`PRIVACIDAD.md`](PRIVACIDAD.md) §4) |
+| Verificar el correo al registrarse | Enviar correos está fuera del alcance (§6 del caso, W-05) | Un enlace de confirmación; cerraría también el segundo límite de la tabla de arriba |
 
 ## 4. Qué aportó la IA y qué no
 
@@ -215,7 +252,7 @@ acepta (30 días corridos). La Ley 21.719, que obligaría a ofrecerlo con más f
 | A04 Cryptographic Failures | Argon2id para contraseñas; Fernet (AES-128-CBC + HMAC-SHA256) para RUT y teléfono, que da confidencialidad e integridad; clave en archivo aparte y rotable con `MultiFernet` |
 | A05 Injection | SQL solo con parámetros y como texto literal; `texto()` rechaza caracteres de control y marcas bidireccionales que se reimprimen en la terminal |
 | A06 Insecure Design | Transacciones atómicas (H-08), cupo calculado y no guardado, precio fijado al publicar, descifrado diferido (H-04), reglas repetidas en CHECK de la base |
-| A07 Authentication Failures | Bloqueo progresivo (5, 15 y 60 min) en una sentencia atómica y con hora UTC, también al cambiar la contraseña; sesiones invalidadas al cambiarla; mismo mensaje y demora en los tres fallos, política de contraseña con lista de comunes, sesión que vence a los 10 minutos también dentro de una acción |
+| A07 Authentication Failures | Bloqueo progresivo (5, 15 y 60 min) en una sentencia atómica y con hora UTC, también al cambiar la contraseña; sesiones invalidadas al cambiarla; mismo mensaje y demora en los tres fallos, política de contraseña con lista de comunes, sin secuencias ni partes del correo, del nombre o del teléfono, sesión que vence a los 10 minutos también dentro de una acción |
 | A08 Software or Data Integrity Failures | Fernet rechaza un dato alterado; hashes en `requirements.txt` |
 | A09 Security Logging and Alerting Failures | Registro de auditoría de 27 acciones, en la misma transacción, sin datos personales (H-02), legible desde el menú del socio, con aviso de bloqueos (RF-SEG-16) |
 | A10 Mishandling of Exceptional Conditions | Cadena de `except` por tipo con `except Exception` final en el menú y en `main()`; ningún mensaje con trazas, rutas ni datos; techo de todo entero (H-12) y del total (H-09) |
@@ -227,5 +264,5 @@ pip install bandit pip-audit
 bandit -r viajes.py main.py                          # esperado: No issues identified (0 en el producto)
 pip-audit -r requirements.txt --require-hashes        # esperado: No known vulnerabilities found
 git log --all --name-only --format= | sort -u | grep -E '\.env$|\.db$'   # esperado: nada
-python pruebas/verificar.py --todo                    # esperado: ninguna falla; 36 de 36 mutaciones
+python pruebas/verificar.py --todo                    # esperado: ninguna falla; 45 de 45 mutaciones
 ```

@@ -35,8 +35,8 @@ python pruebas/verificar.py --solo datos
 |---|---|---|---|
 | `reglas` | G.14, G.15 | Las 17 reglas del caso y los requerimientos de cuentas, destinos, paquetes y reservas, incluidas dos reservas simultáneas por el último lugar | `_verificar_clave_y_permisos`, `_verificar_cuentas`, `_verificar_destinos`, `_verificar_paquetes_y_reservas`, `_verificar_auditoria` |
 | `implementacion` | G.13, G.14, G.15 | Los cuatro principios de la POO, la persistencia (tablas, claves foráneas, CHECK, datos en disco), el CRUD de cada entidad y el rendimiento con diez veces el volumen | `g13`, `g14`, `g15`, `rendimiento` |
-| `credenciales` | G.17, G.18 | Argon2id con sal propia, la misma respuesta y demora para todo fallo, bloqueo progresivo, política de contraseñas, sesiones invalidadas, cuentas desactivadas y pausa del registro | `g17`, `g18`, `g18_endurecido` |
-| `datos` | I.19 | RUT y teléfono ilegibles en la base, integridad (un byte alterado da error), permisos 0600, enmascarado y rotación de la clave | `i19`, `i19_rotacion` |
+| `credenciales` | G.17, G.18 | Argon2id con sal propia, la misma respuesta y demora para todo fallo, bloqueo progresivo, política de contraseñas (sin secuencias ni datos propios), sesiones invalidadas, cuentas desactivadas y pausa del registro | `g17`, `g18`, `g18_endurecido` |
+| `datos` | I.19 | RUT y teléfono ilegibles en la base, integridad (un byte alterado da error), permisos 0600, RUT, correo y teléfono enmascarados, y rotación de la clave | `i19`, `i19_rotacion` |
 | `seguridad` | I.20 | Modo demostración aislado, permisos solo con sesión, 0 consultas SQL armadas con texto (revisado con `ast`), 0 `assert` en el producto, registro de auditoría sin datos personales, dependencias y workflow fijados por hash | `demostracion`, `i20` |
 | `menu` | G.15 | El menú real de punta a punta con los dos roles y el modo demostración; la sesión que caduca por inactividad. Guarda la evidencia en [`docs/SALIDA_TERMINAL.md`](../docs/SALIDA_TERMINAL.md) | `ejecutar`, `probar_inactividad` |
 | `uml` | G.13, I.8 | El diagrama `diagramas/clases.puml` contra `viajes.py`, clase por clase y miembro por miembro | `leer_diagrama`, `leer_codigo`, `comparar` |
@@ -55,8 +55,8 @@ afirmación:
 | Control | Dónde |
 |---|---|
 | Permisos por rol, revisados en el dominio y solo con sesión iniciada | `viajes.py`: `autorizar()`, `Usuario.tiene_sesion()`, `puede()` de cada rol |
-| Contraseñas con Argon2id, bloqueo progresivo, misma respuesta para todo fallo | `viajes.py`: `HASHER`, `Usuario.autenticar()`, `Usuario.__intentar()`, `Usuario.__senuelo()` |
-| RUT y teléfono cifrados (Fernet), enmascarados y con clave rotable | `viajes.py`: `cifrador()`, `cifrar()`, `descifrar()`, `rotar_clave_de_datos()`, `Cliente.rut_enmascarado()` |
+| Contraseñas con Argon2id, política (RF-SEG-04), bloqueo progresivo, misma respuesta para todo fallo | `viajes.py`: `HASHER`, `Usuario._validar_clave()`, `tiene_secuencia()`, `partes_propias()`, `Usuario.autenticar()`, `Usuario.__intentar()`, `Usuario.__senuelo()` |
+| RUT y teléfono cifrados (Fernet), enmascarados y con clave rotable; correo enmascarado en pantalla | `viajes.py`: `cifrador()`, `cifrar()`, `descifrar()`, `rotar_clave_de_datos()`, `Cliente.rut_enmascarado()`, `enmascarar_correo()` |
 | Transacciones atómicas y consultas con parámetros | `viajes.py`: `conectar()` (`BEGIN IMMEDIATE`), constantes `SQL_*` |
 | Reglas repetidas en la base | `viajes.py`: `ESQUEMA` (19 CHECK, UNIQUE, claves foráneas) |
 | Registro de auditoría y su lectura | `viajes.py`: `registrar_evento()`, `consultar_auditoria()`, `contar_bloqueos()` |

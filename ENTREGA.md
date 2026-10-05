@@ -37,7 +37,7 @@ está el control en el código. Corren solas en cada envío al repositorio ([sel
 | **4.1.5.G.17** | Autenticación con librerías oficiales | Informe §5.6 · `pruebas/verificar.py`, sección «credenciales» (argon2-cffi, Argon2id) |
 | **4.1.5.G.18** | Validación de credenciales | Informe §5.7 (escenario → respuesta → prueba) · `pruebas/verificar.py`, sección «credenciales» (bloqueo progresivo, sesiones invalidadas, cuentas desactivadas, pausa del registro) |
 | **4.1.5.I.19** | Protección de datos sensibles | Informe §5.8 · `pruebas/verificar.py`, sección «datos» (Fernet: confidencialidad, integridad y rotación de la clave) · [`docs/PRIVACIDAD.md`](docs/PRIVACIDAD.md) (conservación e incidentes, art. 14 sexies) |
-| **4.1.5.I.20** | Evaluación de la seguridad con IA | Informe §5.9 · [`docs/AUDITORIA.md`](docs/AUDITORIA.md) (17 hallazgos de la IA en cinco partes con su decisión, auditoría final, cierre de los riesgos declarados, OWASP Top 10:2025) · `pruebas/verificar.py`, secciones «seguridad» y «mutaciones» (36 de 36 reglas rotas a propósito, todas detectadas) · [`docs/ia/auditoria_seguridad_ia.md`](docs/ia/auditoria_seguridad_ia.md) |
+| **4.1.5.I.20** | Evaluación de la seguridad con IA | Informe §5.9 · [`docs/AUDITORIA.md`](docs/AUDITORIA.md) (17 hallazgos de la IA en cinco partes con su decisión, auditoría final, cierre de los riesgos declarados, OWASP Top 10:2025) · `pruebas/verificar.py`, secciones «seguridad» y «mutaciones» (45 de 45 reglas rotas a propósito, todas detectadas) · [`docs/ia/auditoria_seguridad_ia.md`](docs/ia/auditoria_seguridad_ia.md) |
 
 ## Calidad continua
 
