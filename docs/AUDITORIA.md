@@ -10,7 +10,7 @@ apoyo de IA. Sábado 3 de octubre de 2026; riesgos declarados cerrados el lunes 
 | Código corregido | commit `fcfa4f9` y siguientes, rama `feature/auditoria` integrada a `main`; cierres del 5-oct en `0a7b54e` |
 | Método | “Auditoría de seguridad y privacidad” (método propio, fases 5, 7, 9, 14 y 15), en su versión para un proyecto de una persona |
 | Herramientas | bandit 1.9.4 (análisis estático), pip-audit 2.10.1 (dependencias), búsqueda de secretos en el historial de git, SonarCloud (en cada envío), revisión pedida a la IA |
-| Revisión con IA | Claude, en un agente nuevo que solo conocía el prompt y los dos archivos. Prompt y respuesta íntegros en [`ia/auditoria_seguridad_ia.md`](ia/auditoria_seguridad_ia.md) |
+| Revisión con IA | Claude, en un agente nuevo que solo conocía el prompt y los dos archivos. Prompt y respuesta íntegros en [`transcripciones_ia/auditoria_seguridad_ia.md`](transcripciones_ia/auditoria_seguridad_ia.md) |
 | Fuera de alcance | No hay interfaz web ni APIs: XSS, CSRF y cabeceras HTTP no aplican |
 
 ## Resumen

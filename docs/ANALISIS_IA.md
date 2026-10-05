@@ -31,9 +31,9 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
   Sirve para contrastar el trabajo del asistente con una mirada que no lo comparte. Las respuestas se
   guardaron íntegras, sin editar:
   - Diseño del modelo de clases, con un prompt pobre y uno con el esquema CLARO (Contexto, Labor,
-    Alcance, Rol y Orden): [`ia/modelo_iteracion_1_prompt_pobre_respuesta.md`](ia/modelo_iteracion_1_prompt_pobre_respuesta.md)
-    y [`ia/modelo_iteracion_2_prompt_claro_respuesta.md`](ia/modelo_iteracion_2_prompt_claro_respuesta.md).
-  - Auditoría de seguridad del código: [`ia/auditoria_seguridad_ia.md`](ia/auditoria_seguridad_ia.md).
+    Alcance, Rol y Orden): [`transcripciones_ia/modelo_iteracion_1_prompt_pobre_respuesta.md`](transcripciones_ia/modelo_iteracion_1_prompt_pobre_respuesta.md)
+    y [`transcripciones_ia/modelo_iteracion_2_prompt_claro_respuesta.md`](transcripciones_ia/modelo_iteracion_2_prompt_claro_respuesta.md).
+  - Auditoría de seguridad del código: [`transcripciones_ia/auditoria_seguridad_ia.md`](transcripciones_ia/auditoria_seguridad_ia.md).
   - Corrección del informe y del repositorio con la rúbrica, como lo haría el docente (3-oct, 22:00).
     Su respuesta se resume en la sección 5; el texto completo queda en el registro de trabajo.
 - **Ningún resultado se aceptó por haberlo producido la IA.** Todo pasó por al menos una de estas

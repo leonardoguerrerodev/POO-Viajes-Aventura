@@ -15,7 +15,7 @@ BPMN, planificación, implementación, seguridad y trazabilidad).
 
 **Por dónde empezar:**
 - **Probar el programa sin ingresar datos:** instalar (§1) y elegir “Modo demostración” (§2).
-- **Corregir la evaluación:** [`ENTREGA.md`](ENTREGA.md) enlaza la evidencia de cada indicador de la rúbrica.
+- **Corregir la evaluación:** [`docs/EVIDENCIA_RUBRICA.md`](docs/EVIDENCIA_RUBRICA.md) enlaza la evidencia de cada indicador de la rúbrica.
 - **Revisar la seguridad:** el resumen de §4 y, en detalle, [`docs/AUDITORIA.md`](docs/AUDITORIA.md) y
   [`docs/PRIVACIDAD.md`](docs/PRIVACIDAD.md).
 
@@ -213,9 +213,9 @@ La evaluación completa, con los hallazgos, su decisión y los límites del mode
 | [`docs/PRIVACIDAD.md`](docs/PRIVACIDAD.md) | Conservación de los datos, incidentes (Ley 21.719), derechos de los clientes y qué protege el cifrado |
 | [`docs/ANALISIS_IA.md`](docs/ANALISIS_IA.md) | Cada contribución de la IA, adoptada, modificada o descartada, con su motivo |
 | [`docs/SALIDA_TERMINAL.md`](docs/SALIDA_TERMINAL.md) | Una sesión real del menú con los dos roles, generada por las pruebas |
-| [`docs/ia/`](docs/ia/) | Prompts y respuestas íntegros de la IA |
+| [`docs/EVIDENCIA_RUBRICA.md`](docs/EVIDENCIA_RUBRICA.md) | Dónde está la evidencia de cada indicador de la rúbrica: la guía para corregir |
+| [`docs/transcripciones_ia/`](docs/transcripciones_ia/) | Prompts y respuestas íntegros de las conversaciones con la IA que el análisis y la auditoría citan |
 | [`.github/workflows/pruebas.yml`](.github/workflows/pruebas.yml) | El workflow que corre las pruebas en Windows, macOS y Linux en cada envío |
-| [`ENTREGA.md`](ENTREGA.md) | La evidencia de cada indicador de la rúbrica |
 
 ## Autoría y uso
 
