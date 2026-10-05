@@ -153,7 +153,7 @@ python pruebas/verificar.py --rapido   # todo menos las mutaciones (menos de 1 m
 - autenticación y credenciales;
 - datos personales;
 - seguridad;
-- recorrido del menú real, que reescribe `docs/SALIDA_TERMINAL.md`;
+- recorrido del menú real, que reescribe [`docs/SALIDA_TERMINAL.md`](docs/SALIDA_TERMINAL.md);
 - diagrama de clases contra código;
 - mutaciones.
 
@@ -180,9 +180,9 @@ temporales.
 
 | Ruta | Contenido |
 |---|---|
-| `viajes.py` | El producto: las clases del diagrama, su persistencia (todo el SQL), la autenticación y el cifrado. Sin pruebas |
-| `main.py` | Menú de terminal, pantalla previa y modo demostración. Sin SQL |
-| `requirements.txt` | Las dependencias, con versión exacta y los hashes de Windows, macOS y Linux |
-| `diagramas/` | Diagrama de clases (`clases.puml`, la fuente), casos de uso y BPMN, con sus generadores |
-| `pruebas/` | `verificar.py`, todas las pruebas por indicador de la rúbrica, y su índice `README.md` |
-| `docs/` | Informe técnico, auditoría de seguridad, privacidad (conservación e incidentes), análisis del uso de IA, sesión real del menú y transcripciones de la IA |
+| [`viajes.py`](viajes.py) | El producto: las clases del diagrama, su persistencia (todo el SQL), la autenticación y el cifrado. Sin pruebas |
+| [`main.py`](main.py) | Menú de terminal, pantalla previa y modo demostración. Sin SQL |
+| [`requirements.txt`](requirements.txt) | Las dependencias, con versión exacta y los hashes de Windows, macOS y Linux |
+| [`diagramas/`](diagramas/) | Diagrama de clases (`clases.puml`, la fuente), casos de uso y BPMN, con sus generadores |
+| [`pruebas/`](pruebas/) | `verificar.py`, todas las pruebas por indicador de la rúbrica, y su índice [`README.md`](pruebas/README.md) |
+| [`docs/`](docs/) | Informe técnico, auditoría de seguridad, privacidad (conservación e incidentes), análisis del uso de IA, sesión real del menú y transcripciones de la IA |

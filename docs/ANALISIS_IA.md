@@ -46,9 +46,9 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
   - Bandit, pip-audit y SonarCloud.
   - **Pruebas de mutación:** romper a propósito una regla y comprobar que alguna prueba falla.
 
-  Desde el 5-oct, todas esas pruebas están en un solo archivo, `pruebas/verificar.py`, con una sección
+  Desde el 5-oct, todas esas pruebas están en un solo archivo, [`pruebas/verificar.py`](../pruebas/verificar.py), con una sección
   por cada una (índice en [`pruebas/README.md`](../pruebas/README.md)). Antes eran cinco archivos, en
-  `herramientas/`, `pruebas/` y al final de `viajes.py`.
+  `herramientas/`, [`pruebas/`](../pruebas/) y al final de [`viajes.py`](../viajes.py).
     Detectaron 46 de 46 mutaciones en total. Una de ellas, un atributo público, recién se detectó
     después de corregir el comparador (K-08).
 
@@ -61,8 +61,8 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
 | R-03 | Casos de uso con tres actores, incluido “Visitante” | **Descartado** | El docente pide dos actores. El visitante no tiene datos que el sistema guarde, y ver la oferta sin sesión quedó como supuesto (S-09) | Informe, §3.1 |
 | R-04 | Un primer sprint “de análisis” | **Descartado** | “No existe la iteración de análisis” (docente): cada sprint debe entregar algo ejecutable. Pasó a ser un período de preparación declarado con sus horas | Informe, §4.3 |
 | R-05 | Leo como Product Owner | **Modificado** | En Scrum el PO representa al cliente: son los socios, y el docente responde por ellos. Leo es Scrum Master, desarrollador y responsable de datos y de seguridad | Informe, §4.1 |
-| R-06 | Figuras en PlantUML | **Descartado** | Impresas tenían letra de 4,6 a 5,9 pt. Se rehicieron con coordenadas fijas (`svgkit.py`) a 7,5 pt, como el informe 4+1 de Modelamiento | `diagramas/` |
-| R-07 | Diagrama de clases (`clases.puml`) | **Adoptado** | Leo lo aprobó el 2-oct. Después se modificó cinco veces al escribir el código, por las decisiones 7 a 12 del informe, y cada cambio está registrado | `diagramas/clases.puml` |
+| R-06 | Figuras en PlantUML | **Descartado** | Impresas tenían letra de 4,6 a 5,9 pt. Se rehicieron con coordenadas fijas (`svgkit.py`) a 7,5 pt, como el informe 4+1 de Modelamiento | [`diagramas/`](../diagramas/) |
+| R-07 | Diagrama de clases (`clases.puml`) | **Adoptado** | Leo lo aprobó el 2-oct. Después se modificó cinco veces al escribir el código, por las decisiones 7 a 12 del informe, y cada cambio está registrado | [`diagramas/clases.puml`](../diagramas/clases.puml) |
 | R-08 | `trazabilidad.py`, verificador del catálogo | **Adoptado** | Detectó 9 de 9 mutaciones del capítulo de requerimientos y 5 de 5 del backlog | Informe (no viaja al repo) |
 
 ## 2. Iteraciones independientes sobre el modelo de clases
@@ -136,15 +136,15 @@ cinco eran errores reales del código o del informe, y se confirmaron con una pr
 | ID | Lo que encontró o recomendó | Decisión | Fundamento y dónde quedó |
 |---|---|---|---|
 | X-01 | El índice ponía todas las secciones en la página 3 | **Adoptado** | Confirmado: `indice.py` buscaba desde una página fija. Ahora empieza donde empieza el cuerpo |
-| X-02 | “2.5” personas se registraba como 25 | **Adoptado** | Confirmado. El punto solo se acepta como separador de miles (`main.py`, `ENTERO_CON_MILES`); el driver lo prueba |
+| X-02 | “2.5” personas se registraba como 25 | **Adoptado** | Confirmado. El punto solo se acepta como separador de miles ([`main.py`](../main.py), `ENTERO_CON_MILES`); el driver lo prueba |
 | X-03 | `editar` dejaba el objeto a medias si fallaba una validación | **Adoptado** | Confirmado con una prueba. Se valida en valores locales y se asigna después de guardar |
 | X-04 | Un `Administrador` armado sin contraseña tenía permisos | **Adoptado** | Confirmado. De las dos salidas que propuso (ligar el permiso a la sesión o reescribir el criterio), se eligió la primera: decisión 13 |
 | X-05 | Una consulta seguía armada con `+ condicion` | **Adoptado** | Confirmado: bandit no la marcaba. Dos consultas literales |
 | X-06 | Escrituras que no revisaban `rowcount` | **Adoptado** | `exigir_una_fila()` en las tres |
 | X-07 | Faltaban los RNF en la matriz de trazabilidad | **Adoptado** | La matriz tiene una fila por requerimiento, RF y RNF, con la comprobación concreta |
 | X-08 | La tabla de IA del informe solo contaba | **Adoptado** | El capítulo 6 tiene ahora la tabla “qué se pidió, qué devolvió, decisión y fundamento” |
-| X-09 | Los hallazgos no tenían las cinco partes | **Adoptado** | `AUDITORIA.md` §2.1 y §2.3 |
-| X-10 | Las mutaciones no se podían repetir | **Adoptado** | Script de mutaciones en el workflow; hoy, la sección “mutaciones” de `pruebas/verificar.py`, con 45 de 45 |
+| X-09 | Los hallazgos no tenían las cinco partes | **Adoptado** | [`AUDITORIA.md`](AUDITORIA.md) §2.1 y §2.3 |
+| X-10 | Las mutaciones no se podían repetir | **Adoptado** | Script de mutaciones en el workflow; hoy, la sección “mutaciones” de [`pruebas/verificar.py`](../pruebas/verificar.py), con 45 de 45 |
 | X-11 | Referencias cruzadas que quedaron del orden anterior | **Adoptado** | Corregidas las cinco |
 | X-12 | Adjetivos sin medida | **Adoptado** | Reemplazados por el dato |
 | X-13 | Los RF Should y Could no tenían criterio de aceptación | **Adoptado** | 13 criterios nuevos; `trazabilidad.py` exige ahora un criterio por RF |
@@ -186,7 +186,7 @@ cinco eran errores reales del código o del informe, y se confirmaron con una pr
 | C8 | Sin anulación de reservas | El modelo la declara (S-01): completa el CRUD de la reserva (G.15) |
 | K-17 | `intentosFallidos` como atributo del objeto | El contador vive solo en la base; nadie lo leía (SonarCloud S4487). Decisión 11 |
 | K-18 | Método `Paquete.precio_por_persona()` | Sobraba: `calcular_precio()` y la representación del paquete ya cubren el uso; el comparador lo marcó como no dibujado |
-| H-03 | Desactivar cuentas y suprimir datos | Fuera del alcance (§6) y exige cambiar el esquema y el modelo; declarado como riesgo aceptado en `AUDITORIA.md` §3 |
+| H-03 | Desactivar cuentas y suprimir datos | Fuera del alcance (§6) y exige cambiar el esquema y el modelo; declarado como riesgo aceptado en [`AUDITORIA.md`](AUDITORIA.md) §3 |
 | X-25 a X-30 | Seis recomendaciones del corrector independiente | Ver la sección 5: cada una con su motivo |
 
 ## Qué se aprendió del uso de la IA

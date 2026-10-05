@@ -5,7 +5,7 @@ apoyo de IA. Sábado 3 de octubre de 2026; riesgos declarados cerrados el lunes 
 
 | | |
 |---|---|
-| Alcance | `viajes.py` (dominio y persistencia), `main.py` (menú), dependencias e historial del repositorio |
+| Alcance | [`viajes.py`](../viajes.py) (dominio y persistencia), [`main.py`](../main.py) (menú), dependencias e historial del repositorio |
 | Código auditado | commit `525ab10`, antes de cualquier corrección |
 | Código corregido | commit `fcfa4f9` y siguientes, rama `feature/auditoria` integrada a `main`; cierres del 5-oct en `0a7b54e` |
 | Método | “Auditoría de seguridad y privacidad” (método propio, fases 5, 7, 9, 14 y 15), en su versión para un proyecto de una persona |
@@ -18,11 +18,11 @@ apoyo de IA. Sábado 3 de octubre de 2026; riesgos declarados cerrados el lunes 
 | Fuente | Hallazgos | Corregidos | Declarados (riesgo aceptado, con motivo) |
 |---|---|---|---|
 | Revisión con IA | 17 (0 críticos, 0 altos, 4 medios, 10 bajos, 3 informativos) | 17: las partes que el 3-oct quedaron declaradas se cerraron el 5-oct (§2.5) | Ninguno. La supresión pedida por el cliente es una decisión de alcance (W-08), no un riesgo abierto |
-| bandit | 6 B608 (posible inyección SQL) y 93 B101 (`assert`) | Los 6 B608. Desde el 5-oct el producto (`viajes.py`, `main.py`) tiene **0 observaciones** de cualquier tipo | Ninguno: los `assert` y el `subprocess` de las mutaciones están solo en `pruebas/verificar.py` |
+| bandit | 6 B608 (posible inyección SQL) y 93 B101 (`assert`) | Los 6 B608. Desde el 5-oct el producto ([`viajes.py`](../viajes.py), [`main.py`](../main.py)) tiene **0 observaciones** de cualquier tipo | Ninguno: los `assert` y el `subprocess` de las mutaciones están solo en [`pruebas/verificar.py`](../pruebas/verificar.py) |
 | pip-audit | 0 vulnerabilidades en las 5 dependencias | | |
 | Secretos en el historial | 0 (ningún `.env`, `.db` ni clave subida, en ningún commit) | | |
 | SonarCloud | 8 observaciones de las pruebas nuevas | 8 | |
-| Auditoría final (corrector independiente y revisión propia, 3-oct 22:00) | 10 de seguridad y privacidad (§2.3) | 10: el plazo de conservación quedó en `PRIVACIDAD.md` | |
+| Auditoría final (corrector independiente y revisión propia, 3-oct 22:00) | 10 de seguridad y privacidad (§2.3) | 10: el plazo de conservación quedó en [`PRIVACIDAD.md`](PRIVACIDAD.md) | |
 | Cierre de los riesgos declarados (5-oct) | 13 riesgos de §3 reevaluados | 11 cerrados, con su prueba y su mutación (§2.5) | 2 límites del modelo de amenazas, cada uno con su mitigación (§3) |
 | Revisión manual del modo demostración (5-oct) | 13 observaciones al usar el menú (§2.6) | 7 con cambio en el código, cada uno con su prueba y su mutación | Ninguno: 5 se responden sin cambio (ya estaban cubiertas o las fija el caso) y la recuperación de contraseña queda como alcance futuro, con su diseño (§3.1) |
 
@@ -55,7 +55,7 @@ Severidad según la IA. “Decisión” clasifica la recomendación de la IA: **
 |---|---|---|---|---|---|---|
 | H-01 | Media | A04 | La clave Fernet vivía en `.env` dentro de la carpeta del proyecto, junto a la base | **Modificada** | La clave pasa a `~/.config/viajes-aventura/clave.env`, fuera del proyecto, con la carpeta en 0700 y el archivo en 0600. Si un respaldo la restaura con permisos abiertos, se cierran solos en vez de rechazarla como proponía la IA: rechazarla dejaría a la agencia sin poder atender. Se verificó que `.env` y `*.db` nunca estuvieron en el historial y se agregaron `*.db-wal` y `*.db-shm` al `.gitignore` | `verificar.py`, sección “datos” |
 | H-02 | Media | A09 | No había registro de auditoría | **Modificada** | Tabla `auditoria(fecha_utc, usuario_id, accion, detalle)`, escrita en la misma transacción de cada operación (si la operación se deshace, su registro también). Hoy registra 27 acciones: catálogo, paquetes, reservas, cuentas e inicios de sesión (correcto, fallido, bloqueo, rechazado por bloqueo, correo inexistente). Sin la columna “resultado” que proponía la IA: solo se registra lo que ocurrió. El detalle lleva ids, montos y el nombre de lo eliminado (desde el 5-oct, §2.6), nunca RUT, teléfono, correo ni contraseña; del correo inexistente no se guarda el correo, porque puede ser de otra persona | `verificar.py`, sección “reglas” (`_verificar_auditoria`) |
-| H-03 | Media | A07 | No se puede desactivar una cuenta ni suprimir los datos de un cliente | **Modificada** (5-oct) | Desactivar cuentas: `Administrador.desactivarCuenta()` (§2.5). La supresión pedida por el cliente se atiende ante los socios (W-08, `PRIVACIDAD.md`) | `verificar.py`, sección “credenciales” |
+| H-03 | Media | A07 | No se puede desactivar una cuenta ni suprimir los datos de un cliente | **Modificada** (5-oct) | Desactivar cuentas: `Administrador.desactivarCuenta()` (§2.5). La supresión pedida por el cliente se atiende ante los socios (W-08, [`PRIVACIDAD.md`](PRIVACIDAD.md)) | `verificar.py`, sección “credenciales” |
 | H-04 | Media | A06 | Listar reservas descifraba el RUT y el teléfono de todos los clientes | **Modificada** | En vez de una consulta liviana solo para ese listado, `Cliente` guarda el RUT y el teléfono **cifrados también en memoria** y los descifra solo para enmascararlos. Ninguna lectura de la base descifra nada, y un registro alterado ya no impide listar a los demás | sección “reglas” (RUT alterado: se entra y se lista) |
 | H-05 | Baja | A07 | Iniciar sesión descifraba los datos antes de verificar la contraseña | **Modificada** | Resuelto por el mismo cambio de H-04 | ídem |
 | H-06 | Baja | A07 | Enumeración de correos por el registro; señuelo calculado en el primer intento; todo `IntegrityError` se mostraba como “correo repetido” | **Modificada** | El señuelo se calcula al cargar el módulo y solo el `UNIQUE` del correo se traduce a R9. Desde el 5-oct, el registro se pausa tras 5 correos repetidos en 10 minutos (§2.5) | sección “reglas” |
@@ -66,7 +66,7 @@ Severidad según la IA. “Decisión” clasifica la recomendación de la IA: **
 | H-11 | Baja | A07 | La inactividad solo se medía en el menú | **Modificada** | Toda espera de un dato (menú, preguntas de una acción, contraseñas, pausa) pasa por `esperar()`, que corta la sesión si venció, y la pantalla se limpia al caducar | sección “menu”: sesión que vence dentro de “crear socio” |
 | H-12 | Baja | A10 | `int()` con más de 4.300 dígitos lanzaba `ValueError` sin atrapar; `main()` no tenía un último `except` | **Adoptada** | **Error real, comprobado.** Largo antes de `int()`, `except Exception` final en `main()` y `PermissionError` en el primer uso | sección “menu”: opción de 5.000 dígitos |
 | H-13 | Info. | A01 | El dominio acepta cualquier instancia de `Usuario`; un cliente distinguía “no existe” de “no publicado” | **Modificada** | Mismo mensaje para los dos casos al reservar. Lo demás se resolvió en la auditoría final: `autorizar()` exige una sesión iniciada (hallazgo 5) | sección “menu” |
-| H-14 | Info. | A06 | Sin aviso de finalidad al registrarse; `0.000.000-0` pasaba como RUT | **Modificada** | Aviso de finalidad, protección y derechos (Ley 21.719, art. 14 ter) que hay que aceptar antes de registrarse; RUT 0 rechazado (**comprobado**: pasaba). Supresión y portabilidad: se atienden ante los socios (`PRIVACIDAD.md` §3) | secciones “menu” y “reglas” |
+| H-14 | Info. | A06 | Sin aviso de finalidad al registrarse; `0.000.000-0` pasaba como RUT | **Modificada** | Aviso de finalidad, protección y derechos (Ley 21.719, art. 14 ter) que hay que aceptar antes de registrarse; RUT 0 rechazado (**comprobado**: pasaba). Supresión y portabilidad: se atienden ante los socios ([`PRIVACIDAD.md`](PRIVACIDAD.md) §3) | secciones “menu” y “reglas” |
 | H-15 | Baja | A02 | El diario de la base (`-journal`) nacía con la máscara del sistema | **Adoptada** | `os.umask(0o077)` al arrancar | revisión del código |
 | H-16 | Baja | A07 | No se revisaban contraseñas comunes | **Modificada** | Lista local de contraseñas comunes de 12 o más caracteres, más un mínimo de 5 caracteres distintos (descarta `aaaaaaaaaaaa`). Una lista de millones de filtradas exigiría un archivo de cientos de MB o una consulta a internet, que la aplicación no tiene | sección “reglas” |
 | H-17 | Info. | A07 | Bloqueo con hora local; sin bloqueo progresivo | **Modificada** | Hora UTC (un cambio de horario ya no alarga ni anula el bloqueo). Desde el 5-oct, bloqueo progresivo de 5, 15 y 60 minutos (§2.5) | sección “reglas” |
@@ -79,7 +79,7 @@ impacto si sigue ocurriendo, la recomendación tomada y el esfuerzo real de la c
 
 | ID | Hallazgo | Evidencia | Impacto | Recomendación aplicada | Esfuerzo |
 |---|---|---|---|---|---|
-| H-01 | La clave de cifrado estaba en la carpeta del proyecto, junto a la base | `viajes.py`: `RUTA_CLAVE = Path(__file__).with_name(".env")` | Un zip o una copia de la carpeta llevaba el RUT cifrado y su clave juntos: el cifrado no protegía nada | Clave en `~/.config/viajes-aventura/`, permisos 0600 corregidos al leerla | 15 min |
+| H-01 | La clave de cifrado estaba en la carpeta del proyecto, junto a la base | [`viajes.py`](../viajes.py): `RUTA_CLAVE = Path(__file__).with_name(".env")` | Un zip o una copia de la carpeta llevaba el RUT cifrado y su clave juntos: el cifrado no protegía nada | Clave en `~/.config/viajes-aventura/`, permisos 0600 corregidos al leerla | 15 min |
 | H-02 | No había registro de quién hizo cada cambio ni de los intentos de acceso | Ninguna escritura usaba `solicitante` después de autorizar | Sin rastro ante un cambio de precio, un paquete borrado o un ataque de fuerza bruta; nada que mostrar ante la Ley 21.719 | Tabla `auditoria` en la misma transacción, sin datos personales | 40 min |
 | H-03 | No se puede desactivar una cuenta ni suprimir los datos de un cliente | La acción `cuentas` solo crea | Un socio que se va conserva su acceso; el derecho de supresión no se atiende en el sistema | Desactivar cuentas, hecho el 5-oct (§2.5); supresión ante los socios (W-08) | 40 min |
 | H-04 | Listar reservas descifraba el RUT y el teléfono de todos | `_listar` construía cada `Cliente` con `descifrar(...)` | RUT en claro en memoria en cada listado; un registro alterado tumbaba el listado completo | Descifrado diferido: solo al enmascarar | 30 min, junto con H-05 |
@@ -99,7 +99,7 @@ impacto si sigue ocurriendo, la recomendación tomada y el esfuerzo real de la c
 
 ### 2.2 Pruebas de mutación: cada corrección tiene una prueba que la vigila
 
-La sección “mutaciones” de `pruebas/verificar.py` deshace cada corrección y rompe cada regla
+La sección “mutaciones” de [`pruebas/verificar.py`](../pruebas/verificar.py) deshace cada corrección y rompe cada regla
 principal, una por vez, en una copia temporal del proyecto, y corre las secciones que deben
 detectarlo. Falla si alguna mutación sobrevive. Corre en el workflow, en el job “mutaciones”, en cada
 envío al repositorio.
@@ -136,7 +136,7 @@ de corregirlo.
 | 3 | “2.5” personas se registraba como 25 | `pedir_entero` borraba todos los puntos | Una reserva de 25 personas cobrada sin querer | El punto solo se acepta como separador de miles | 15 min |
 | 14 | El aviso de datos no cumplía el art. 14 ter completo | Faltaban la base legal, la conservación, los destinatarios y tres de los derechos | Deber de información incompleto (Ley 21.719) | Aviso con responsable, finalidad, base legal, destinatarios, conservación, protección y los seis derechos con su plazo | 20 min |
 | 25 | El token del workflow no tenía permisos limitados | `pruebas.yml` sin `permissions:` | Una acción comprometida podría escribir en el repositorio (A03) | `permissions: contents: read` | 5 min |
-| 10 | Las mutaciones citadas no se podían repetir | No había un script en el repositorio | Una afirmación que el corrector no puede verificar | Mutaciones en el workflow (hoy, la sección “mutaciones” de `pruebas/verificar.py`) | 45 min |
+| 10 | Las mutaciones citadas no se podían repetir | No había un script en el repositorio | Una afirmación que el corrector no puede verificar | Mutaciones en el workflow (hoy, la sección “mutaciones” de [`pruebas/verificar.py`](../pruebas/verificar.py)) | 45 min |
 | 16 | No había forma de respaldar la base | P-14: “si se pierde, se pierde con todo” | La pérdida del equipo era la pérdida de todas las reservas | `Administrador.respaldarBase()`: copia consistente en `respaldos/`, 0600, ignorada por git (RNF-FIA-03) | 30 min |
 | 28 | RUT de prueba con dígito verificador válido | `12.345.678-5` y `11.111.111-1` en pruebas y en la sesión del menú | Podrían coincidir con personas reales | Declarado como datos ficticios en el código y en la sesión del menú | 5 min |
 
@@ -152,7 +152,7 @@ seguridad:
 | Un acceso de prueba sin contraseña habría saltado RF-SEG-05 y el hallazgo 5 | Diseño revisado antes de escribirlo | Cualquiera tendría el menú del administrador sobre los datos reales | “Entrar como socio” y “Entrar como cliente” pasan por `Usuario.autenticar()`, como el inicio de sesión: la sesión es real y `autorizar()` la exige igual | 10 min |
 | Las cuentas de prueba necesitan contraseña | S-04: ninguna credencial escrita en el código | Una contraseña fija en el código sería pública en el repositorio | Se generan al azar en cada ejecución (`secrets.token_urlsafe`) y solo se muestran en pantalla | 5 min |
 | Los datos de prueba podrían mezclarse con los reales | La base y la clave son globales del módulo | Clientes ficticios en la base real, o datos reales cifrados con otra clave | Base y clave en una carpeta temporal, sin la variable de entorno real; todo se restaura al salir (también ante un error o Ctrl+C) y la carpeta se borra | 20 min |
-| El aislamiento podía romperse sin que nadie lo notara | Un cambio que quite `usar_base()` escribiría en la base real | Pérdida silenciosa de la separación | `pruebas/verificar.py` (sección “seguridad”) comprueba que la base, la clave y la variable reales quedan intactas, y una mutación quita el aislamiento: la prueba la detecta | 15 min |
+| El aislamiento podía romperse sin que nadie lo notara | Un cambio que quite `usar_base()` escribiría en la base real | Pérdida silenciosa de la separación | [`pruebas/verificar.py`](../pruebas/verificar.py) (sección “seguridad”) comprueba que la base, la clave y la variable reales quedan intactas, y una mutación quita el aislamiento: la prueba la detecta | 15 min |
 
 Los datos de ejemplo se cargan solo con los métodos públicos del dominio. Pasan por las mismas
 validaciones que el menú, quedan en el registro de auditoría de la base temporal y usan RUT ficticios
@@ -175,9 +175,9 @@ cerrar en ninguna aplicación de escritorio queda como límite, con su mitigaci�
 | H-06: el registro enumeraba correos | El registro dice “ese correo ya tiene una cuenta” | Saber quién es cliente de la agencia | Cada correo repetido queda en el registro; tras 5 en 10 minutos, el registro se pausa (RF-SEG-17). Cerrarlo del todo exige verificar el correo con un enlace, y enviar correos está fuera del alcance (§6 del caso) | 20 min |
 | Plazo de conservación y registro de incidentes | La ley los exige (art. 3 c y art. 14 sexies) y el sistema no los fijaba | Incumplimiento del deber de proporcionalidad y del de reportar | Procedimiento escrito en [`PRIVACIDAD.md`](PRIVACIDAD.md), con el texto de la ley, la tabla del registro de incidentes y los pasos (contener con la rotación de la clave y la desactivación de cuentas) | 30 min |
 | Las acciones del workflow se fijaban por etiqueta | `uses: actions/checkout@v7` | Una etiqueta movida podía cambiar lo que corre | Fijadas por el hash de su commit | 5 min |
-| `assert` en el producto | 64 `assert` de la autoverificación dentro de `viajes.py` | Mezclaba pruebas con producto (bandit B101) | Todas las pruebas pasaron a `pruebas/verificar.py`; el producto tiene 0 | 60 min |
+| `assert` en el producto | 64 `assert` de la autoverificación dentro de [`viajes.py`](../viajes.py) | Mezclaba pruebas con producto (bandit B101) | Todas las pruebas pasaron a [`pruebas/verificar.py`](../pruebas/verificar.py); el producto tiene 0 | 60 min |
 
-Cada cierre tiene su afirmación en `pruebas/verificar.py` (secciones “credenciales”, “datos” y
+Cada cierre tiene su afirmación en [`pruebas/verificar.py`](../pruebas/verificar.py) (secciones “credenciales”, “datos” y
 “seguridad”) y su mutación en la sección “mutaciones”.
 
 ### 2.6 Revisión manual del modo demostración (5-oct)
@@ -253,7 +253,7 @@ Ideas evaluadas el 5-oct (§2.6) que no se construyen en esta entrega, cada una 
 | A05 Injection | SQL solo con parámetros y como texto literal; `texto()` rechaza caracteres de control y marcas bidireccionales que se reimprimen en la terminal |
 | A06 Insecure Design | Transacciones atómicas (H-08), cupo calculado y no guardado, precio fijado al publicar, descifrado diferido (H-04), reglas repetidas en CHECK de la base |
 | A07 Authentication Failures | Bloqueo progresivo (5, 15 y 60 min) en una sentencia atómica y con hora UTC, también al cambiar la contraseña; sesiones invalidadas al cambiarla; mismo mensaje y demora en los tres fallos, política de contraseña con lista de comunes, sin secuencias ni partes del correo, del nombre o del teléfono, sesión que vence a los 10 minutos también dentro de una acción |
-| A08 Software or Data Integrity Failures | Fernet rechaza un dato alterado; hashes en `requirements.txt` |
+| A08 Software or Data Integrity Failures | Fernet rechaza un dato alterado; hashes en [`requirements.txt`](../requirements.txt) |
 | A09 Security Logging and Alerting Failures | Registro de auditoría de 27 acciones, en la misma transacción, sin datos personales (H-02), legible desde el menú del socio, con aviso de bloqueos (RF-SEG-16) |
 | A10 Mishandling of Exceptional Conditions | Cadena de `except` por tipo con `except Exception` final en el menú y en `main()`; ningún mensaje con trazas, rutas ni datos; techo de todo entero (H-12) y del total (H-09) |
 
