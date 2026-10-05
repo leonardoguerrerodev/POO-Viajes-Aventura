@@ -41,7 +41,7 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
   - `trazabilidad.py`, script de trabajo del informe: el catálogo de requerimientos contra el caso.
   - El diagrama contra el código, con 0 diferencias.
   - Las reglas R1 a R17.
-  - Una sesión real del menú, con los dos roles (en esta página, «el driver»).
+  - Una sesión real del menú, con los dos roles (en esta página, “el driver”).
   - Una afirmación por indicador de la rúbrica.
   - Bandit, pip-audit y SonarCloud.
   - **Pruebas de mutación:** romper a propósito una regla y comprobar que alguna prueba falla.
@@ -58,8 +58,8 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
 |---|---|---|---|---|
 | R-01 | Catálogo de 42 RF, 16 RNF (ISO/IEC 25010) y 8 Won't, con MoSCoW y criterios de aceptación | **Modificado** | Se auditó contra las diapositivas del docente (bloque 6). Siete RF tenían dos acciones en uno: se separaron en cuatro RF nuevos (RF-DES-10, RF-PAQ-11, RF-SEG-12 y RF-SEG-13) y se reescribieron tres (RF-SEG-01, RF-PAQ-09 y RF-RES-08). El catálogo quedó en 46 RF | Informe, cap. 2 |
 | R-02 | 13 supuestos para los vacíos del caso | **Modificado** | Faltaban cuatro vacíos que el docente nombra. Se agregaron S-14 a S-16: migración, destino no disponible dentro de un paquete vendido y quién ve los datos personales | Informe, §2 |
-| R-03 | Casos de uso con tres actores, incluido «Visitante» | **Descartado** | El docente pide dos actores. El visitante no tiene datos que el sistema guarde, y ver la oferta sin sesión quedó como supuesto (S-09) | Informe, §3.1 |
-| R-04 | Un primer sprint «de análisis» | **Descartado** | «No existe la iteración de análisis» (docente): cada sprint debe entregar algo ejecutable. Pasó a ser un período de preparación declarado con sus horas | Informe, §4.3 |
+| R-03 | Casos de uso con tres actores, incluido “Visitante” | **Descartado** | El docente pide dos actores. El visitante no tiene datos que el sistema guarde, y ver la oferta sin sesión quedó como supuesto (S-09) | Informe, §3.1 |
+| R-04 | Un primer sprint “de análisis” | **Descartado** | “No existe la iteración de análisis” (docente): cada sprint debe entregar algo ejecutable. Pasó a ser un período de preparación declarado con sus horas | Informe, §4.3 |
 | R-05 | Leo como Product Owner | **Modificado** | En Scrum el PO representa al cliente: son los socios, y el docente responde por ellos. Leo es Scrum Master, desarrollador y responsable de datos y de seguridad | Informe, §4.1 |
 | R-06 | Figuras en PlantUML | **Descartado** | Impresas tenían letra de 4,6 a 5,9 pt. Se rehicieron con coordenadas fijas (`svgkit.py`) a 7,5 pt, como el informe 4+1 de Modelamiento | `diagramas/` |
 | R-07 | Diagrama de clases (`clases.puml`) | **Adoptado** | Leo lo aprobó el 2-oct. Después se modificó cinco veces al escribir el código, por las decisiones 7 a 12 del informe, y cada cambio está registrado | `diagramas/clases.puml` |
@@ -93,27 +93,27 @@ verificaciones, y qué error tenía y cómo se encontró.
 | A-01 | Reserva con `BEGIN IMMEDIATE` contra la sobreventa (R14, RNF-FIA-02) | Prueba con dos conexiones simultáneas por el último lugar: solo una reserva queda. La mutación que quita el `BEGIN IMMEDIATE` se detecta |
 | A-02 | Precio con aritmética entera `(suma × (100 + margen) + 50) // 100` | 310.000 + 120.000 con 20 % da 516.000, como dice el criterio de RF-PAQ-04. La mutación que usa `float` se detecta |
 | A-03 | Contador de intentos y bloqueo en una sola sentencia SQL | Prueba de 5 fallos que bloquean y de un bloqueo que sobrevive a cerrar el programa. La mutación que bloquea a los 6 se detecta |
-| A-04 | `normalizar()` sin tildes, mayúsculas ni espacios dobles | «valle del  elqui» y «Valle del Elquí» se rechazan. La mutación que conserva las tildes se detecta |
+| A-04 | `normalizar()` sin tildes, mayúsculas ni espacios dobles | “valle del  elqui” y “Valle del Elquí” se rechazan. La mutación que conserva las tildes se detecta |
 
 ### Modificados: errores y mejoras encontrados al verificar (16)
 
 | ID | Lo que tenía el código generado | Cómo se detectó | Corrección |
 |---|---|---|---|
 | K-01 | Argon2id con sus valores por omisión: 98 ms por verificación, bajo los 0,1 s de RNF-REN-02 | Medición | `time_cost=4`, unos 120 ms |
-| K-02 | El mensaje de error del teléfono traía un número de ejemplo | La prueba de RF-SEG-13 («el mensaje no repite el dato») lo detectó | Mensaje sin número |
+| K-02 | El mensaje de error del teléfono traía un número de ejemplo | La prueba de RF-SEG-13 (“el mensaje no repite el dato”) lo detectó | Mensaje sin número |
 | K-03 | Ninguna clase exponía su id, y `Paquete` no podía leer el de sus destinos (Python oculta los `__privados` entre clases) | Al escribir `Paquete` | `obtenerId()` en el modelo (decisión 10) |
 | K-04 | El historial de reservas se armaba con el id de la reserva en lugar del id del cliente (`usuario` y `reserva` tienen columna `id`) | **Error real.** El driver del menú: una cliente no pudo anular su propia reserva | Alias `reserva_id`, y una prueba por el camino del historial |
-| K-05 | En una instalación nueva, el primer cliente no podía registrarse: la clave se creaba solo si «no había usuarios», y el primer administrador ya existía | **Error real y grave.** La prueba por indicador. La autoverificación y el driver no lo veían porque preparaban la clave de antemano | La condición pasó a ser «no hay datos cifrados». Las pruebas recorren la instalación real |
+| K-05 | En una instalación nueva, el primer cliente no podía registrarse: la clave se creaba solo si “no había usuarios”, y el primer administrador ya existía | **Error real y grave.** La prueba por indicador. La autoverificación y el driver no lo veían porque preparaban la clave de antemano | La condición pasó a ser “no hay datos cifrados”. Las pruebas recorren la instalación real |
 | K-06 | Con `BEGIN IMMEDIATE` en cada conexión, una conexión abierta dentro de otra quedaba esperando | El driver: el registro de un cliente se colgaba | Las búsquedas y el cifrado se hacen con la conexión cerrada |
 | K-07 | SQL armado con f-string (solo constantes, no explotable) | Bandit B608, contra RNF-SEG-03 | Consultas literales y `json_each(?)` |
 | K-08 | `uml_vs_codigo.py` no veía los atributos públicos | Prueba de mutación | Revisa `self.x` públicos |
 | K-09 | El comparador tenía una regex superlineal y funciones demasiado complejas | SonarCloud | Lectura por líneas y funciones chicas, con 8 de 8 mutaciones detectadas |
-| K-10 | Un guion desalineado del driver pasaba sin error, porque solo buscaba «Traceback» | Al leer la salida | El driver exige una lista de resultados esperados |
+| K-10 | Un guion desalineado del driver pasaba sin error, porque solo buscaba “Traceback” | Al leer la salida | El driver exige una lista de resultados esperados |
 | K-11 | Cuatro valores esperados mal calculados en las pruebas (552.000, 5 reservas, el id que SQLite reutiliza y un paquete de apoyo con un destino) | Las propias pruebas fallaron | Valores corregidos a mano, con su cálculo |
 | K-12 | La prueba de la clave perdida borraba y reescribía el archivo de la clave | SonarCloud S2083 (falso positivo, pero el patrón sobraba) | La prueba apunta a una ruta inexistente |
 | K-13 | La prueba exigía 50 ms como mínimo para Argon2id | El CI: un servidor de GitHub tardó 48 ms | Se exige el costo del hash (64 MiB y t=4), no un tiempo que depende del equipo |
 | K-14 | El registro validaba el RUT, el correo y el teléfono recién al final | Al leer la sesión del driver | Validación por campo en el menú (primera de tres capas) |
-| K-15 | «Editar paquete» pedía todos los datos antes de avisar que estaba publicado | Al leer el menú | Aviso apenas se elige el paquete |
+| K-15 | “Editar paquete” pedía todos los datos antes de avisar que estaba publicado | Al leer el menú | Aviso apenas se elige el paquete |
 | K-16 | Las primeras pruebas preparaban la clave por fuera y escondían el orden real de una instalación | Lección de K-05 | Toda prueba parte como el sistema real |
 
 ## 4. Auditoría de seguridad independiente
@@ -136,15 +136,15 @@ cinco eran errores reales del código o del informe, y se confirmaron con una pr
 | ID | Lo que encontró o recomendó | Decisión | Fundamento y dónde quedó |
 |---|---|---|---|
 | X-01 | El índice ponía todas las secciones en la página 3 | **Adoptado** | Confirmado: `indice.py` buscaba desde una página fija. Ahora empieza donde empieza el cuerpo |
-| X-02 | «2.5» personas se registraba como 25 | **Adoptado** | Confirmado. El punto solo se acepta como separador de miles (`main.py`, `ENTERO_CON_MILES`); el driver lo prueba |
+| X-02 | “2.5” personas se registraba como 25 | **Adoptado** | Confirmado. El punto solo se acepta como separador de miles (`main.py`, `ENTERO_CON_MILES`); el driver lo prueba |
 | X-03 | `editar` dejaba el objeto a medias si fallaba una validación | **Adoptado** | Confirmado con una prueba. Se valida en valores locales y se asigna después de guardar |
 | X-04 | Un `Administrador` armado sin contraseña tenía permisos | **Adoptado** | Confirmado. De las dos salidas que propuso (ligar el permiso a la sesión o reescribir el criterio), se eligió la primera: decisión 13 |
 | X-05 | Una consulta seguía armada con `+ condicion` | **Adoptado** | Confirmado: bandit no la marcaba. Dos consultas literales |
 | X-06 | Escrituras que no revisaban `rowcount` | **Adoptado** | `exigir_una_fila()` en las tres |
 | X-07 | Faltaban los RNF en la matriz de trazabilidad | **Adoptado** | La matriz tiene una fila por requerimiento, RF y RNF, con la comprobación concreta |
-| X-08 | La tabla de IA del informe solo contaba | **Adoptado** | El capítulo 6 tiene ahora la tabla «qué se pidió, qué devolvió, decisión y fundamento» |
+| X-08 | La tabla de IA del informe solo contaba | **Adoptado** | El capítulo 6 tiene ahora la tabla “qué se pidió, qué devolvió, decisión y fundamento” |
 | X-09 | Los hallazgos no tenían las cinco partes | **Adoptado** | `AUDITORIA.md` §2.1 y §2.3 |
-| X-10 | Las mutaciones no se podían repetir | **Adoptado** | Script de mutaciones en el workflow; hoy, la sección «mutaciones» de `pruebas/verificar.py`, con 45 de 45 |
+| X-10 | Las mutaciones no se podían repetir | **Adoptado** | Script de mutaciones en el workflow; hoy, la sección “mutaciones” de `pruebas/verificar.py`, con 45 de 45 |
 | X-11 | Referencias cruzadas que quedaron del orden anterior | **Adoptado** | Corregidas las cinco |
 | X-12 | Adjetivos sin medida | **Adoptado** | Reemplazados por el dato |
 | X-13 | Los RF Should y Could no tenían criterio de aceptación | **Adoptado** | 13 criterios nuevos; `trazabilidad.py` exige ahora un criterio por RF |
@@ -159,7 +159,7 @@ cinco eran errores reales del código o del informe, y se confirmaron con una pr
 | X-22 | P-07 se daba por resuelto con un RNF de rendimiento | **Modificado** | No se puede resolver sin un informe de gestión, que es Won't: la matriz lo dice así (W-06) en vez de darlo por resuelto |
 | X-23 | `trazabilidad.py` se presentaba como script del repositorio | **Modificado** | Sigue fuera del repositorio, porque revisa el informe; se corrigió la frase |
 | X-24 | Los prompts no se entregan | **Modificado** | El registro completo no viaja (decisión de Leo: es un registro de trabajo, no un entregable); la tabla del capítulo 6 cita qué se pidió en cada caso |
-| X-25 | Fichas para los 13 casos de uso | **Descartado** | La diapositiva 31 pide la ficha de «Reservar paquete»; hay tres |
+| X-25 | Fichas para los 13 casos de uso | **Descartado** | La diapositiva 31 pide la ficha de “Reservar paquete”; hay tres |
 | X-26 | Las lecturas toman el candado de escritura y hay consultas N+1 | **Descartado** | Es el costo medido de la atomicidad (H-08): con 10 veces el volumen, la oferta tarda 0,14 s |
 | X-27 | Separar los RF con varias condiciones | **Descartado** | Cada uno es una sola regla de validación sobre un mismo dato; separarlos cambia siete ID ya trazados a casos de uso, historias, commits y pruebas |
 | X-28 | RNF-POR-01 (Windows, macOS, Linux) no lo pide el caso | **Descartado** | Los socios usan sus computadores personales (S-11) y el docente abre la entrega en su propio equipo |
@@ -170,7 +170,7 @@ cinco eran errores reales del código o del informe, y se confirmaron con una pr
 
 | ID | Propuesta | Por qué se descartó |
 |---|---|---|
-| R-03 | Actor «Visitante» | El docente pide dos actores; ver la oferta sin sesión es un supuesto (S-09) |
+| R-03 | Actor “Visitante” | El docente pide dos actores; ver la oferta sin sesión es un supuesto (S-09) |
 | R-04 | Sprint de análisis | No entrega nada ejecutable; se declaró como preparación |
 | R-06 | Figuras PlantUML | Ilegibles impresas (4,6 a 5,9 pt) |
 | P-1 | Clase `AgenciaViajes` que guarda listas de todo | Ninguna frase del caso la origina; concentra todo (baja cohesión) y en memoria se pierde al cerrar |

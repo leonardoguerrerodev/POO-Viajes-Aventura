@@ -8,7 +8,7 @@ apoyo de IA. Sábado 3 de octubre de 2026; riesgos declarados cerrados el lunes 
 | Alcance | `viajes.py` (dominio y persistencia), `main.py` (menú), dependencias e historial del repositorio |
 | Código auditado | commit `525ab10`, antes de cualquier corrección |
 | Código corregido | commit `fcfa4f9` y siguientes, rama `feature/auditoria` integrada a `main`; cierres del 5-oct en `0a7b54e` |
-| Método | «Auditoría de seguridad y privacidad» (método propio, fases 5, 7, 9, 14 y 15), en su versión para un proyecto de una persona |
+| Método | “Auditoría de seguridad y privacidad” (método propio, fases 5, 7, 9, 14 y 15), en su versión para un proyecto de una persona |
 | Herramientas | bandit 1.9.4 (análisis estático), pip-audit 2.10.1 (dependencias), búsqueda de secretos en el historial de git, SonarCloud (en cada envío), revisión pedida a la IA |
 | Revisión con IA | Claude, en un agente nuevo que solo conocía el prompt y los dos archivos. Prompt y respuesta íntegros en [`ia/auditoria_seguridad_ia.md`](ia/auditoria_seguridad_ia.md) |
 | Fuera de alcance | No hay interfaz web ni APIs: XSS, CSRF y cabeceras HTTP no aplican |
@@ -40,7 +40,7 @@ un archivo enviado por correo o el repositorio.
 | Revisión | Evidencia |
 |---|---|
 | Inyección SQL | Todo dato del usuario va como parámetro `?`. Después de la corrección de los B608 tampoco hay SQL armado con texto: cada consulta es una constante literal y la lista de ids viaja como un solo parámetro JSON (`json_each`). bandit: 0 B608 |
-| Dependencias | `pip-audit -r requirements.txt --require-hashes`: «No known vulnerabilities found». Las 5 dependencias están fijadas con `==` y con el hash de cada archivo publicado |
+| Dependencias | `pip-audit -r requirements.txt --require-hashes`: “No known vulnerabilities found”. Las 5 dependencias están fijadas con `==` y con el hash de cada archivo publicado |
 | Secretos | `git log --all` no tiene `.env`, `.db`, `.pem` ni `.key`, ni patrones de claves (Fernet, GitHub, AWS, llaves privadas) |
 | Contraseñas | Argon2id (argon2-cffi), 64 MiB y 4 pasadas, sal propia, rehash al entrar, tope de 128 caracteres, mismo mensaje y misma demora en los tres fallos. La IA lo marcó como bien hecho y la prueba por indicador lo verifica |
 | Control de acceso | El dominio revisa el permiso aunque el menú no exista; la anulación exige ser el titular en el objeto y en el `WHERE` del SQL |
@@ -48,28 +48,28 @@ un archivo enviado por correo o el repositorio.
 
 ## 2. Hallazgos y decisiones
 
-Severidad según la IA. «Decisión» clasifica la recomendación de la IA: **adoptada** (tal como vino),
+Severidad según la IA. “Decisión” clasifica la recomendación de la IA: **adoptada** (tal como vino),
 **modificada** (se tomó la idea y se cambió la forma, con el motivo) o **descartada**.
 
 | ID | Sev. | OWASP 2025 | Hallazgo | Decisión | Qué se hizo y por qué | Prueba que lo vigila |
 |---|---|---|---|---|---|---|
-| H-01 | Media | A04 | La clave Fernet vivía en `.env` dentro de la carpeta del proyecto, junto a la base | **Modificada** | La clave pasa a `~/.config/viajes-aventura/clave.env`, fuera del proyecto, con la carpeta en 0700 y el archivo en 0600. Si un respaldo la restaura con permisos abiertos, se cierran solos en vez de rechazarla como proponía la IA: rechazarla dejaría a la agencia sin poder atender. Se verificó que `.env` y `*.db` nunca estuvieron en el historial y se agregaron `*.db-wal` y `*.db-shm` al `.gitignore` | `verificar.py`, sección «datos» |
-| H-02 | Media | A09 | No había registro de auditoría | **Modificada** | Tabla `auditoria(fecha_utc, usuario_id, accion, detalle)`, escrita en la misma transacción de cada operación (si la operación se deshace, su registro también). Hoy registra 27 acciones: catálogo, paquetes, reservas, cuentas e inicios de sesión (correcto, fallido, bloqueo, rechazado por bloqueo, correo inexistente). Sin la columna «resultado» que proponía la IA: solo se registra lo que ocurrió. El detalle lleva ids, montos y el nombre de lo eliminado (desde el 5-oct, §2.6), nunca RUT, teléfono, correo ni contraseña; del correo inexistente no se guarda el correo, porque puede ser de otra persona | `verificar.py`, sección «reglas» (`_verificar_auditoria`) |
-| H-03 | Media | A07 | No se puede desactivar una cuenta ni suprimir los datos de un cliente | **Modificada** (5-oct) | Desactivar cuentas: `Administrador.desactivarCuenta()` (§2.5). La supresión pedida por el cliente se atiende ante los socios (W-08, `PRIVACIDAD.md`) | `verificar.py`, sección «credenciales» |
-| H-04 | Media | A06 | Listar reservas descifraba el RUT y el teléfono de todos los clientes | **Modificada** | En vez de una consulta liviana solo para ese listado, `Cliente` guarda el RUT y el teléfono **cifrados también en memoria** y los descifra solo para enmascararlos. Ninguna lectura de la base descifra nada, y un registro alterado ya no impide listar a los demás | sección «reglas» (RUT alterado: se entra y se lista) |
+| H-01 | Media | A04 | La clave Fernet vivía en `.env` dentro de la carpeta del proyecto, junto a la base | **Modificada** | La clave pasa a `~/.config/viajes-aventura/clave.env`, fuera del proyecto, con la carpeta en 0700 y el archivo en 0600. Si un respaldo la restaura con permisos abiertos, se cierran solos en vez de rechazarla como proponía la IA: rechazarla dejaría a la agencia sin poder atender. Se verificó que `.env` y `*.db` nunca estuvieron en el historial y se agregaron `*.db-wal` y `*.db-shm` al `.gitignore` | `verificar.py`, sección “datos” |
+| H-02 | Media | A09 | No había registro de auditoría | **Modificada** | Tabla `auditoria(fecha_utc, usuario_id, accion, detalle)`, escrita en la misma transacción de cada operación (si la operación se deshace, su registro también). Hoy registra 27 acciones: catálogo, paquetes, reservas, cuentas e inicios de sesión (correcto, fallido, bloqueo, rechazado por bloqueo, correo inexistente). Sin la columna “resultado” que proponía la IA: solo se registra lo que ocurrió. El detalle lleva ids, montos y el nombre de lo eliminado (desde el 5-oct, §2.6), nunca RUT, teléfono, correo ni contraseña; del correo inexistente no se guarda el correo, porque puede ser de otra persona | `verificar.py`, sección “reglas” (`_verificar_auditoria`) |
+| H-03 | Media | A07 | No se puede desactivar una cuenta ni suprimir los datos de un cliente | **Modificada** (5-oct) | Desactivar cuentas: `Administrador.desactivarCuenta()` (§2.5). La supresión pedida por el cliente se atiende ante los socios (W-08, `PRIVACIDAD.md`) | `verificar.py`, sección “credenciales” |
+| H-04 | Media | A06 | Listar reservas descifraba el RUT y el teléfono de todos los clientes | **Modificada** | En vez de una consulta liviana solo para ese listado, `Cliente` guarda el RUT y el teléfono **cifrados también en memoria** y los descifra solo para enmascararlos. Ninguna lectura de la base descifra nada, y un registro alterado ya no impide listar a los demás | sección “reglas” (RUT alterado: se entra y se lista) |
 | H-05 | Baja | A07 | Iniciar sesión descifraba los datos antes de verificar la contraseña | **Modificada** | Resuelto por el mismo cambio de H-04 | ídem |
-| H-06 | Baja | A07 | Enumeración de correos por el registro; señuelo calculado en el primer intento; todo `IntegrityError` se mostraba como «correo repetido» | **Modificada** | El señuelo se calcula al cargar el módulo y solo el `UNIQUE` del correo se traduce a R9. Desde el 5-oct, el registro se pausa tras 5 correos repetidos en 10 minutos (§2.5) | sección «reglas» |
-| H-07 | Baja | A07 | El bloqueo se decidía con el objeto leído antes, en otra conexión | **Adoptada** | El estado del bloqueo se vuelve a leer dentro de la transacción del intento | sección «reglas» (bloqueo) |
-| H-08 | Baja | A06 | En su modo por omisión, `sqlite3` abre la transacción en la primera escritura: «consultar y después escribir» no era atómico, aunque el comentario lo afirmaba | **Modificada** | **Error real, comprobado por experimento** (`in_transaction` es `False` después de un `SELECT`). `conectar()` abre siempre con `BEGIN IMMEDIATE` explícito. La IA no advirtió la consecuencia: con IMMEDIATE, una conexión abierta dentro de otra se queda esperando. Había dos casos (`Paquete._listar` y el cifrado dentro de `_insertar`), y el segundo lo encontró el recorrido del menú | sección «reglas» (reservas simultáneas), mutación |
-| H-09 | Baja | A10 | El techo del total (10^11) era menor que el total posible (5,5 × 10^12): la reserva se guardaba y después rompía el historial para siempre | **Adoptada** | **Error real, comprobado por aritmética.** Techo derivado `PRECIO_MAXIMO × CUPO_MAXIMO`, validado antes del INSERT | sección «reglas» (reserva al total máximo) |
-| H-10 | Baja | A07 | `cambiar_clave` comparaba con el hash en memoria y aceptaba la misma contraseña | **Modificada** | El UPDATE exige que la base tenga el hash verificado: una sesión vieja no cambia una contraseña que otra sesión ya cambió. Se rechaza la nueva igual a la actual. Desde el 5-oct, la contraseña actual cuenta como intento y una sesión vieja no cambia nada (§2.5) | sección «reglas» (dos sesiones) |
-| H-11 | Baja | A07 | La inactividad solo se medía en el menú | **Modificada** | Toda espera de un dato (menú, preguntas de una acción, contraseñas, pausa) pasa por `esperar()`, que corta la sesión si venció, y la pantalla se limpia al caducar | sección «menu»: sesión que vence dentro de «crear socio» |
-| H-12 | Baja | A10 | `int()` con más de 4.300 dígitos lanzaba `ValueError` sin atrapar; `main()` no tenía un último `except` | **Adoptada** | **Error real, comprobado.** Largo antes de `int()`, `except Exception` final en `main()` y `PermissionError` en el primer uso | sección «menu»: opción de 5.000 dígitos |
-| H-13 | Info. | A01 | El dominio acepta cualquier instancia de `Usuario`; un cliente distinguía «no existe» de «no publicado» | **Modificada** | Mismo mensaje para los dos casos al reservar. Lo demás se resolvió en la auditoría final: `autorizar()` exige una sesión iniciada (hallazgo 5) | sección «menu» |
-| H-14 | Info. | A06 | Sin aviso de finalidad al registrarse; `0.000.000-0` pasaba como RUT | **Modificada** | Aviso de finalidad, protección y derechos (Ley 21.719, art. 14 ter) que hay que aceptar antes de registrarse; RUT 0 rechazado (**comprobado**: pasaba). Supresión y portabilidad: se atienden ante los socios (`PRIVACIDAD.md` §3) | secciones «menu» y «reglas» |
+| H-06 | Baja | A07 | Enumeración de correos por el registro; señuelo calculado en el primer intento; todo `IntegrityError` se mostraba como “correo repetido” | **Modificada** | El señuelo se calcula al cargar el módulo y solo el `UNIQUE` del correo se traduce a R9. Desde el 5-oct, el registro se pausa tras 5 correos repetidos en 10 minutos (§2.5) | sección “reglas” |
+| H-07 | Baja | A07 | El bloqueo se decidía con el objeto leído antes, en otra conexión | **Adoptada** | El estado del bloqueo se vuelve a leer dentro de la transacción del intento | sección “reglas” (bloqueo) |
+| H-08 | Baja | A06 | En su modo por omisión, `sqlite3` abre la transacción en la primera escritura: “consultar y después escribir” no era atómico, aunque el comentario lo afirmaba | **Modificada** | **Error real, comprobado por experimento** (`in_transaction` es `False` después de un `SELECT`). `conectar()` abre siempre con `BEGIN IMMEDIATE` explícito. La IA no advirtió la consecuencia: con IMMEDIATE, una conexión abierta dentro de otra se queda esperando. Había dos casos (`Paquete._listar` y el cifrado dentro de `_insertar`), y el segundo lo encontró el recorrido del menú | sección “reglas” (reservas simultáneas), mutación |
+| H-09 | Baja | A10 | El techo del total (10^11) era menor que el total posible (5,5 × 10^12): la reserva se guardaba y después rompía el historial para siempre | **Adoptada** | **Error real, comprobado por aritmética.** Techo derivado `PRECIO_MAXIMO × CUPO_MAXIMO`, validado antes del INSERT | sección “reglas” (reserva al total máximo) |
+| H-10 | Baja | A07 | `cambiar_clave` comparaba con el hash en memoria y aceptaba la misma contraseña | **Modificada** | El UPDATE exige que la base tenga el hash verificado: una sesión vieja no cambia una contraseña que otra sesión ya cambió. Se rechaza la nueva igual a la actual. Desde el 5-oct, la contraseña actual cuenta como intento y una sesión vieja no cambia nada (§2.5) | sección “reglas” (dos sesiones) |
+| H-11 | Baja | A07 | La inactividad solo se medía en el menú | **Modificada** | Toda espera de un dato (menú, preguntas de una acción, contraseñas, pausa) pasa por `esperar()`, que corta la sesión si venció, y la pantalla se limpia al caducar | sección “menu”: sesión que vence dentro de “crear socio” |
+| H-12 | Baja | A10 | `int()` con más de 4.300 dígitos lanzaba `ValueError` sin atrapar; `main()` no tenía un último `except` | **Adoptada** | **Error real, comprobado.** Largo antes de `int()`, `except Exception` final en `main()` y `PermissionError` en el primer uso | sección “menu”: opción de 5.000 dígitos |
+| H-13 | Info. | A01 | El dominio acepta cualquier instancia de `Usuario`; un cliente distinguía “no existe” de “no publicado” | **Modificada** | Mismo mensaje para los dos casos al reservar. Lo demás se resolvió en la auditoría final: `autorizar()` exige una sesión iniciada (hallazgo 5) | sección “menu” |
+| H-14 | Info. | A06 | Sin aviso de finalidad al registrarse; `0.000.000-0` pasaba como RUT | **Modificada** | Aviso de finalidad, protección y derechos (Ley 21.719, art. 14 ter) que hay que aceptar antes de registrarse; RUT 0 rechazado (**comprobado**: pasaba). Supresión y portabilidad: se atienden ante los socios (`PRIVACIDAD.md` §3) | secciones “menu” y “reglas” |
 | H-15 | Baja | A02 | El diario de la base (`-journal`) nacía con la máscara del sistema | **Adoptada** | `os.umask(0o077)` al arrancar | revisión del código |
-| H-16 | Baja | A07 | No se revisaban contraseñas comunes | **Modificada** | Lista local de contraseñas comunes de 12 o más caracteres, más un mínimo de 5 caracteres distintos (descarta `aaaaaaaaaaaa`). Una lista de millones de filtradas exigiría un archivo de cientos de MB o una consulta a internet, que la aplicación no tiene | sección «reglas» |
-| H-17 | Info. | A07 | Bloqueo con hora local; sin bloqueo progresivo | **Modificada** | Hora UTC (un cambio de horario ya no alarga ni anula el bloqueo). Desde el 5-oct, bloqueo progresivo de 5, 15 y 60 minutos (§2.5) | sección «reglas» |
+| H-16 | Baja | A07 | No se revisaban contraseñas comunes | **Modificada** | Lista local de contraseñas comunes de 12 o más caracteres, más un mínimo de 5 caracteres distintos (descarta `aaaaaaaaaaaa`). Una lista de millones de filtradas exigiría un archivo de cientos de MB o una consulta a internet, que la aplicación no tiene | sección “reglas” |
+| H-17 | Info. | A07 | Bloqueo con hora local; sin bloqueo progresivo | **Modificada** | Hora UTC (un cambio de horario ya no alarga ni anula el bloqueo). Desde el 5-oct, bloqueo progresivo de 5, 15 y 60 minutos (§2.5) | sección “reglas” |
 | B608 ×6 | Media | A05 | SQL armado con f-string (solo constantes, no explotable) | Corregido | Contradecía RNF-SEG-03, que pide cero. Consultas como constantes literales y `json_each(?)` para la lista de ids | bandit: 0 B608 |
 
 ### 2.1 Los 17 hallazgos de la IA en las cinco partes del docente
@@ -86,28 +86,28 @@ impacto si sigue ocurriendo, la recomendación tomada y el esfuerzo real de la c
 | H-05 | Iniciar sesión descifraba antes de verificar la contraseña | `autenticar` → `_usuario_desde_fila` | Con una clave equivocada, el mensaje delataba el correo y el intento no contaba para el bloqueo | Resuelto por H-04 | incluido en H-04 |
 | H-06 | El registro revela qué correos existen; el señuelo se calculaba en el primer intento | `_insertar`: R9; `_senuelo` perezoso | Permite saber quién es cliente y bloquear su cuenta a propósito | Señuelo al cargar el módulo; R9 solo para el `UNIQUE` del correo; la enumeración, declarada | 10 min |
 | H-07 | El bloqueo se decidía con un dato leído en otra conexión | `bloqueada = self.__bloqueado_hasta …` | Dos sesiones en paralelo podían sumar más de 5 intentos | Releer el bloqueo dentro de la transacción del intento | 15 min |
-| H-08 | La consulta previa a una escritura no entraba en la transacción | `sqlite3` abre la transacción en la primera escritura (comprobado: `in_transaction` es `False` tras un `SELECT`) | «Revisar y escribir» no era atómico (R8 al guardar paquetes) | `BEGIN IMMEDIATE` explícito en `conectar()` | 30 min |
+| H-08 | La consulta previa a una escritura no entraba en la transacción | `sqlite3` abre la transacción en la primera escritura (comprobado: `in_transaction` es `False` tras un `SELECT`) | “Revisar y escribir” no era atómico (R8 al guardar paquetes) | `BEGIN IMMEDIATE` explícito en `conectar()` | 30 min |
 | H-09 | El techo del total era menor que el total posible | `COSTO_MAXIMO * CUPO_MAXIMO` (10^11) contra 5,5 × 10^12 | Una reserva grande se guardaba y después rompía el historial para siempre | Techo derivado del precio máximo, validado antes del INSERT | 10 min |
 | H-10 | Cambiar la contraseña comparaba con el hash en memoria | `cambiar_clave` | Una sesión vieja podía volver a cambiar una contraseña ya cambiada | UPDATE condicionado al hash leído; la nueva distinta de la actual | 15 min |
 | H-11 | La inactividad solo se medía en el menú | `usar_sesion` | Una pregunta abierta podía responderse horas después | Plazo revisado en cada espera de un dato | 25 min |
 | H-12 | `int()` con más de 4.300 dígitos cerraba el programa con traza | `ejecutar_opcion` (comprobado) | Traza con rutas en pantalla (RNF-SEG-05) | Largo antes de `int()`; `except Exception` final en `main()` | 10 min |
-| H-13 | Un cliente distinguía «no existe» de «no publicado» | `reservar` en el menú | Podía deducir los ids de los borradores | Mismo mensaje para los dos casos | 5 min |
+| H-13 | Un cliente distinguía “no existe” de “no publicado” | `reservar` en el menú | Podía deducir los ids de los borradores | Mismo mensaje para los dos casos | 5 min |
 | H-14 | Sin aviso de datos; el RUT 0 pasaba la validación | `registrarse`; `validar_rut("0.000.000-0")` (comprobado) | Brecha con el deber de información; cuentas con RUT inválido | Aviso que hay que aceptar y RUT 0 rechazado; el aviso se completó en §2.3 | 15 min |
 | H-15 | El diario de la base nacía con permisos abiertos | `crear_tablas` hacía `chmod` después | Otro usuario del equipo podía leer el diario durante una transacción | `os.umask(0o077)` al arrancar | 2 min |
-| H-16 | No se rechazaban contraseñas comunes | `_validar_clave` | «contraseña123» era aceptada | Lista local y mínimo de 5 caracteres distintos | 15 min |
+| H-16 | No se rechazaban contraseñas comunes | `_validar_clave` | “contraseña123” era aceptada | Lista local y mínimo de 5 caracteres distintos | 15 min |
 | H-17 | Bloqueo con hora local | `datetime.now()` | Un cambio de horario alargaba o anulaba el bloqueo | Hora UTC; el bloqueo progresivo, hecho el 5-oct (§2.5) | 10 min |
 
 ### 2.2 Pruebas de mutación: cada corrección tiene una prueba que la vigila
 
-La sección «mutaciones» de `pruebas/verificar.py` deshace cada corrección y rompe cada regla
+La sección “mutaciones” de `pruebas/verificar.py` deshace cada corrección y rompe cada regla
 principal, una por vez, en una copia temporal del proyecto, y corre las secciones que deben
-detectarlo. Falla si alguna mutación sobrevive. Corre en el workflow, en el job «mutaciones», en cada
+detectarlo. Falla si alguna mutación sobrevive. Corre en el workflow, en el job “mutaciones”, en cada
 envío al repositorio.
 
 Resultado: **45 de 45 detectadas**. Cubren:
 - 9 reglas del negocio y 6 de cuentas y permisos;
 - las correcciones de esta auditoría;
-- las de la auditoría final: sesión iniciada, edición a medias, `rowcount` y «2.5» personas;
+- las de la auditoría final: sesión iniciada, edición a medias, `rowcount` y “2.5” personas;
 - los dos errores reales del desarrollo, K-04 y K-05;
 - el aislamiento del modo demostración (§2.4);
 - los 9 cierres del 5-oct (§2.5), incluida una consulta SQL armada pegando textos;
@@ -129,30 +129,30 @@ de corregirlo.
 
 | # | Hallazgo | Evidencia | Impacto | Recomendación aplicada | Esfuerzo |
 |---|---|---|---|---|---|
-| 5 | Un `Administrador` creado sin iniciar sesión tenía permisos | Prueba: `Destino(...).guardar(Administrador("x@y.cl", ...))` guardaba | Contradecía el criterio de RF-SEG-05 («por cualquier vía»); H-13 lo había aceptado como riesgo | `autorizar()` exige una cuenta con sesión iniciada (decisión 13): solo `autenticar()` y el alta de la propia cuenta la dan | 40 min |
+| 5 | Un `Administrador` creado sin iniciar sesión tenía permisos | Prueba: `Destino(...).guardar(Administrador("x@y.cl", ...))` guardaba | Contradecía el criterio de RF-SEG-05 (“por cualquier vía”); H-13 lo había aceptado como riesgo | `autorizar()` exige una cuenta con sesión iniciada (decisión 13): solo `autenticar()` y el alta de la propia cuenta la dan | 40 min |
 | 4 | `editar` dejaba el objeto a medias si fallaba una validación | Prueba: el objeto quedaba con el nombre nuevo y la base con el anterior | Memoria y base dejaban de coincidir | Validar en valores locales y asignar solo después de guardar | 20 min |
 | 6 | Quedaba una consulta armada pegando textos | `_insertar`: `"… SELECT ?, …" + condicion` | Contradecía RNF-SEG-03 y lo afirmado en esta auditoría (bandit no lo detecta: no es un f-string) | Dos consultas literales completas | 10 min |
-| 20 | Tres escrituras no revisaban si guardaron algo | `cambiar_costo`, `reactivar`, `Destino.editar` | El menú decía «Guardado» aunque otra sesión hubiera borrado el registro | `exigir_una_fila()`: `rowcount` igual a 1 o error | 15 min |
-| 3 | «2.5» personas se registraba como 25 | `pedir_entero` borraba todos los puntos | Una reserva de 25 personas cobrada sin querer | El punto solo se acepta como separador de miles | 15 min |
+| 20 | Tres escrituras no revisaban si guardaron algo | `cambiar_costo`, `reactivar`, `Destino.editar` | El menú decía “Guardado” aunque otra sesión hubiera borrado el registro | `exigir_una_fila()`: `rowcount` igual a 1 o error | 15 min |
+| 3 | “2.5” personas se registraba como 25 | `pedir_entero` borraba todos los puntos | Una reserva de 25 personas cobrada sin querer | El punto solo se acepta como separador de miles | 15 min |
 | 14 | El aviso de datos no cumplía el art. 14 ter completo | Faltaban la base legal, la conservación, los destinatarios y tres de los derechos | Deber de información incompleto (Ley 21.719) | Aviso con responsable, finalidad, base legal, destinatarios, conservación, protección y los seis derechos con su plazo | 20 min |
 | 25 | El token del workflow no tenía permisos limitados | `pruebas.yml` sin `permissions:` | Una acción comprometida podría escribir en el repositorio (A03) | `permissions: contents: read` | 5 min |
-| 10 | Las mutaciones citadas no se podían repetir | No había un script en el repositorio | Una afirmación que el corrector no puede verificar | Mutaciones en el workflow (hoy, la sección «mutaciones» de `pruebas/verificar.py`) | 45 min |
-| 16 | No había forma de respaldar la base | P-14: «si se pierde, se pierde con todo» | La pérdida del equipo era la pérdida de todas las reservas | `Administrador.respaldarBase()`: copia consistente en `respaldos/`, 0600, ignorada por git (RNF-FIA-03) | 30 min |
+| 10 | Las mutaciones citadas no se podían repetir | No había un script en el repositorio | Una afirmación que el corrector no puede verificar | Mutaciones en el workflow (hoy, la sección “mutaciones” de `pruebas/verificar.py`) | 45 min |
+| 16 | No había forma de respaldar la base | P-14: “si se pierde, se pierde con todo” | La pérdida del equipo era la pérdida de todas las reservas | `Administrador.respaldarBase()`: copia consistente en `respaldos/`, 0600, ignorada por git (RNF-FIA-03) | 30 min |
 | 28 | RUT de prueba con dígito verificador válido | `12.345.678-5` y `11.111.111-1` en pruebas y en la sesión del menú | Podrían coincidir con personas reales | Declarado como datos ficticios en el código y en la sesión del menú | 5 min |
 
 ### 2.4 Modo demostración (5-oct): una puerta de prueba que no salta la seguridad
 
 El corrector y los socios necesitan probar el CRUD con los dos roles sin ingresar todo desde cero.
-La pantalla previa ofrece «Entrar al sistema» o «Modo demostración» (RNF-USA-04). Un acceso de prueba
+La pantalla previa ofrece “Entrar al sistema” o “Modo demostración” (RNF-USA-04). Un acceso de prueba
 es justo el tipo de función que abre una puerta trasera, así que se diseñó como una decisión de
 seguridad:
 
 | Hallazgo | Evidencia | Impacto | Recomendación aplicada | Esfuerzo |
 |---|---|---|---|---|
-| Un acceso de prueba sin contraseña habría saltado RF-SEG-05 y el hallazgo 5 | Diseño revisado antes de escribirlo | Cualquiera tendría el menú del administrador sobre los datos reales | «Entrar como socio» y «Entrar como cliente» pasan por `Usuario.autenticar()`, como el inicio de sesión: la sesión es real y `autorizar()` la exige igual | 10 min |
+| Un acceso de prueba sin contraseña habría saltado RF-SEG-05 y el hallazgo 5 | Diseño revisado antes de escribirlo | Cualquiera tendría el menú del administrador sobre los datos reales | “Entrar como socio” y “Entrar como cliente” pasan por `Usuario.autenticar()`, como el inicio de sesión: la sesión es real y `autorizar()` la exige igual | 10 min |
 | Las cuentas de prueba necesitan contraseña | S-04: ninguna credencial escrita en el código | Una contraseña fija en el código sería pública en el repositorio | Se generan al azar en cada ejecución (`secrets.token_urlsafe`) y solo se muestran en pantalla | 5 min |
 | Los datos de prueba podrían mezclarse con los reales | La base y la clave son globales del módulo | Clientes ficticios en la base real, o datos reales cifrados con otra clave | Base y clave en una carpeta temporal, sin la variable de entorno real; todo se restaura al salir (también ante un error o Ctrl+C) y la carpeta se borra | 20 min |
-| El aislamiento podía romperse sin que nadie lo notara | Un cambio que quite `usar_base()` escribiría en la base real | Pérdida silenciosa de la separación | `pruebas/verificar.py` (sección «seguridad») comprueba que la base, la clave y la variable reales quedan intactas, y una mutación quita el aislamiento: la prueba la detecta | 15 min |
+| El aislamiento podía romperse sin que nadie lo notara | Un cambio que quite `usar_base()` escribiría en la base real | Pérdida silenciosa de la separación | `pruebas/verificar.py` (sección “seguridad”) comprueba que la base, la clave y la variable reales quedan intactas, y una mutación quita el aislamiento: la prueba la detecta | 15 min |
 
 Los datos de ejemplo se cargan solo con los métodos públicos del dominio. Pasan por las mismas
 validaciones que el menú, quedan en el registro de auditoría de la base temporal y usan RUT ficticios
@@ -160,7 +160,7 @@ a la vista (11.111.111-1 y 22.222.222-2).
 
 ### 2.5 Cierre de los riesgos declarados (5-oct)
 
-El 3-oct, §3 tenía 13 riesgos «aceptados». Se reevaluaron uno por uno con un criterio: lo que se puede
+El 3-oct, §3 tenía 13 riesgos “aceptados”. Se reevaluaron uno por uno con un criterio: lo que se puede
 cerrar sin salir del alcance del caso se cierra, con su prueba y su mutación. Lo que no se puede
 cerrar en ninguna aplicación de escritorio queda como límite, con su mitigación (§3).
 
@@ -171,14 +171,14 @@ cerrar en ninguna aplicación de escritorio queda como límite, con su mitigaci�
 | Cambiar la contraseña no cerraba las otras sesiones | La sesión solo era una marca en el objeto | Quien tuviera una sesión abierta la conservaba después del cambio | `tiene_sesion()` compara el hash de la sesión con el de la base en cada acción; si cambió, la sesión deja de valer y el menú vuelve al inicio | 15 min |
 | H-03 (a): no se podía desactivar a un socio que se va | La acción `cuentas` solo creaba | El ex socio conservaba su acceso | `Administrador.desactivarCuenta(correo)` y la columna `activa`. La cuenta no entra (mismo mensaje), pierde sus sesiones abiertas y conserva su historia. Nadie desactiva la propia (RF-SEG-14) | 40 min |
 | La clave de cifrado no se podía rotar | Una sola clave, sin procedimiento | Si la clave se filtraba, los datos quedaban expuestos para siempre | `rotar_clave_de_datos()`: `MultiFernet` recifra todos los clientes en una transacción, la clave nueva se instala con `os.replace` y la anterior se archiva en 0600 para los respaldos viejos (RF-SEG-15) | 45 min |
-| Nadie leía el registro de auditoría | Solo se escribía | Un ataque de fuerza bruta pasaba desapercibido | «Ver el registro de auditoría» en el menú del socio, y un aviso al entrar si hubo bloqueos en 24 horas (RF-SEG-16) | 25 min |
-| H-06: el registro enumeraba correos | El registro dice «ese correo ya tiene una cuenta» | Saber quién es cliente de la agencia | Cada correo repetido queda en el registro; tras 5 en 10 minutos, el registro se pausa (RF-SEG-17). Cerrarlo del todo exige verificar el correo con un enlace, y enviar correos está fuera del alcance (§6 del caso) | 20 min |
+| Nadie leía el registro de auditoría | Solo se escribía | Un ataque de fuerza bruta pasaba desapercibido | “Ver el registro de auditoría” en el menú del socio, y un aviso al entrar si hubo bloqueos en 24 horas (RF-SEG-16) | 25 min |
+| H-06: el registro enumeraba correos | El registro dice “ese correo ya tiene una cuenta” | Saber quién es cliente de la agencia | Cada correo repetido queda en el registro; tras 5 en 10 minutos, el registro se pausa (RF-SEG-17). Cerrarlo del todo exige verificar el correo con un enlace, y enviar correos está fuera del alcance (§6 del caso) | 20 min |
 | Plazo de conservación y registro de incidentes | La ley los exige (art. 3 c y art. 14 sexies) y el sistema no los fijaba | Incumplimiento del deber de proporcionalidad y del de reportar | Procedimiento escrito en [`PRIVACIDAD.md`](PRIVACIDAD.md), con el texto de la ley, la tabla del registro de incidentes y los pasos (contener con la rotación de la clave y la desactivación de cuentas) | 30 min |
 | Las acciones del workflow se fijaban por etiqueta | `uses: actions/checkout@v7` | Una etiqueta movida podía cambiar lo que corre | Fijadas por el hash de su commit | 5 min |
 | `assert` en el producto | 64 `assert` de la autoverificación dentro de `viajes.py` | Mezclaba pruebas con producto (bandit B101) | Todas las pruebas pasaron a `pruebas/verificar.py`; el producto tiene 0 | 60 min |
 
-Cada cierre tiene su afirmación en `pruebas/verificar.py` (secciones «credenciales», «datos» y
-«seguridad») y su mutación en la sección «mutaciones».
+Cada cierre tiene su afirmación en `pruebas/verificar.py` (secciones “credenciales”, “datos” y
+“seguridad”) y su mutación en la sección “mutaciones”.
 
 ### 2.6 Revisión manual del modo demostración (5-oct)
 
@@ -188,23 +188,23 @@ contradecían una regla del caso o una guía vigente.
 
 | Observación | Lo que había | Decisión | Esfuerzo |
 |---|---|---|---|
-| «Eliminar un destino» no lo borró: quedó no disponible | El destino estaba en un paquete | **Sin cambio:** es la regla R8 del caso. Sin paquetes se borra, y el menú ya lo explica al terminar | 0 |
-| Una «papelera» para recuperar lo eliminado por error | Lo único que se borra de verdad es catálogo nunca vendido (R8 y RF-PAQ-09), y el registro solo guardaba su id, que deja de existir | **Modificada:** sin papelera, que agregaría una tabla, un estado y un permiso nuevos. El registro de auditoría guarda el nombre de lo eliminado (`destino 2 «Salar de Surire»`), que basta para volver a crearlo; es catálogo, no datos personales | 10 min |
-| ¿El registro de auditoría es un log? | Sí: guarda quién hizo qué y, además, los eventos de seguridad (inicios fallidos, bloqueos, correos inexistentes o repetidos) | **Adoptada:** la opción del menú dice «Ver el registro de auditoría (actividad y seguridad)» | 5 min |
+| “Eliminar un destino” no lo borró: quedó no disponible | El destino estaba en un paquete | **Sin cambio:** es la regla R8 del caso. Sin paquetes se borra, y el menú ya lo explica al terminar | 0 |
+| Una “papelera” para recuperar lo eliminado por error | Lo único que se borra de verdad es catálogo nunca vendido (R8 y RF-PAQ-09), y el registro solo guardaba su id, que deja de existir | **Modificada:** sin papelera, que agregaría una tabla, un estado y un permiso nuevos. El registro de auditoría guarda el nombre de lo eliminado (`destino 2 “Salar de Surire”`), que basta para volver a crearlo; es catálogo, no datos personales | 10 min |
+| ¿El registro de auditoría es un log? | Sí: guarda quién hizo qué y, además, los eventos de seguridad (inicios fallidos, bloqueos, correos inexistentes o repetidos) | **Adoptada:** la opción del menú dice “Ver el registro de auditoría (actividad y seguridad)” | 5 min |
 | ¿La base y su respaldo van cifrados? | Cifrado por campo (RUT y teléfono), no del archivo | **Sin cambio, respondida:** qué protege cada capa está en [`PRIVACIDAD.md`](PRIVACIDAD.md) §4; cifrar el archivo completo queda en §3.1 | 0 |
 | ¿Qué implica rotar la clave? | `rotar_clave_de_datos()` (RF-SEG-15) | **Sin cambio, respondida** en [`PRIVACIDAD.md`](PRIVACIDAD.md) §4 | 0 |
-| Contraseña con una mayúscula y un símbolo, sin números correlativos ni datos de la persona | 12 caracteres o más, lista de comunes, 5 caracteres distintos y distinta del correo | **Modificada:** se rechazan las secuencias de 4 (`1234`, `abcd`, `4321`) y las partes de 4 caracteres o más del correo, del nombre o del teléfono, también al cambiarla. **No** se exigen mayúsculas ni símbolos: NIST SP 800-63B desaconseja esas reglas, que llevan a contraseñas previsibles como «Contraseña1!» | 40 min |
+| Contraseña con una mayúscula y un símbolo, sin números correlativos ni datos de la persona | 12 caracteres o más, lista de comunes, 5 caracteres distintos y distinta del correo | **Modificada:** se rechazan las secuencias de 4 (`1234`, `abcd`, `4321`) y las partes de 4 caracteres o más del correo, del nombre o del teléfono, también al cambiarla. **No** se exigen mayúsculas ni símbolos: NIST SP 800-63B desaconseja esas reglas, que llevan a contraseñas previsibles como “Contraseña1!” | 40 min |
 | Recuperar una contraseña olvidada | No existe ningún camino | **Alcance futuro** (§3.1), con su diseño | 0 |
 | Confirmar todas las decisiones de los menús | Ya confirmaban eliminar, publicar, desactivar y rotar. Faltaban dos | **Modificada:** se confirman también anular una reserva (no se puede deshacer) y crear la cuenta de un socio (da todos los permisos). Cambiar la contraseña no suma otra pregunta: ya exige la actual | 15 min |
-| Avisar en todo dato que «x» cancela | «x» ya cancelaba cualquier dato (`leer()`), pero solo dos formularios lo decían | **Adoptada:** la primera pregunta de cada acción lo recuerda, desde un solo lugar del menú | 15 min |
-| Enmascarar el correo en «Ver mis datos» | Correo completo ahí, en la cabecera de cada menú y en «Mis reservas» | **Adoptada en los tres lugares:** `j*******9@g****.com`, con asteriscos fijos para no delatar el largo. El socio lo sigue viendo completo en las reservas de un paquete, porque es su vía de contacto (RF-RES-11) | 20 min |
+| Avisar en todo dato que “x” cancela | “x” ya cancelaba cualquier dato (`leer()`), pero solo dos formularios lo decían | **Adoptada:** la primera pregunta de cada acción lo recuerda, desde un solo lugar del menú | 15 min |
+| Enmascarar el correo en “Ver mis datos” | Correo completo ahí, en la cabecera de cada menú y en “Mis reservas” | **Adoptada en los tres lugares:** `j*******9@g****.com`, con asteriscos fijos para no delatar el largo. El socio lo sigue viendo completo en las reservas de un paquete, porque es su vía de contacto (RF-RES-11) | 20 min |
 | Teléfono: solo el primer y el último dígito | `+56 9 **** 1234` mostraba 5 de los 9 dígitos | **Adoptada:** `+56 9 ******* 4` | 10 min |
-| Frenar la fuerza bruta en todas las entradas y registrar todo error | Bloqueo progresivo en el inicio de sesión y al cambiar la contraseña, y pausa del registro (RF-SEG-03, H-10, H-17, RF-SEG-17) | **Sin cambio:** la fuerza bruta solo sirve contra una entrada que esconde un secreto, y esas ya se frenan. Frenar «elija una opción» no protege nada. Registrar cada error de tipeo llenaría el registro sin decir nada nuevo: ya guarda los eventos de seguridad | 0 |
+| Frenar la fuerza bruta en todas las entradas y registrar todo error | Bloqueo progresivo en el inicio de sesión y al cambiar la contraseña, y pausa del registro (RF-SEG-03, H-10, H-17, RF-SEG-17) | **Sin cambio:** la fuerza bruta solo sirve contra una entrada que esconde un secreto, y esas ya se frenan. Frenar “elija una opción” no protege nada. Registrar cada error de tipeo llenaría el registro sin decir nada nuevo: ya guarda los eventos de seguridad | 0 |
 | El primer administrador debería dar más datos | Correo y contraseña | **Sin cambio de datos:** el riesgo del primer uso es quién llega primero, y eso ya lo resuelve `crear_primero` (solo con la base vacía, en una sentencia, S-04). Pedirle RUT o teléfono sumaría datos personales que proteger sin ganar seguridad. La política nueva de contraseña rige también para él | 0 |
 
 ## 3. Límites del modelo de amenazas
 
-Ya no hay riesgos «aceptados»: lo que se podía cerrar dentro del alcance se cerró (§2.5). Quedan dos
+Ya no hay riesgos “aceptados”: lo que se podía cerrar dentro del alcance se cerró (§2.5). Quedan dos
 límites que ninguna aplicación de escritorio sin servidor puede eliminar, cada uno con su mitigación
 implementada. Y una decisión de alcance, que no es un riesgo.
 
@@ -224,7 +224,7 @@ Ideas evaluadas el 5-oct (§2.6) que no se construyen en esta entrega, cada una 
 
 | Alcance | Por qué no ahora | Cómo se haría |
 |---|---|---|
-| Recuperar una contraseña olvidada | Hoy no existe ningún camino: un cliente que la olvida no vuelve a entrar. Una cola de solicitudes abierta sin sesión serviría para averiguar qué correos existen y para llenar de pedidos a los socios, y la clave nueva tendría que llegar al cliente por otro medio | **Etapa 1, sin servidor:** el cliente llama o va a la agencia. Un socio comprueba su identidad (RUT y datos de una reserva) y usa «Restablecer contraseña», que genera una clave temporal al azar, la muestra una sola vez y obliga a cambiarla al entrar. Queda en el registro de auditoría. **Etapa 2, con dominio y servidor:** un enlace de un solo uso, con vencimiento, enviado al correo registrado |
+| Recuperar una contraseña olvidada | Hoy no existe ningún camino: un cliente que la olvida no vuelve a entrar. Una cola de solicitudes abierta sin sesión serviría para averiguar qué correos existen y para llenar de pedidos a los socios, y la clave nueva tendría que llegar al cliente por otro medio | **Etapa 1, sin servidor:** el cliente llama o va a la agencia. Un socio comprueba su identidad (RUT y datos de una reserva) y usa “Restablecer contraseña”, que genera una clave temporal al azar, la muestra una sola vez y obliga a cambiarla al entrar. Queda en el registro de auditoría. **Etapa 2, con dominio y servidor:** un enlace de un solo uso, con vencimiento, enviado al correo registrado |
 | Papelera de lo eliminado | Solo se borra catálogo nunca vendido, y el registro ya guarda su nombre para recrearlo. Una papelera con datos de clientes iría contra la supresión que pide la ley | Si el catálogo creciera: una baja lógica con fecha y quién la hizo, visible solo para los socios, y un plazo tras el que se borra |
 | Cifrar el archivo completo de la base | `sqlite3` de la biblioteca estándar no cifra archivos. SQLCipher es otra dependencia compilada, que complica la instalación en Windows (hoy probada en 6 combinaciones) | SQLCipher con su clave en el mismo lugar que la de Fernet. Hoy lo cubren los permisos 0600 y el cifrado del RUT y el teléfono ([`PRIVACIDAD.md`](PRIVACIDAD.md) §4) |
 | Verificar el correo al registrarse | Enviar correos está fuera del alcance (§6 del caso, W-05) | Un enlace de confirmación; cerraría también el segundo límite de la tabla de arriba |
@@ -258,6 +258,8 @@ Ideas evaluadas el 5-oct (§2.6) que no se construyen en esta entrega, cada una 
 | A10 Mishandling of Exceptional Conditions | Cadena de `except` por tipo con `except Exception` final en el menú y en `main()`; ningún mensaje con trazas, rutas ni datos; techo de todo entero (H-12) y del total (H-09) |
 
 ## 6. Cómo repetir la auditoría
+
+Con el entorno virtual activado ([README](../README.md#1-instalar-y-ejecutar) §1):
 
 ```bash
 pip install bandit pip-audit

@@ -15,7 +15,7 @@ macOS o Linux:
 
 ```bash
 python pruebas/verificar.py            # interfaz: elige qué sección correr, paso a paso
-python pruebas/verificar.py --todo     # todas (unos 5 minutos; las mutaciones son lo lento)
+python pruebas/verificar.py --todo     # todas (unos 6 minutos; las mutaciones son lo lento)
 python pruebas/verificar.py --rapido   # todas menos las mutaciones (menos de 1 minuto)
 python pruebas/verificar.py --solo datos
 ```
@@ -26,7 +26,7 @@ python pruebas/verificar.py --solo datos
   siguiente. Al final, un resumen por sección y por indicador.
 - **Ninguna prueba toca la base real (`viajes.db`) ni la clave real:** cada sección trabaja en una
   carpeta temporal que se borra al terminar.
-- **El workflow «Pruebas»** corre cada sección en Windows, macOS y Linux con Python 3.12 y 3.14, en cada
+- **El workflow “Pruebas”** corre cada sección en Windows, macOS y Linux con Python 3.12 y 3.14, en cada
   envío al repositorio.
 
 ## Secciones
@@ -43,9 +43,9 @@ python pruebas/verificar.py --solo datos
 | `mutaciones` | I.20 | Rompe a propósito cada regla y cada corrección de seguridad, una por vez, en una copia del proyecto, y exige que alguna sección lo detecte | `MUTACIONES`, `mutacion_detectada` |
 
 **Nombres en el informe.** El informe técnico llama a estas pruebas por lo que hacen:
-- la «autoverificación» es la sección `reglas`;
-- la «prueba por indicador», las secciones `implementacion`, `credenciales`, `datos` y `seguridad`;
-- la «sesión del menú», la sección `menu`.
+- la “autoverificación” es la sección `reglas`;
+- la “prueba por indicador”, las secciones `implementacion`, `credenciales`, `datos` y `seguridad`;
+- la “sesión del menú”, la sección `menu`.
 
 ## Dónde está cada control en el producto
 

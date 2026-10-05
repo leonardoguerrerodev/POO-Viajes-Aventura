@@ -14,14 +14,14 @@ Trabajo individual de Leonardo Guerrero.
 
 ## 1. Instalar y ejecutar
 
-Funciona igual en **Windows, macOS y Linux**: el workflow «Pruebas» lo comprueba en los tres en cada
+Funciona igual en **Windows, macOS y Linux**: el workflow “Pruebas” lo comprueba en los tres en cada
 envío al repositorio. No necesita un servidor de base de datos ni internet, salvo para instalar.
 
 **Requisitos:** Python **3.12 o superior** y Git.
 
 | Sistema | Cómo tener Python 3.12 o superior |
 |---|---|
-| Windows | Instalador de [python.org](https://www.python.org/downloads/), marcando «Add python.exe to PATH». Queda el comando `py` |
+| Windows | Instalador de [python.org](https://www.python.org/downloads/), marcando “Add python.exe to PATH”. Queda el comando `py` |
 | macOS | Instalador de [python.org](https://www.python.org/downloads/). El `python3` que trae macOS es 3.9 y no sirve: el programa avisa y se cierra |
 | Linux | El de la distribución, si es 3.12 o superior. En Ubuntu y Debian además: `sudo apt install python3-venv` |
 
@@ -65,7 +65,7 @@ igual.
   (cifrado), más las tres de las que dependen. Cada archivo se verifica contra su hash: se instala
   exactamente lo que se probó.
 - `python pruebas/verificar.py --rapido` corre las pruebas, menos las mutaciones, sobre una base
-  temporal; debe terminar en «ninguna falla». No hace falta para usar el programa: el programa no
+  temporal; debe terminar en “ninguna falla”. No hace falta para usar el programa: el programa no
   depende de las pruebas.
 - `python main.py` abre el programa.
 
@@ -74,27 +74,27 @@ igual.
 
 ## 2. Primer uso
 
-`python main.py` abre una pantalla previa con dos caminos:
+`python main.py`, con el entorno virtual activado (§1), abre una pantalla previa con dos caminos:
 
 ```
 1. Entrar al sistema        la base real (viajes.db)
 2. Modo demostración        base temporal con datos de ejemplo; se borra al salir
 ```
 
-**Para probar todo sin ingresar datos: opción 2, «Modo demostración».**
+**Para probar todo sin ingresar datos: opción 2, “Modo demostración”.**
 - Carga 5 destinos, 3 paquetes (2 publicados y 1 en borrador), 1 socio y 2 clientes con reservas.
 - Muestra en pantalla las cuentas de prueba con sus contraseñas, generadas al azar en esa ejecución:
   no hay ninguna escrita en el código.
-- Ofrece «Entrar como socio» y «Entrar como cliente». Las dos pasan por el mismo inicio de sesión que
+- Ofrece “Entrar como socio” y “Entrar como cliente”. Las dos pasan por el mismo inicio de sesión que
   el resto del sistema, así que los permisos de cada rol se aplican igual.
 - Todo ocurre en una carpeta temporal. Al salir se borra, y **la base y la clave reales no se tocan**.
 - Para recorrer el CRUD completo:
   - como socio: editar un destino, publicar el paquete en borrador, cambiar un cupo y ver las
     reservas de un paquete;
-  - como cliente: reservar el paquete «Altiplano y desierto», que tiene un solo lugar libre, por más
+  - como cliente: reservar el paquete “Altiplano y desierto”, que tiene un solo lugar libre, por más
     personas (lo rechaza la regla R14), y anular una reserva.
 
-**Opción 1, «Entrar al sistema»:**
+**Opción 1, “Entrar al sistema”:**
 - **No hay usuarios ni contraseñas en el código.** La primera vez, la base está vacía y el programa
   pide crear la cuenta del primer administrador: un correo y una contraseña de 12 caracteres o más,
   distinta del correo, que no sea de las más comunes, con al menos 5 caracteres distintos, sin
@@ -107,7 +107,7 @@ igual.
     mostrar el aviso de datos personales;
   - **3. Ver los paquetes disponibles,** sin iniciar sesión.
 - El administrador es un socio de la agencia (el caso no tiene otro personal). Crea las cuentas de los
-  otros socios en «Cuentas → Crear la cuenta de un socio».
+  otros socios en “Cuentas → Crear la cuenta de un socio”.
 - **Qué hace cada rol:**
   - el administrador crea destinos y paquetes de 2 a 5 destinos, los publica y ve sus reservas. Además
     administra la seguridad: crea y desactiva cuentas, respalda la base, rota la clave de cifrado y
@@ -125,7 +125,7 @@ igual.
 | Archivo | Ubicación | Qué es |
 |---|---|---|
 | `viajes.db` | Junto al código | La base de datos |
-| `respaldos/` | Junto al código | Copias de la base, desde la opción «Respaldar la base de datos» del administrador |
+| `respaldos/` | Junto al código | Copias de la base, desde la opción “Respaldar la base de datos” del administrador |
 | `clave.env` | Linux y macOS: `~/.config/viajes-aventura/`<br>Windows: `C:\Users\<usuario>\.config\viajes-aventura\` | La clave que cifra el RUT y el teléfono. Se crea con el primer cliente, fuera del proyecto |
 | `clave.env.anterior-<fecha>` | Junto a `clave.env` | La clave anterior, si se rotó desde el menú. Sirve para leer los respaldos hechos antes de la rotación; si no hay ninguno, se puede borrar |
 
@@ -171,7 +171,7 @@ temporales.
 |---|---|---|
 | `Faltan las librerías del proyecto` | El entorno virtual no está activado | Activarlo (sección 1) y volver a ejecutar |
 | `requiere Python 3.12 o superior` | Se usó un Python antiguo (en macOS, el del sistema) | Instalar Python de python.org y crear el entorno con ese |
-| `python` o `py` «no se reconoce» (Windows) | Python no quedó en el PATH | Reinstalar marcando «Add python.exe to PATH» |
+| `python` o `py` “no se reconoce” (Windows) | Python no quedó en el PATH | Reinstalar marcando “Add python.exe to PATH” |
 | PowerShell no deja ejecutar `Activate.ps1` | La política de scripts de Windows | `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` y activar de nuevo |
 | `ensurepip is not available` (Ubuntu o Debian) | Falta el módulo `venv` | `sudo apt install python3-venv` y crear el entorno de nuevo |
 | `Password input may be echoed` | El programa se abrió desde la consola de un editor, no desde una terminal | Ejecutarlo en la terminal del sistema, para que la contraseña no se vea |
