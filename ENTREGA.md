@@ -3,7 +3,8 @@
 Programación Orientada a Objeto Seguro (TI3021) · Leonardo Guerrero · individual · 5 de octubre de 2026
 
 Esta página dice dónde está la evidencia de cada indicador de la rúbrica. «Informe» es el informe técnico
-en PDF entregado en el AAI; las rutas son archivos de este repositorio.
+en PDF entregado en el AAI, con una copia en [`docs/Informe_Tecnico.pdf`](docs/Informe_Tecnico.pdf); las rutas son
+archivos de este repositorio.
 
 **Para comprobarlo todo en un minuto:** instalar según el [README](README.md) y correr
 `python pruebas/prueba_rubrica.py`. Imprime una línea por cada afirmación verificable, agrupadas por
