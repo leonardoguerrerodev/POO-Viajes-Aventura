@@ -21,6 +21,7 @@ import os                                   # permisos 0600 de la base y lectura
 import re                                   # patrones de correo, RUT y teléfono
 import secrets                              # contraseña aleatoria del hash señuelo
 import sqlite3                              # la base de datos: un archivo, sin servidor
+import sys                                  # versión de Python y salida con mensaje claro
 import tempfile                             # base temporal para la autoverificación
 import threading                            # prueba de dos reservas simultáneas (RNF-FIA-02)
 import unicodedata                          # quita tildes al comparar nombres de destinos (RF-DES-02)
@@ -29,11 +30,19 @@ from contextlib import contextmanager       # `with conectar()`: abre y siempre 
 from datetime import date, datetime, timedelta, timezone  # fechas, y el bloqueo en hora UTC
 from enum import Enum                       # estado de la reserva: un valor mal escrito falla al crearse
 from functools import lru_cache             # la clave de cifrado se lee una sola vez
-from pathlib import Path                    # ubica la base y la clave junto a este archivo
+from pathlib import Path                    # rutas que funcionan igual en Windows, macOS y Linux
 
-from argon2 import PasswordHasher           # Argon2id, librería especializada de PyPI (G.17)
-from argon2.exceptions import InvalidHashError, VerificationError
-from cryptography.fernet import Fernet, InvalidToken  # cifrado autenticado: AES + HMAC (I.19)
+# Antes de cualquier otra cosa, un mensaje claro en vez de una traza: macOS trae un python3 3.9, y
+# sin el entorno virtual activado faltan las librerías (ver README, «Instalar y ejecutar»).
+if sys.version_info < (3, 12):
+    sys.exit(f"Viajes Aventura requiere Python 3.12 o superior; este es {sys.version.split()[0]}.")
+try:
+    from argon2 import PasswordHasher       # Argon2id, librería especializada de PyPI (G.17)
+    from argon2.exceptions import InvalidHashError, VerificationError
+    from cryptography.fernet import Fernet, InvalidToken  # cifrado autenticado: AES + HMAC (I.19)
+except ModuleNotFoundError:
+    sys.exit("Faltan las librerías del proyecto: active el entorno virtual (.venv) e instale\n"
+             "requirements.txt como indica el README, sección «Instalar y ejecutar».")
 
 # =====================================================================
 # 1. VALIDACIONES Y AUTORIZACIÓN COMPARTIDAS

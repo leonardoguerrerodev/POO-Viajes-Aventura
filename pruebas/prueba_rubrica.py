@@ -1,8 +1,8 @@
 """Una prueba por indicador de la rúbrica que se puede verificar en el código.
 
-Cada bloque imprime «✔ <indicador> <afirmación>» solo si la afirmación se cumple; si una falla, la
+Cada bloque imprime «OK <indicador> <afirmación>» solo si la afirmación se cumple; si una falla, la
 prueba se detiene con AssertionError y el workflow queda en rojo. Trabaja sobre una base y una clave
-temporales: no toca viajes.db ni .env.
+temporales: no toca viajes.db ni la clave real.
 
     python pruebas/prueba_rubrica.py
 """
@@ -31,7 +31,7 @@ TOTAL = 0
 def ok(indicador: str, afirmacion: str) -> None:
     global TOTAL
     TOTAL += 1
-    print(f"  ✔ {indicador:<7} {afirmacion}")
+    print(f"  OK {indicador:<7} {afirmacion}")
 
 
 def rechaza(error: type[Exception], accion, *args) -> Exception:

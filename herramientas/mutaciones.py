@@ -126,7 +126,7 @@ if __name__ == "__main__":
     vivas = []
     for nombre, archivo, original, roto, pruebas in MUTACIONES:
         detectada = probar(nombre, archivo, original, roto, pruebas)
-        print(f"  {'✔' if detectada else '✘'} {nombre}")
+        print(f"  {'detectada' if detectada else 'VIVA     '} {nombre}")
         if not detectada:
             vivas.append(nombre)
     print(f"{len(MUTACIONES) - len(vivas)} de {len(MUTACIONES)} mutaciones detectadas")

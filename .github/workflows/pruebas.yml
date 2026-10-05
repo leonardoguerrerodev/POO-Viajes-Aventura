@@ -8,9 +8,6 @@ on:
 permissions:
   contents: read
 
-env:
-  PYTHONUTF8: "1"   # la consola de Windows no es UTF-8 por omisión
-
 jobs:
   pruebas:
     strategy:

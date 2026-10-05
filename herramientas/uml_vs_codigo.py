@@ -165,6 +165,6 @@ if __name__ == "__main__":
     difs = comparar(diagrama, codigo)
     miembros = sum(len(d["atributos"]) + len(d["metodos"]) for d in diagrama.values())
     for d in difs:
-        print(f"  ✘ {d}")
+        print(f"  DIFERENCIA {d}")
     print(f"{len(diagrama)} clases y {miembros} miembros comparados: {len(difs)} diferencias")
     sys.exit(1 if difs else 0)

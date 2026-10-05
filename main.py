@@ -608,8 +608,22 @@ def inicio() -> bool:
     return True
 
 
+def activar_ansi_en_windows() -> None:
+    """La consola clásica de Windows muestra «←[2J» en vez de limpiar, salvo que se le pida
+    interpretar las secuencias ANSI (Windows Terminal, macOS y Linux ya lo hacen)."""
+    if os.name != "nt":
+        return
+    import ctypes                           # solo en Windows: API de la consola
+    consola = ctypes.windll.kernel32
+    salida = consola.GetStdHandle(-11)      # STD_OUTPUT_HANDLE
+    modo = ctypes.c_uint32()
+    if consola.GetConsoleMode(salida, ctypes.byref(modo)):   # falso si la salida no es una consola
+        consola.SetConsoleMode(salida, modo.value | 0x0004)  # ENABLE_VIRTUAL_TERMINAL_PROCESSING
+
+
 def main() -> None:
     os.umask(0o077)       # la base, su diario y la clave nacen solo para su dueño (H-15)
+    activar_ansi_en_windows()
     try:
         crear_tablas()
         if not hay_usuarios():
