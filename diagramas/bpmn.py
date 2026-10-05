@@ -9,6 +9,7 @@ caben en el ancho de una carta con letra legible. La norma admite pools en las d
 from svgkit import SVG, GRIS, AMARILLO, BORDE
 
 R_EV, TW, TH, GD = 9, 112, 30, 17   # radio de evento, ancho y alto de tarea, semidiagonal de la compuerta
+MARGEN = 6                          # distancia fija entre un rótulo y su figura o su línea
 
 
 def pool(g, x, y, w, h, titulo, carriles):
@@ -29,11 +30,11 @@ def evento(g, cx, cy, etiqueta, fin=False, lado="abajo"):
     sw = 2.6 if fin else 1.0
     g.el.append(f'<circle cx="{cx}" cy="{cy}" r="{R_EV}" fill="#fff" stroke="{BORDE}" stroke-width="{sw}"/>')
     if lado == "abajo":
-        g.text(cx, cy + R_EV + 10, etiqueta, 7.3)
+        g.text(cx, cy + R_EV + MARGEN + 6, etiqueta, 7.3)      # 6 = altura de la mayúscula
     elif lado == "der":
-        g.text(cx + R_EV + 4, cy + 3 - etiqueta.count("\n") * 4.4, etiqueta, 7.3, anchor="start")
+        g.text(cx + R_EV + MARGEN, cy + 3 - etiqueta.count("\n") * 4.4, etiqueta, 7.3, anchor="start")
     else:
-        g.text(cx - R_EV - 4, cy + 3, etiqueta, 7.3, anchor="end")
+        g.text(cx - R_EV - MARGEN, cy + 3, etiqueta, 7.3, anchor="end")
 
 
 def tarea(g, cx, cy, texto, w=TW, fill=GRIS):
@@ -48,13 +49,19 @@ def compuerta(g, cx, cy, pregunta, lado="izq"):
     g.el.append(f'<path d="M{cx-k},{cy-k} L{cx+k},{cy+k} M{cx+k},{cy-k} L{cx-k},{cy+k}" stroke="{BORDE}" stroke-width="1.6"/>')
     lineas = pregunta.split("\n")
     y0 = cy - (len(lineas) - 1) * 4.5 + 3
-    x = cx - d - 5 if lado == "izq" else cx + d + 5
+    x = cx - d - MARGEN - 2 if lado == "izq" else cx + d + MARGEN + 2   # el vértice es una punta: 2 más
     for i, l in enumerate(lineas):
         g.text(x, y0 + i * 9, l, 7.5, anchor="end" if lado == "izq" else "start", italic=True)
 
 
-def flujo(g, pts, etiqueta=None, en=None):
-    """Flujo de secuencia ortogonal con punta rellena; etiqueta («sí», «no») junto al punto en."""
+def flujo(g, pts, etiqueta=None):
+    """Flujo de secuencia ortogonal con punta rellena. La etiqueta (“sí”, “no”) va junto a la salida,
+    siempre a MARGEN de la línea: encima si sale en horizontal, a la derecha si sale en vertical."""
     g.path(pts, end="fill", sw=0.9)
     if etiqueta:
-        g.text(en[0], en[1], etiqueta, 7.5, anchor="start", italic=True, halo=True)
+        (x0, y0), (x1, y1) = pts[0], pts[1]
+        if y0 == y1:                                    # sale en horizontal
+            x, y = x0 + 4, y0 - MARGEN
+        else:                                           # sale en vertical (hacia abajo)
+            x, y = x0 + MARGEN, y0 + 6 + 6
+        g.text(x, y, etiqueta, 7.5, anchor="start", italic=True, halo=True)

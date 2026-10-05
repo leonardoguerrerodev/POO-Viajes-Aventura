@@ -1,6 +1,6 @@
-"""Fig. · BPMN 2.0 del proceso «Anular una reserva» (TO-BE), carriles Cliente y Sistema.
+"""Fig. · BPMN 2.0 del proceso “Anular una reserva” (TO-BE), carriles Cliente y Sistema.
 
-El vacío que el propio caso nombra («qué ocurre cuando un cliente desiste»), resuelto por el supuesto
+El vacío que el propio caso nombra (“qué ocurre cuando un cliente desiste”), resuelto por el supuesto
 S-01: la reserva no se borra, queda anulada, y sus personas vuelven al cupo. La compuerta reúne las tres
 condiciones que el sistema comprueba en la misma sentencia que anula: es del cliente (R11), está vigente
 y su salida no ha llegado.
@@ -32,9 +32,9 @@ flujo(g, [(XC, Y["ini"] + R_EV), (XC, Y["c1"] - h)])
 flujo(g, [(XC, Y["c1"] + h), (XC, Y["s1"]), (XS - TW / 2, Y["s1"])])
 flujo(g, [(XS, Y["s1"] + h), (XS, Y["s1"] + 26), (XC, Y["s1"] + 26), (XC, Y["c2"] - h)])
 flujo(g, [(XC, Y["c2"] + h), (XC, Y["g1"] - 30), (XS, Y["g1"] - 30), (XS, Y["g1"] - GD)])
-flujo(g, [(XS + GD, Y["g1"]), (XR - 43, Y["g1"])], "no", (XS + GD + 3, Y["g1"] - 4))
+flujo(g, [(XS + GD, Y["g1"]), (XR - 43, Y["g1"])], "no")
 flujo(g, [(XR, Y["g1"] + h), (XR, Y["g1"] + 44 - R_EV)])
-flujo(g, [(XS, Y["g1"] + GD), (XS, Y["s2"] - h)], "sí", (XS + 4, Y["g1"] + GD + 11))
+flujo(g, [(XS, Y["g1"] + GD), (XS, Y["s2"] - h)], "sí")
 flujo(g, [(XS - 80, Y["s2"]), (XC + R_EV, Y["s2"])])
 
 g.save(os.path.join(os.path.dirname(os.path.abspath(__file__)), "05_bpmn_anulacion.svg"))

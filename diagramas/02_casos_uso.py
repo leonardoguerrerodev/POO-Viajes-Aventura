@@ -3,7 +3,7 @@
 Disposición según Scott Ambler, *The Elements of UML 2.0 Style*: actor primario arriba a la izquierda y
 todos los actores fuera del límite del sistema; casos de uso apilados en el orden en que ocurren;
 asociaciones sin punta de flecha. Dos actores, como pide la guía del curso (Cliente y Administrador):
-el actor es un rol, no una persona. La gestión de cada entidad es un solo caso («Gestionar destinos»),
+el actor es un rol, no una persona. La gestión de cada entidad es un solo caso (“Gestionar destinos”),
 no una elipse por operación CRUD. Cada caso que exige sesión la incluye con su propia flecha.
 Cada caso lleva los RF que cumple; la tabla de la sección 2.1 repite esa asignación y trazabilidad.py
 comprueba que todo RF funcional esté en algún caso de uso.
@@ -17,9 +17,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 from svgkit import SVG, AMARILLO, GRIS, BORDE
 
 FUENTE = ImageFont.truetype("/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf", 100)
-g = SVG(484, 452)
+g = SVG(556, 452)                  # página ancha, como el diagrama de clases: los carriles respiran
 RX, RY = 68, 20
-XL, XR, XC = 140, 330, 235          # columna del cliente, del administrador y bus de «include»
+XL, XR, XC = 146, 402, 274          # columna del cliente, del administrador y bus de «include»
 Y = [118, 168, 218, 268, 318, 368]  # filas, en el orden en que ocurren
 
 
@@ -36,8 +36,8 @@ def cu(cx, cy, titulo, reqs, rx=RX, fill=GRIS):
 
 
 # límite del sistema
-g.rect(64, 14, 344, 430, fill="#ffffff")
-g.text(236, 29, "Sistema de Viajes Aventura", 9, bold=True)
+g.rect(60, 14, 428, 430, fill="#ffffff")
+g.text(XC, 29, "Sistema de Viajes Aventura", 9, bold=True)
 
 # arriba al centro, el caso que incluyen todos los que exigen sesión
 YS = 62
@@ -55,7 +55,8 @@ cu(XR, Y[0], "CU-09 Gestionar destinos", "RF-DES-01 a 10")
 cu(XR, Y[1], "CU-10 Gestionar paquetes", "RF-PAQ-01 a 04 · 08 a 11")
 cu(XR, Y[2], "CU-11 Publicar paquete", "RF-PAQ-05", fill=AMARILLO)
 cu(XR, Y[3], "CU-12 Ver reservas\nde un paquete", "RF-RES-11 · RF-SEG-10")
-cu(XR, Y[4], "CU-13 Gestionar cuentas\ny seguridad", "RF-SEG-06 · 07 · 14\nRF-SEG-15 · 16")
+R13 = 76                                       # CU-13 es más ancho: su título va en dos líneas
+cu(XR, Y[4], "CU-13 Gestionar cuentas\ny seguridad", "RF-SEG-06 · 07 · 14 · 15 · 16", rx=R13)
 # abajo al centro, el caso de los dos actores
 YC = 418
 cu(XC, YC, "CU-08 Cambiar contraseña", "RF-SEG-11 · 04", rx=72)
@@ -68,15 +69,17 @@ def borde_inferior(x):
     return YS + 20 * (1 - ((x - XC) / 72) ** 2) ** 0.5
 
 
-# Entre las dos columnas hay 54 pt (de x = 208 a 262): nueve carriles separados por 6 pt.
-carriles = [(XL + RX, Y[2], XC - 25), (XL + RX, Y[3], XC - 19), (XL + RX, Y[5], XC - 13),
-            (XR - RX, Y[0], XC + 25), (XR - RX, Y[1], XC + 19), (XR - RX, Y[2], XC + 13),
-            (XR - RX, Y[3], XC + 7), (XR - RX, Y[4], XC + 1)]
+# Entre las dos columnas hay 120 pt (de x = 218 a 338): nueve carriles separados por 12,5 pt, que
+# llegan repartidos a lo ancho del borde inferior de CU-02 (antes eran 6 pt y se confundían).
+PASO = 12.5
+carriles = [(XL + RX, Y[2], XC - 4 * PASO), (XL + RX, Y[3], XC - 3 * PASO), (XL + RX, Y[5], XC - 2 * PASO),
+            (XR - RX, Y[0], XC + 4 * PASO), (XR - RX, Y[1], XC + 3 * PASO), (XR - RX, Y[2], XC + 2 * PASO),
+            (XR - RX, Y[3], XC + PASO), (XR - R13, Y[4], XC)]
 for x0, y0, xc in carriles:
     g.path([(x0, y0), (xc, y0), (xc, borde_inferior(xc))], dash=True, end="vee")
-XU = XC - 7                                     # CU-08 sube desde abajo por su propio carril
+XU = XC - PASO                                  # CU-08 sube desde abajo por su propio carril
 g.path([(XU, YC - 20 * (1 - ((XU - XC) / 72) ** 2) ** 0.5), (XU, borde_inferior(XU))], dash=True, end="vee")
-g.text(XC - 36, YS + RY + 13, "«include»", 7.5, anchor="end", halo=True)
+g.text(XC - 4 * PASO - 6, YS + RY + 14, "«include»", 7.5, anchor="end", halo=True)
 
 # «extend»: anular es opcional dentro de ver mis reservas (la flecha va al caso base)
 g.path([(XL, Y[4] - RY), (XL, Y[3] + RY)], dash=True, end="vee")
@@ -93,12 +96,12 @@ for k in (0, 1, 2, 3, 5):
 g.path([(BL, YC), (XC - 72, YC)])
 
 # Administrador: a la derecha, mismo criterio
-g.actor(456, 60, "Administrador", size=8.5)
-BR = 422
-g.path([(448, 80), (BR, 80)])
+g.actor(528, 60, "Administrador", size=8.5)
+BR = 496                                       # a la izquierda del nombre del actor, sin cruzarlo
+g.path([(520, 80), (BR, 80)])
 g.path([(BR, 80), (BR, YC)])
 for k in (0, 1, 2, 3, 4):
-    g.path([(BR, Y[k]), (XR + RX, Y[k])])
+    g.path([(BR, Y[k]), (XR + (R13 if k == 4 else RX), Y[k])])
     g.circle(BR, Y[k], 1.4, fill=BORDE)
 g.path([(BR, YC), (XC + 72, YC)])
 

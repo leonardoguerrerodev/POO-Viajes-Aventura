@@ -1,102 +1,101 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="484pt" height="452pt" viewBox="0 0 484 452">
+<svg xmlns="http://www.w3.org/2000/svg" width="556pt" height="452pt" viewBox="0 0 556 452">
 <rect width="100%" height="100%" fill="#fff"/>
-<rect x="64" y="14" width="344" height="430" rx="0" fill="#ffffff" stroke="#333333" stroke-width="0.8"/>
-<text x="236" y="29" font-family="Liberation Sans" font-size="9" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="236" dy="0">Sistema de Viajes Aventura</tspan></text>
-<ellipse cx="235" cy="62" rx="72" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="235" y="60.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="235" dy="0">CU-02 Iniciar sesión</tspan></text>
-<text x="235" y="69.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="235" dy="0">RF-SEG-01 a 03 · 05 · 08 · 09</tspan></text>
-<ellipse cx="140" cy="118" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="140" y="111.4" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="140" dy="0">CU-01 Registrarse</tspan></text>
-<text x="140" y="121.0" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="140" dy="0">RF-RES-01 a 03</tspan></text>
-<text x="140" y="130.6" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="140" dy="0">RF-SEG-04 · 12 · 13 · 17</tspan></text>
-<ellipse cx="140" cy="168" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="140" y="166.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="140" dy="0">CU-03 Consultar paquetes</tspan></text>
-<text x="140" y="175.79999999999998" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="140" dy="0">RF-PAQ-06 · 07</tspan></text>
-<ellipse cx="140" cy="218" rx="68" ry="20" fill="#fff6d6" stroke="#333333" stroke-width="0.8"/>
-<text x="140" y="216.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="140" dy="0">CU-04 Reservar paquete</tspan></text>
-<text x="140" y="225.79999999999998" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="140" dy="0">RF-RES-04 a 07 · 10</tspan></text>
-<ellipse cx="140" cy="268" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="140" y="266.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="140" dy="0">CU-05 Ver mis reservas</tspan></text>
-<text x="140" y="275.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="140" dy="0">RF-RES-08 · RF-SEG-10</tspan></text>
-<ellipse cx="140" cy="318" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="140" y="316.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="140" dy="0">CU-06 Anular reserva</tspan></text>
-<text x="140" y="325.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="140" dy="0">RF-RES-09</tspan></text>
-<ellipse cx="140" cy="368" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="140" y="366.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="140" dy="0">CU-07 Actualizar mis datos</tspan></text>
-<text x="140" y="375.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="140" dy="0">RF-RES-12</tspan></text>
-<ellipse cx="330" cy="118" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="330" y="116.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="330" dy="0">CU-09 Gestionar destinos</tspan></text>
-<text x="330" y="125.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="330" dy="0">RF-DES-01 a 10</tspan></text>
-<ellipse cx="330" cy="168" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="330" y="166.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="330" dy="0">CU-10 Gestionar paquetes</tspan></text>
-<text x="330" y="175.79999999999998" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="330" dy="0">RF-PAQ-01 a 04 · 08 a 11</tspan></text>
-<ellipse cx="330" cy="218" rx="68" ry="20" fill="#fff6d6" stroke="#333333" stroke-width="0.8"/>
-<text x="330" y="216.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="330" dy="0">CU-11 Publicar paquete</tspan></text>
-<text x="330" y="225.79999999999998" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="330" dy="0">RF-PAQ-05</tspan></text>
-<ellipse cx="330" cy="268" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="330" y="261.4" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="330" dy="0">CU-12 Ver reservas</tspan></text>
-<text x="330" y="271.0" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="330" dy="0">de un paquete</tspan></text>
-<text x="330" y="280.59999999999997" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="330" dy="0">RF-RES-11 · RF-SEG-10</tspan></text>
-<ellipse cx="330" cy="318" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="330" y="306.6" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="330" dy="0">CU-13 Gestionar cuentas</tspan></text>
-<text x="330" y="316.20000000000005" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="330" dy="0">y seguridad</tspan></text>
-<text x="330" y="325.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="330" dy="0">RF-SEG-06 · 07 · 14</tspan></text>
-<text x="330" y="335.40000000000003" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="330" dy="0">RF-SEG-15 · 16</tspan></text>
-<ellipse cx="235" cy="418" rx="72" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="235" y="416.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="235" dy="0">CU-08 Cambiar contraseña</tspan></text>
-<text x="235" y="425.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="235" dy="0">RF-SEG-11 · 04</tspan></text>
-<path d="M208,218 L210,218 L210,80.75565758266089" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M213.5,87.75565758266089 L210,80.75565758266089 L206.5,87.75565758266089" fill="none" stroke="#333333" stroke-width="0.9"/>
-<path d="M208,268 L216,268 L216,81.2910617055774" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M219.5,88.2910617055774 L216,81.2910617055774 L212.5,88.2910617055774" fill="none" stroke="#333333" stroke-width="0.9"/>
-<path d="M208,368 L222,368 L222,81.6712957515058" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M225.5,88.6712957515058 L222,81.6712957515058 L218.5,88.6712957515058" fill="none" stroke="#333333" stroke-width="0.9"/>
-<path d="M262,118 L260,118 L260,80.75565758266089" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M263.5,87.75565758266089 L260,80.75565758266089 L256.5,87.75565758266089" fill="none" stroke="#333333" stroke-width="0.9"/>
-<path d="M262,168 L254,168 L254,81.2910617055774" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M257.5,88.2910617055774 L254,81.2910617055774 L250.5,88.2910617055774" fill="none" stroke="#333333" stroke-width="0.9"/>
-<path d="M262,218 L248,218 L248,81.6712957515058" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M251.5,88.6712957515058 L248,81.6712957515058 L244.5,88.6712957515058" fill="none" stroke="#333333" stroke-width="0.9"/>
-<path d="M262,268 L242,268 L242,81.90525397482959" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M245.5,88.90525397482959 L242,81.90525397482959 L238.5,88.90525397482959" fill="none" stroke="#333333" stroke-width="0.9"/>
-<path d="M262,318 L236,318 L236,81.99807089461814" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M239.5,88.99807089461814 L236,81.99807089461814 L232.5,88.99807089461814" fill="none" stroke="#333333" stroke-width="0.9"/>
-<path d="M228,398.0947460251704 L228,81.90525397482959" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M231.5,88.90525397482959 L228,81.90525397482959 L224.5,88.90525397482959" fill="none" stroke="#333333" stroke-width="0.9"/>
-<text x="199" y="95" font-family="Liberation Sans" font-size="7.5" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="199" dy="0">«include»</tspan></text>
-<path d="M140,298 L140,288" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
-<path d="M143.5,295.0 L140,288 L136.5,295.0" fill="none" stroke="#333333" stroke-width="0.9"/>
-<text x="144" y="296.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="144" dy="0">«extend»</tspan></text>
+<rect x="60" y="14" width="428" height="430" rx="0" fill="#ffffff" stroke="#333333" stroke-width="0.8"/>
+<text x="274" y="29" font-family="Liberation Sans" font-size="9" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="274" dy="0">Sistema de Viajes Aventura</tspan></text>
+<ellipse cx="274" cy="62" rx="72" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="274" y="60.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="274" dy="0">CU-02 Iniciar sesión</tspan></text>
+<text x="274" y="69.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="274" dy="0">RF-SEG-01 a 03 · 05 · 08 · 09</tspan></text>
+<ellipse cx="146" cy="118" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="146" y="111.4" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="146" dy="0">CU-01 Registrarse</tspan></text>
+<text x="146" y="121.0" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="146" dy="0">RF-RES-01 a 03</tspan></text>
+<text x="146" y="130.6" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="146" dy="0">RF-SEG-04 · 12 · 13 · 17</tspan></text>
+<ellipse cx="146" cy="168" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="146" y="166.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="146" dy="0">CU-03 Consultar paquetes</tspan></text>
+<text x="146" y="175.79999999999998" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="146" dy="0">RF-PAQ-06 · 07</tspan></text>
+<ellipse cx="146" cy="218" rx="68" ry="20" fill="#fff6d6" stroke="#333333" stroke-width="0.8"/>
+<text x="146" y="216.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="146" dy="0">CU-04 Reservar paquete</tspan></text>
+<text x="146" y="225.79999999999998" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="146" dy="0">RF-RES-04 a 07 · 10</tspan></text>
+<ellipse cx="146" cy="268" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="146" y="266.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="146" dy="0">CU-05 Ver mis reservas</tspan></text>
+<text x="146" y="275.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="146" dy="0">RF-RES-08 · RF-SEG-10</tspan></text>
+<ellipse cx="146" cy="318" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="146" y="316.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="146" dy="0">CU-06 Anular reserva</tspan></text>
+<text x="146" y="325.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="146" dy="0">RF-RES-09</tspan></text>
+<ellipse cx="146" cy="368" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="146" y="366.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="146" dy="0">CU-07 Actualizar mis datos</tspan></text>
+<text x="146" y="375.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="146" dy="0">RF-RES-12</tspan></text>
+<ellipse cx="402" cy="118" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="402" y="116.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="402" dy="0">CU-09 Gestionar destinos</tspan></text>
+<text x="402" y="125.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="402" dy="0">RF-DES-01 a 10</tspan></text>
+<ellipse cx="402" cy="168" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="402" y="166.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="402" dy="0">CU-10 Gestionar paquetes</tspan></text>
+<text x="402" y="175.79999999999998" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="402" dy="0">RF-PAQ-01 a 04 · 08 a 11</tspan></text>
+<ellipse cx="402" cy="218" rx="68" ry="20" fill="#fff6d6" stroke="#333333" stroke-width="0.8"/>
+<text x="402" y="216.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="402" dy="0">CU-11 Publicar paquete</tspan></text>
+<text x="402" y="225.79999999999998" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="402" dy="0">RF-PAQ-05</tspan></text>
+<ellipse cx="402" cy="268" rx="68" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="402" y="261.4" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="402" dy="0">CU-12 Ver reservas</tspan></text>
+<text x="402" y="271.0" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="402" dy="0">de un paquete</tspan></text>
+<text x="402" y="280.59999999999997" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="402" dy="0">RF-RES-11 · RF-SEG-10</tspan></text>
+<ellipse cx="402" cy="318" rx="76" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="402" y="311.4" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="402" dy="0">CU-13 Gestionar cuentas</tspan></text>
+<text x="402" y="321.0" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="402" dy="0">y seguridad</tspan></text>
+<text x="402" y="330.59999999999997" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="402" dy="0">RF-SEG-06 · 07 · 14 · 15 · 16</tspan></text>
+<ellipse cx="274" cy="418" rx="72" ry="20" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="274" y="416.2" font-family="Liberation Sans" font-size="8.3" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="274" dy="0">CU-08 Cambiar contraseña</tspan></text>
+<text x="274" y="425.8" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000"><tspan x="274" dy="0">RF-SEG-11 · 04</tspan></text>
+<path d="M214,218 L224.0,218 L224.0,76.39092649665402" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M227.5,83.39092649665402 L224.0,76.39092649665402 L220.5,83.39092649665402" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M214,268 L236.5,268 L236.5,79.07316770712323" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M240.0,86.07316770712323 L236.5,79.07316770712323 L233.0,86.07316770712323" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M214,368 L249.0,368 L249.0,80.75565758266089" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M252.5,87.75565758266089 L249.0,80.75565758266089 L245.5,87.75565758266089" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M334,118 L324.0,118 L324.0,76.39092649665402" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M327.5,83.39092649665402 L324.0,76.39092649665402 L320.5,83.39092649665402" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M334,168 L311.5,168 L311.5,79.07316770712323" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M315.0,86.07316770712323 L311.5,79.07316770712323 L308.0,86.07316770712323" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M334,218 L299.0,218 L299.0,80.75565758266089" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M302.5,87.75565758266089 L299.0,80.75565758266089 L295.5,87.75565758266089" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M334,268 L286.5,268 L286.5,81.6962857625367" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M290.0,88.6962857625367 L286.5,81.6962857625367 L283.0,88.6962857625367" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M326,318 L274,318 L274,82.0" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M277.5,89.0 L274,82.0 L270.5,89.0" fill="none" stroke="#333333" stroke-width="0.9"/>
+<path d="M261.5,398.3037142374633 L261.5,81.6962857625367" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M265.0,88.6962857625367 L261.5,81.6962857625367 L258.0,88.6962857625367" fill="none" stroke="#333333" stroke-width="0.9"/>
+<text x="218.0" y="96" font-family="Liberation Sans" font-size="7.5" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="218.0" dy="0">«include»</tspan></text>
+<path d="M146,298 L146,288" fill="none" stroke="#333333" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M149.5,295.0 L146,288 L142.5,295.0" fill="none" stroke="#333333" stroke-width="0.9"/>
+<text x="150" y="296.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="150" dy="0">«extend»</tspan></text>
 <circle cx="30" cy="65" r="5" fill="#fff" stroke="#333333" stroke-width="0.9"/>
 <path d="M30,70 v12 M21,74 h18 M30,82 l-7,10 M30,82 l7,10" stroke="#333333" stroke-width="0.9" fill="none"/>
 <text x="30" y="103" font-family="Liberation Sans" font-size="9" text-anchor="middle" fill="#000"><tspan x="30" dy="0">Cliente</tspan></text>
 <path d="M38,80 L50,80" fill="none" stroke="#333333" stroke-width="0.8"/>
 <path d="M50,80 L50,418" fill="none" stroke="#333333" stroke-width="0.8"/>
-<path d="M50,118 L72,118" fill="none" stroke="#333333" stroke-width="0.8"/>
+<path d="M50,118 L78,118" fill="none" stroke="#333333" stroke-width="0.8"/>
 <circle cx="50" cy="118" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M50,168 L72,168" fill="none" stroke="#333333" stroke-width="0.8"/>
+<path d="M50,168 L78,168" fill="none" stroke="#333333" stroke-width="0.8"/>
 <circle cx="50" cy="168" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M50,218 L72,218" fill="none" stroke="#333333" stroke-width="0.8"/>
+<path d="M50,218 L78,218" fill="none" stroke="#333333" stroke-width="0.8"/>
 <circle cx="50" cy="218" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M50,268 L72,268" fill="none" stroke="#333333" stroke-width="0.8"/>
+<path d="M50,268 L78,268" fill="none" stroke="#333333" stroke-width="0.8"/>
 <circle cx="50" cy="268" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M50,368 L72,368" fill="none" stroke="#333333" stroke-width="0.8"/>
+<path d="M50,368 L78,368" fill="none" stroke="#333333" stroke-width="0.8"/>
 <circle cx="50" cy="368" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M50,418 L163,418" fill="none" stroke="#333333" stroke-width="0.8"/>
-<circle cx="456" cy="65" r="5" fill="#fff" stroke="#333333" stroke-width="0.9"/>
-<path d="M456,70 v12 M447,74 h18 M456,82 l-7,10 M456,82 l7,10" stroke="#333333" stroke-width="0.9" fill="none"/>
-<text x="456" y="103" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000"><tspan x="456" dy="0">Administrador</tspan></text>
-<path d="M448,80 L422,80" fill="none" stroke="#333333" stroke-width="0.8"/>
-<path d="M422,80 L422,418" fill="none" stroke="#333333" stroke-width="0.8"/>
-<path d="M422,118 L398,118" fill="none" stroke="#333333" stroke-width="0.8"/>
-<circle cx="422" cy="118" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M422,168 L398,168" fill="none" stroke="#333333" stroke-width="0.8"/>
-<circle cx="422" cy="168" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M422,218 L398,218" fill="none" stroke="#333333" stroke-width="0.8"/>
-<circle cx="422" cy="218" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M422,268 L398,268" fill="none" stroke="#333333" stroke-width="0.8"/>
-<circle cx="422" cy="268" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M422,318 L398,318" fill="none" stroke="#333333" stroke-width="0.8"/>
-<circle cx="422" cy="318" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
-<path d="M422,418 L307,418" fill="none" stroke="#333333" stroke-width="0.8"/>
+<path d="M50,418 L202,418" fill="none" stroke="#333333" stroke-width="0.8"/>
+<circle cx="528" cy="65" r="5" fill="#fff" stroke="#333333" stroke-width="0.9"/>
+<path d="M528,70 v12 M519,74 h18 M528,82 l-7,10 M528,82 l7,10" stroke="#333333" stroke-width="0.9" fill="none"/>
+<text x="528" y="103" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000"><tspan x="528" dy="0">Administrador</tspan></text>
+<path d="M520,80 L496,80" fill="none" stroke="#333333" stroke-width="0.8"/>
+<path d="M496,80 L496,418" fill="none" stroke="#333333" stroke-width="0.8"/>
+<path d="M496,118 L470,118" fill="none" stroke="#333333" stroke-width="0.8"/>
+<circle cx="496" cy="118" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M496,168 L470,168" fill="none" stroke="#333333" stroke-width="0.8"/>
+<circle cx="496" cy="168" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M496,218 L470,218" fill="none" stroke="#333333" stroke-width="0.8"/>
+<circle cx="496" cy="218" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M496,268 L470,268" fill="none" stroke="#333333" stroke-width="0.8"/>
+<circle cx="496" cy="268" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M496,318 L478,318" fill="none" stroke="#333333" stroke-width="0.8"/>
+<circle cx="496" cy="318" r="1.4" fill="#333333" stroke="#333333" stroke-width="0.9"/>
+<path d="M496,418 L346,418" fill="none" stroke="#333333" stroke-width="0.8"/>
 </svg>

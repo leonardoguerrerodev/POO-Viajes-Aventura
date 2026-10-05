@@ -3,7 +3,7 @@
 Los miembros y las relaciones se leen de clases.puml, que sigue siendo la única fuente del modelo
 (y la que pruebas/verificar.py compara contra el código). Este script solo decide dónde va
 cada caja: las relaciones dibujadas se comprueban contra las del .puml y, si no coinciden, falla.
-Unidad = 1 pt impreso. Las firmas largas se envuelven en la misma caja («envolver antes que ensanchar»).
+Unidad = 1 pt impreso. Las firmas largas se envuelven en la misma caja (“envolver antes que ensanchar”).
 """
 import os
 import re
@@ -62,7 +62,7 @@ def envolver(texto, w=W):
 
 
 # --- dibujo ---------------------------------------------------------------------------------------
-ALTO = 630
+ALTO = 640                       # Cliente suma #validarClave: Reserva baja 10 pt
 g = SVG(556, ALTO)
 CAJAS = {}
 
@@ -104,6 +104,9 @@ def paquete(x, y, w, h, nombre, fill="none"):
     g.rect(x, y + 12, w, h - 12, fill=fill, sw=0.8)
 
 
+M = 6                     # distancia fija entre un rótulo (o su triangulito) y la línea, la caja o el borde
+
+
 def etiqueta(x, y, t, anchor="start", size=7.2):
     g.text(x, y, t, size, anchor=anchor, halo=True)
 
@@ -132,8 +135,10 @@ g.path([(XA, ym), (9, ym), (9, yt), (xt, yt)])
 
 # Reservas: Reserva a la derecha (para llegar derecho a Paquete) y su enumeración a la izquierda
 yr0 = yc + 56
-paquete(4, yr0 - 22, 262, ALTO - (yr0 - 22) - 4, "Reservas", fill="#fffdf3")
-XR, WR = 90, 170
+# Más angosto que “Cuentas y acceso”: entre su borde y el de “Catálogo” caben las multiplicidades de
+# Reserva — Paquete sin tocar ningún borde.
+paquete(4, yr0 - 22, 248, ALTO - (yr0 - 22) - 4, "Reservas", fill="#fffdf3")
+XR, WR = 90, 156
 yr = clase("Reserva", XR, yr0, fill=AMARILLO, w=WR)
 clase("EstadoReserva", XA, yr0 + 30, w=66)
 
@@ -157,24 +162,30 @@ g.text(XE + WE / 2, yx0 + 10, "«Python»", 7, italic=True)
 g.text(XE + WE / 2, yx0 + 20, "Exception", 8.5, bold=True)
 g.path([(XC + 130, yx0 + 12.5), (XE, yx0 + 12.5)], end="tri")
 
-# Paquete 0..* ◇— 2..5 Destino «combina»: el rombo va en el todo (Paquete)
+# Paquete 0..* ◇— 2..5 Destino “combina”: el rombo va en el todo (Paquete)
 xg = XC + WC / 2
 g.el.append(f'<path d="M{xg},{yp0} l4,-6 l-4,-6 l-4,6 Z" fill="#fff" stroke="{BORDE}" stroke-width="0.8"/>')
 g.path([(xg, yp0 - 12), (xg, yd)])
-etiqueta(xg + 6, yp0 - 4, "0..*"); etiqueta(xg + 6, yd + 10, "2..5")
-etiqueta(xg - 10, (yd + yp0) / 2 + 3, "combina", "end"); sentido(xg - 6, (yd + yp0) / 2 - 7, "arriba")
+etiqueta(xg + 4 + M, yp0 - 4, "0..*"); etiqueta(xg + M, yd + M + 5, "2..5")   # 4: medio rombo
+ymc = (yd + yp0 - 12) / 2
+sentido(xg - M - 3, ymc - 7, "arriba"); etiqueta(xg - M - 6 - 3, ymc - 2, "combina", "end")
 
-# Cliente 1 — 0..* Reserva «realiza»: vertical, cruza el borde entre paquetes
+# Cliente 1 — 0..* Reserva “realiza”: vertical, cruza el borde entre paquetes
 xl = XR + WR / 2
 g.path([(xl, yc), (xl, yr0)])
-etiqueta(xl + 5, yc + 10, "1"); etiqueta(xl - 5, yr0 - 3, "0..*", "end")
-etiqueta(xl - 6, yc + 24, "realiza", "end"); sentido(xl - 4, yc + 18, "abajo")
+# Entre el borde de “Cuentas y acceso” (yc + 6) y el de “Reservas” (yr0 - 10): ningún rótulo los toca.
+etiqueta(xl + M, yc + 6 + M + 5, "1"); etiqueta(xl + M, yr0 - 10 - M, "0..*")
+ymr = (yc + 6 + yr0 - 10) / 2
+sentido(xl - M - 3, ymr - 5, "abajo"); etiqueta(xl - M - 6 - 3, ymr, "realiza", "end")
 
-# Reserva 0..* — 1 Paquete «sobre»
+# Reserva 0..* — 1 Paquete “sobre”
 yl = yr0 + 40
 g.path([(XR + WR, yl), (XC, yl)])
-etiqueta(XR + WR + 4, yl - 4, "0..*"); etiqueta(XC - 4, yl - 4, "1", "end")
-etiqueta((XR + WR + XC) / 2 - 4, yl + 11, "sobre", "middle"); sentido((XR + WR + XC) / 2 + 10, yl + 8, "der")
+# Entre el borde de “Reservas” (x = 252) y el de “Catálogo” (XC - 6): arriba las multiplicidades,
+# abajo el nombre con su sentido, todo a M de la línea y de los bordes.
+xb1, xb2 = 4 + 248, XC - 6
+etiqueta(xb1 + 3, yl - M, "0..*"); etiqueta(xb2 - 3, yl - M, "1", "end")
+etiqueta((xb1 + xb2) / 2 - 4, yl + M + 5, "sobre", "middle"); sentido((xb1 + xb2) / 2 + 9, yl + M + 2, "der")
 
 DIBUJADAS = {("Usuario", "Cliente"), ("Usuario", "Administrador"), ("Cliente", "Reserva"),
              ("Paquete", "Destino"), ("Reserva", "Paquete")}
