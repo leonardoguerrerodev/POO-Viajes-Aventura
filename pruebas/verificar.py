@@ -1007,8 +1007,11 @@ def i20(admin: v.Administrador) -> None:
 
     armadas, asserts = revisar_producto_con_ast()
     assert not armadas, f"SQL armado con texto en {armadas}"
+    menu = (RAIZ / "main.py").read_text(encoding="utf-8")
+    # main.py importa sqlite3 solo para reconocer sus errores: no abre conexiones ni consulta.
+    assert "execute" not in menu and "connect(" not in menu and "conectar(" not in menu, "el menú contiene SQL"
     ok("I.20", "ninguna consulta SQL se arma pegando textos: todas son literales con parámetros ?"
-               " (RNF-SEG-03, revisado con ast en todo el producto)")
+               " (RNF-SEG-03, revisado con ast en todo el producto), y el menú no contiene SQL (RNF-MAN-01)")
     assert asserts == {"viajes.py": 0, "main.py": 0}, asserts
     ok("I.20", "el producto no usa assert: ninguna regla depende de algo que python -O desactiva (bandit B101)")
 

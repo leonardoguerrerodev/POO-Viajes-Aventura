@@ -445,7 +445,7 @@ Generada por `pruebas/verificar.py` (sección “menu”) sobre una base tempora
 [pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 16
-   Respaldo guardado en /tmp/tmpalnzwwfo/respaldos/viajes_20261005_183831_559615.db.
+   Respaldo guardado en /tmp/tmpudbihj_v/respaldos/viajes_20261005_185628_535114.db.
    La clave de cifrado no va en el respaldo: respáldela aparte (ver README).
 
    Presione Enter para continuar...
@@ -812,7 +812,7 @@ Generada por `pruebas/verificar.py` (sección “menu”) sobre una base tempora
    (escriba x y Enter para cancelar)
    ¿Continuar? (s/n): s
    Clave cambiada: 1 cliente(s) cifrados de nuevo. La clave anterior quedó como
-   .env.anterior-20261005_183832_340862, junto a la nueva: guárdela con los respaldos anteriores, que la
+   .env.anterior-20261005_185629_311617, junto a la nueva: guárdela con los respaldos anteriores, que la
    necesitan para leerse, o bórrela si no hay ninguno. Respalde aparte la clave nueva.
 
    Presione Enter para continuar...
@@ -821,30 +821,30 @@ Generada por `pruebas/verificar.py` (sección “menu”) sobre una base tempora
    Opción: 18
 
    Registro de auditoría: los últimos 30 eventos (hora UTC)
-   2026-10-05 18:38:32  ana@viajes.cl          clave.rotar                1 clientes
-   2026-10-05 18:38:32  ana@viajes.cl          sesion.inicio              
-   2026-10-05 18:38:32  carolina@correo.cl     cliente.contacto           
-   2026-10-05 18:38:32  carolina@correo.cl     reserva.anular             reserva 2
-   2026-10-05 18:38:32  carolina@correo.cl     reserva.crear              reserva 2: paquete 1, 1 personas
-   2026-10-05 18:38:32  carolina@correo.cl     reserva.crear              reserva 1: paquete 1, 2 personas
-   2026-10-05 18:38:32  carolina@correo.cl     sesion.inicio              
-   2026-10-05 18:38:32  (sin cuenta)           sesion.correo_inexistente  
-   2026-10-05 18:38:31  carolina@correo.cl     sesion.fallida             
-   2026-10-05 18:38:31  carolina@correo.cl     cuenta.crear               cuenta 3 (cliente)
-   2026-10-05 18:38:31  matias@viajes.cl       sesion.rechazada_inactiva  
-   2026-10-05 18:38:31  ana@viajes.cl          cuenta.desactivar          cuenta 2
-   2026-10-05 18:38:31  ana@viajes.cl          base.respaldo              viajes_20261005_183831_559615.db
-   2026-10-05 18:38:31  ana@viajes.cl          cuenta.crear               cuenta 2 (administrador)
-   2026-10-05 18:38:31  ana@viajes.cl          paquete.cupo               paquete 1: 10
-   2026-10-05 18:38:31  ana@viajes.cl          paquete.publicar           paquete 1: 528000 por persona
-   2026-10-05 18:38:31  ana@viajes.cl          paquete.crear              paquete 1
-   2026-10-05 18:38:31  ana@viajes.cl          destino.crear              destino 2
-   2026-10-05 18:38:31  ana@viajes.cl          destino.eliminar           destino 2 “Salar de Surire”
-   2026-10-05 18:38:31  ana@viajes.cl          destino.costo              destino 1: 130000
-   2026-10-05 18:38:31  ana@viajes.cl          destino.crear              destino 2
-   2026-10-05 18:38:31  ana@viajes.cl          destino.crear              destino 1
-   2026-10-05 18:38:31  ana@viajes.cl          sesion.inicio              
-   2026-10-05 18:38:31  ana@viajes.cl          cuenta.crear               cuenta 1 (administrador)
+   2026-10-05 18:56:29  ana@viajes.cl          clave.rotar                1 clientes
+   2026-10-05 18:56:29  ana@viajes.cl          sesion.inicio              
+   2026-10-05 18:56:29  carolina@correo.cl     cliente.contacto           
+   2026-10-05 18:56:29  carolina@correo.cl     reserva.anular             reserva 2
+   2026-10-05 18:56:29  carolina@correo.cl     reserva.crear              reserva 2: paquete 1, 1 personas
+   2026-10-05 18:56:29  carolina@correo.cl     reserva.crear              reserva 1: paquete 1, 2 personas
+   2026-10-05 18:56:29  carolina@correo.cl     sesion.inicio              
+   2026-10-05 18:56:29  (sin cuenta)           sesion.correo_inexistente  
+   2026-10-05 18:56:28  carolina@correo.cl     sesion.fallida             
+   2026-10-05 18:56:28  carolina@correo.cl     cuenta.crear               cuenta 3 (cliente)
+   2026-10-05 18:56:28  matias@viajes.cl       sesion.rechazada_inactiva  
+   2026-10-05 18:56:28  ana@viajes.cl          cuenta.desactivar          cuenta 2
+   2026-10-05 18:56:28  ana@viajes.cl          base.respaldo              viajes_20261005_185628_535114.db
+   2026-10-05 18:56:28  ana@viajes.cl          cuenta.crear               cuenta 2 (administrador)
+   2026-10-05 18:56:28  ana@viajes.cl          paquete.cupo               paquete 1: 10
+   2026-10-05 18:56:28  ana@viajes.cl          paquete.publicar           paquete 1: 528000 por persona
+   2026-10-05 18:56:28  ana@viajes.cl          paquete.crear              paquete 1
+   2026-10-05 18:56:28  ana@viajes.cl          destino.crear              destino 2
+   2026-10-05 18:56:28  ana@viajes.cl          destino.eliminar           destino 2 “Salar de Surire”
+   2026-10-05 18:56:28  ana@viajes.cl          destino.costo              destino 1: 130000
+   2026-10-05 18:56:28  ana@viajes.cl          destino.crear              destino 2
+   2026-10-05 18:56:28  ana@viajes.cl          destino.crear              destino 1
+   2026-10-05 18:56:28  ana@viajes.cl          sesion.inicio              
+   2026-10-05 18:56:28  ana@viajes.cl          cuenta.crear               cuenta 1 (administrador)
 
    Presione Enter para continuar...
 [pantalla limpia · menú de a*******a@v****.cl (administrador)]
