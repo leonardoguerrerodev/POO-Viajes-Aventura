@@ -474,10 +474,10 @@ def _verificar_auditoria() -> None:
                  "reserva.crear", "reserva.anular"}
     assert esperadas <= acciones, esperadas - acciones                     # H-02
     detalles = " ".join(f["detalle"] for f in filas)
-    for dato in ("12345678", "@", "clave", "5678"):       # las contraseñas de prueba dicen «clave»
+    for dato in ("12345678", "@", "clave", "5678"):       # las contraseñas de prueba dicen “clave”
         assert dato not in detalles, dato                                  # sin datos personales
     # Lo eliminado queda con su nombre: el id solo ya no dice qué se borró.
-    assert "destino" in detalles and "«Valle del Elqui»" in detalles
+    assert "destino" in detalles and "“Valle del Elqui”" in detalles
     # Una operación rechazada se deshace entera, con su registro: el registro no miente.
     antes = len(filas)
     _rechaza(ReglaNegocioError, Destino("Destino 0", "Z", "d", 1, 1).guardar, admin, regla="R1")
@@ -808,7 +808,7 @@ def i19(admin: v.Administrador, paquete: v.Paquete, cliente: v.Cliente) -> None:
     assert v.enmascarar_correo("juan9@gmail.com") == "j*******9@g****.com"
     assert v.enmascarar_correo("carolina@c.cl") == "c*******a@c****.cl"
     assert v.enmascarar_correo("jo@mail.uc.cl") == "j*******@m****.cl"
-    ok("I.19", "el correo también sale enmascarado en «ver mis datos» y en la cabecera del menú (RF-SEG-10)")
+    ok("I.19", "el correo también sale enmascarado en “ver mis datos” y en la cabecera del menú (RF-SEG-10)")
     e = rechaza(ValueError, v.Cliente, "P", "12.345.678-6", "x@c.cl", "912345678", "clave-larga-xx")
     assert "12.345.678" not in str(e) and "12345678" not in str(e)
     ok("I.19", "los mensajes de error nombran el campo, nunca el RUT ni el teléfono ingresados")
@@ -1090,7 +1090,7 @@ GUION = [
     "1", CAROLINA, "luna-sobre-el-salar",
     "1", ENTER,
     "2", "99", ENTER,                  # H-13: un id inexistente recibe el mismo mensaje
-    "2", "1", "2.5", "2", ENTER,       # «2.5» personas se rechaza, no se lee como 25
+    "2", "1", "2.5", "2", ENTER,       # “2.5” personas se rechaza, no se lee como 25
     "2", "1", "n", ENTER,
     "2", "1", "s", "20", ENTER,
     "3", ENTER,
@@ -1222,7 +1222,7 @@ def probar_inactividad() -> str:
              "0"]
     texto = con_reloj(RelojQueSalta([0, 11 * 60]), guion)
     assert "Correo del socio" not in texto, "la sesión caducada ejecutó la opción"
-    # H-11: también dentro de una acción. Se elige «crear socio» a tiempo, pero el correo llega
+    # H-11: también dentro de una acción. Se elige “crear socio” a tiempo, pero el correo llega
     # 11 minutos después: la cuenta no se crea.
     guion = ["1", ANA, "clave-larga-de-ana", "clave-larga-de-ana",    # entrar al sistema y primer uso
              "1", ANA, "clave-larga-de-ana",
@@ -1270,7 +1270,7 @@ def seccion_menu() -> None:
     ok("G.18", "la sesión caduca tras 10 minutos sin uso, en el menú y dentro de una acción (RF-SEG-09)")
     destino = RAIZ / "docs" / "SALIDA_TERMINAL.md"
     destino.parent.mkdir(exist_ok=True)
-    destino.write_text("# Sesión real del menú\n\nGenerada por `pruebas/verificar.py` (sección «menu»)"
+    destino.write_text("# Sesión real del menú\n\nGenerada por `pruebas/verificar.py` (sección “menu”)"
                        " sobre una base temporal, con datos ficticios (ningún nombre, RUT ni teléfono"
                        " corresponde a una persona). Las contraseñas se teclearon sin eco y aquí se ven"
                        " como ••••; las del modo demostración se generan al azar en cada ejecución."
@@ -1297,7 +1297,7 @@ def snake(nombre: str) -> str:
 # --- Diagrama ----------------------------------------------------------------
 
 def leer_miembro(clase: dict, linea: str) -> None:
-    """Una línea del cuerpo de una clase: atributo («- correo: str») o método («+ puede(...)»)."""
+    """Una línea del cuerpo de una clase: atributo (“- correo: str”) o método (“+ puede(...)”)."""
     if clase["tipo"] == "enum":
         clase["atributos"].add(linea)                       # valores de la enumeración
         return
@@ -1310,12 +1310,12 @@ def leer_miembro(clase: dict, linea: str) -> None:
         return
     lista = resto.rpartition(")")[0]
     params = tuple(snake(p.split(":")[0].strip()) for p in lista.split(",") if p.strip())
-    # «#» protegido en el diagrama = un guion bajo en Python
+    # “#” protegido en el diagrama = un guion bajo en Python
     clase["metodos"][("_" if protegido else "") + snake(nombre)] = (params, static, abstract)
 
 
 def leer_relacion(clases: dict, linea: str) -> None:
-    """«A <|-- B» es herencia; cualquier otra flecha entre dos clases, una asociación."""
+    """“A <|-- B” es herencia; cualquier otra flecha entre dos clases, una asociación."""
     partes = re.sub(r'"[^"]*"', " ", linea).split()        # sin las multiplicidades
     if len(partes) < 3 or partes[2] not in clases:
         return
@@ -1443,8 +1443,8 @@ def seccion_uml() -> None:
 # 8. PRUEBAS DE MUTACIÓN (I.20): cada regla rota a propósito debe ser detectada
 # =====================================================================
 # Cada mutación cambia un fragmento exacto del producto en una copia temporal y corre las secciones
-# indicadas. Si ninguna falla, la regla está desprotegida. Así, «cada corrección tiene una prueba que
-# la vigila» es una afirmación que cualquiera puede repetir.
+# indicadas. Si ninguna falla, la regla está desprotegida. Así, “cada corrección tiene una prueba que
+# la vigila” es una afirmación que cualquiera puede repetir.
 
 VIAJES, MENU = "viajes.py", "main.py"
 
@@ -1484,7 +1484,7 @@ MUTACIONES = [
     ("Hallazgo 5 permiso sin sesión iniciada", VIAJES,
      "if (not isinstance(solicitante, Usuario) or not solicitante.tiene_sesion()",
      "if (not isinstance(solicitante, Usuario)", ["reglas"]),
-    # La sesión se revisa antes de cambiar la contraseña; el «AND hash_clave = ?» del UPDATE queda como
+    # La sesión se revisa antes de cambiar la contraseña; el “AND hash_clave = ?” del UPDATE queda como
     # defensa ante la carrera entre las dos (la mutación de la revisión sí se detecta).
     ("H-10 una sesión que ya no vale cambia la contraseña", VIAJES,
      'if not self.tiene_sesion():\n            raise PermissionError("La contraseña cambió en otra sesión',
@@ -1525,13 +1525,13 @@ MUTACIONES = [
      '                       fila["telefono_cifrado"], cifrado=True, **cuenta)',
      'return Cliente(fila["nombre"], descifrar(fila["rut_cifrado"]), fila["correo"],\n'
      '                       descifrar(fila["telefono_cifrado"]), **cuenta)', ["reglas"]),
-    ("K-05 la clave exige «sin usuarios»", VIAJES,
+    ("K-05 la clave exige “sin usuarios”", VIAJES,
      'con.execute("SELECT 1 FROM usuario WHERE rut_cifrado IS NOT NULL LIMIT 1"',
      'con.execute("SELECT 1 FROM usuario LIMIT 1"', ["reglas", "menu"]),
     ("RF-SEG-10 el teléfono muestra los cuatro últimos dígitos", VIAJES,
      'return f"+56 {telefono[0]} ******* {telefono[-1]}"', 'return f"+56 {telefono[0]} **** {telefono[-4:]}"',
      ["datos"]),
-    ("RF-SEG-10 el correo completo en «ver mis datos»", MENU,
+    ("RF-SEG-10 el correo completo en “ver mis datos”", MENU,
      "Correo:   {enmascarar_correo(sesion.obtener_correo())}", "Correo:   {sesion.obtener_correo()}", ["menu"]),
     ("H-01 clave dentro del proyecto", VIAJES,
      'RUTA_CLAVE = Path.home() / ".config" / "viajes-aventura" / "clave.env"',
@@ -1543,7 +1543,7 @@ MUTACIONES = [
      '            registrar_evento(con, solicitante.obtener_id(), "reserva.crear",',
      '            (lambda *a: None)(con, solicitante.obtener_id(), "reserva.crear",', ["reglas"]),
     ("RF-SEG-16 el registro no dice qué destino se eliminó", VIAJES,
-     'f"destino {self.__id} «{self.__nombre}»"', 'f"destino {self.__id}"', ["reglas"]),
+     'f"destino {self.__id} “{self.__nombre}”"', 'f"destino {self.__id}"', ["reglas"]),
     ("Hallazgo 4 editar deja el objeto a medias", VIAJES,
      '        autorizar(solicitante, "catalogo")\n        datos = self.__validar_datos(nombre, zona, descripcion, duracion_dias)',
      '        autorizar(solicitante, "catalogo")\n        self.__nombre = nombre\n'
@@ -1552,7 +1552,7 @@ MUTACIONES = [
      "    if cur.rowcount != 1:\n        raise ValueError(f\"El {que} ya no existe",
      "    if False:\n        raise ValueError(f\"El {que} ya no existe", ["reglas"]),
     # Menú
-    ("Hallazgo 3 «2.5» personas se lee como 25", MENU,
+    ("Hallazgo 3 “2.5” personas se lee como 25", MENU,
      "        valor = leer(mensaje)\n        if ENTERO_CON_MILES.fullmatch(valor):",
      "        valor = leer(mensaje).replace(\".\", \"\")\n        if ENTERO_CON_MILES.fullmatch(valor):", ["menu"]),
     ("H-11 plazo de inactividad solo en el menú", MENU,
@@ -1570,7 +1570,7 @@ MUTACIONES = [
      ["menu"]),
     ("RNF-USA-04 la demostración escribe en la base real", MENU,
      'viajes.usar_base(os.path.join(carpeta, "demostracion.db"))', "pass", ["seguridad"]),
-    ("H-13 mensajes distintos para «no existe» y «no publicado»", MENU,
+    ("H-13 mensajes distintos para “no existe” y “no publicado”", MENU,
      "    if paquete is None or not paquete.esta_disponible():\n        raise ValueError(NO_DISPONIBLE)",
      "    if paquete is None:\n        raise ValueError('No existe')", ["menu"]),
 ]
@@ -1587,7 +1587,7 @@ def mutacion_detectada(nombre: str, archivo: str, original: str, roto: str, secc
                 (shutil.copytree if origen.is_dir() else shutil.copy)(origen, copia / parte)
         texto = (copia / archivo).read_text(encoding="utf-8")
         if texto.count(original) != 1:
-            raise AssertionError(f"«{nombre}»: el fragmento original ya no está en {archivo}")
+            raise AssertionError(f"“{nombre}”: el fragmento original ya no está en {archivo}")
         (copia / archivo).write_text(texto.replace(original, roto), encoding="utf-8")
         for seccion in secciones:
             r = subprocess.run([sys.executable, "pruebas/verificar.py", "--solo", seccion], cwd=copia,

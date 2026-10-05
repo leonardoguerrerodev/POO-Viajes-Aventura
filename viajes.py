@@ -26,7 +26,7 @@ import shutil                               # copia de la clave anterior al rota
 import sqlite3                              # la base de datos: un archivo, sin servidor
 import sys                                  # versión de Python y salida con mensaje claro
 import unicodedata                          # quita tildes al comparar nombres de destinos (RF-DES-02)
-from abc import ABC, abstractmethod         # Usuario es abstracta: no existe «solo un usuario»
+from abc import ABC, abstractmethod         # Usuario es abstracta: no existe “solo un usuario”
 from contextlib import contextmanager       # `with conectar()`: abre y siempre cierra la conexión
 from datetime import date, datetime, timedelta, timezone  # fechas, y el bloqueo en hora UTC
 from enum import Enum                       # estado de la reserva: un valor mal escrito falla al crearse
@@ -34,7 +34,7 @@ from functools import lru_cache             # la clave de cifrado se lee una sol
 from pathlib import Path                    # rutas que funcionan igual en Windows, macOS y Linux
 
 # Antes de cualquier otra cosa, un mensaje claro en vez de una traza: macOS trae un python3 3.9, y
-# sin el entorno virtual activado faltan las librerías (ver README, «Instalar y ejecutar»).
+# sin el entorno virtual activado faltan las librerías (ver README, “Instalar y ejecutar”).
 if sys.version_info < (3, 12):
     sys.exit(f"Viajes Aventura requiere Python 3.12 o superior; este es {sys.version.split()[0]}.")
 try:
@@ -43,7 +43,7 @@ try:
     from cryptography.fernet import Fernet, InvalidToken, MultiFernet  # cifrado autenticado: AES + HMAC (I.19)
 except ModuleNotFoundError:
     sys.exit("Faltan las librerías del proyecto: active el entorno virtual (.venv) e instale\n"
-             "requirements.txt como indica el README, sección «Instalar y ejecutar».")
+             "requirements.txt como indica el README, sección “Instalar y ejecutar”.")
 
 # =====================================================================
 # 1. VALIDACIONES Y AUTORIZACIÓN COMPARTIDAS
@@ -68,7 +68,7 @@ SEPARADORES = re.compile(r"[\s()\-.]")
 
 CLAVE_MINIMA, CLAVE_MAXIMA = 12, 128          # RF-SEG-04; el tope evita hashear textos enormes
 # Contraseñas de 12 o más caracteres que igual se adivinan primero (H-16). Además se exigen al
-# menos 5 caracteres distintos, que descarta «aaaaaaaaaaaa» o «121212121212».
+# menos 5 caracteres distintos, que descarta “aaaaaaaaaaaa” o “121212121212”.
 CLAVES_COMUNES = frozenset({
     "contraseña123", "contrasena123", "contraseña1234", "contrasena1234", "password1234",
     "password12345", "passwordpassword", "123456789012", "1234567890123", "12345678901234",
@@ -89,7 +89,7 @@ VARIABLE_CLAVE = "VIAJES_CLAVE_DATOS"
 CAMPO_NOMBRE = "El nombre"
 
 # Acciones que un rol puede tener. Un texto fuera de este conjunto es un error de
-# programación y se rechaza: así un permiso mal escrito no se convierte en un «no» silencioso.
+# programación y se rechaza: así un permiso mal escrito no se convierte en un “no” silencioso.
 ACCIONES = frozenset({"catalogo", "ver_reservas", "cuentas", "respaldo", "clave", "auditoria",
                       "reservar"})
 
@@ -150,7 +150,7 @@ def pesos(monto: int) -> str:
 def normalizar(nombre: str) -> str:
     """Forma comparable de un nombre: sin tildes, sin mayúsculas y con un solo espacio entre palabras.
 
-    «Valle del  Elquí» y «valle del elqui» dan lo mismo (RF-DES-02). La IA propuso mayúsculas y
+    “Valle del  Elquí” y “valle del elqui” dan lo mismo (RF-DES-02). La IA propuso mayúsculas y
     espacios; las tildes se agregaron porque el criterio de aceptación las exige.
     """
     sin_tildes = "".join(c for c in unicodedata.normalize("NFKD", nombre)
@@ -159,7 +159,7 @@ def normalizar(nombre: str) -> str:
 
 
 def validar_correo(correo: str) -> str:
-    """El correo en minúsculas: «Carolina@Correo.cl» y «carolina@correo.cl» son la misma cuenta (R9)."""
+    """El correo en minúsculas: “Carolina@Correo.cl” y “carolina@correo.cl” son la misma cuenta (R9)."""
     correo = texto(correo, "El correo", 254).lower()     # el tope va antes de la regex
     if not PATRON_CORREO.fullmatch(correo):
         raise ValueError("El correo no tiene un formato válido")
@@ -202,7 +202,7 @@ def enmascarar_correo(correo: str) -> str:
 
 
 def tiene_secuencia(clave: str, largo: int = 4) -> bool:
-    """«1234», «abcd», «4321» o «dcba» en cualquier parte: lo primero que prueba quien adivina (RF-SEG-04)."""
+    """“1234”, “abcd”, “4321” o “dcba” en cualquier parte: lo primero que prueba quien adivina (RF-SEG-04)."""
     minusculas = clave.casefold()
     for i in range(len(minusculas) - largo + 1):
         trozo = minusculas[i:i + largo]
@@ -219,7 +219,7 @@ def partes_propias(*datos: str) -> set[str]:
 
 
 def _leer_clave(ruta: Path) -> str | None:
-    """La clave de un archivo «VIAJES_CLAVE_DATOS=...». Si volvió de un respaldo con permisos
+    """La clave de un archivo “VIAJES_CLAVE_DATOS=...”. Si volvió de un respaldo con permisos
     abiertos, se cierran."""
     if os.name == "posix" and ruta.stat().st_mode & 0o077:
         os.chmod(ruta, 0o600)
@@ -336,7 +336,7 @@ def autorizar(solicitante: "Usuario", accion: str) -> None:
         raise ValueError(f"Acción desconocida: {accion!r}")
     # Usuario se define más abajo; la función se llama recién en tiempo de ejecución.
     # Además del rol, exige una cuenta con sesión iniciada: un objeto armado a mano, sin pasar por
-    # la contraseña, no tiene permisos «por cualquier vía» (RF-SEG-05, auditoría final, hallazgo 5).
+    # la contraseña, no tiene permisos “por cualquier vía” (RF-SEG-05, auditoría final, hallazgo 5).
     if (not isinstance(solicitante, Usuario) or not solicitante.tiene_sesion()
             or not solicitante.puede(accion)):
         raise PermissionError("No tiene permiso para esta operación")
@@ -494,7 +494,7 @@ def consultar_auditoria(solicitante: "Usuario", limite: int = 30) -> list[tuple[
     """Los últimos eventos del registro de auditoría, del más reciente al más antiguo (RF-SEG-16).
 
     Es la pareja de registrar_evento(): lo que se escribe, un socio lo puede leer desde el menú.
-    Cada fila: fecha UTC, cuenta que actuó (su correo, o «sin cuenta» si el correo no existía),
+    Cada fila: fecha UTC, cuenta que actuó (su correo, o “sin cuenta” si el correo no existía),
     acción y detalle, que solo lleva ids, montos y el nombre de lo eliminado.
     """
     autorizar(solicitante, "auditoria")
@@ -517,7 +517,7 @@ def contar_bloqueos(solicitante: "Usuario", horas: int = 24) -> int:
 
 
 def exigir_una_fila(cur: sqlite3.Cursor, que: str) -> None:
-    """Una escritura que no tocó ninguna fila no se informa como «guardado» (hallazgo 20)."""
+    """Una escritura que no tocó ninguna fila no se informa como “guardado” (hallazgo 20)."""
     if cur.rowcount != 1:
         raise ValueError(f"El {que} ya no existe: otra sesión lo eliminó")
 
@@ -593,7 +593,7 @@ class Usuario(ABC):
     def _validar_clave(self, clave: str) -> None:
         """Política de contraseña (RF-SEG-04): 12 caracteres o más, no común ni repetitiva, sin
         secuencias y sin partes del correo. Sin exigir mayúsculas ni símbolos: NIST SP 800-63B
-        desaconseja esas reglas, que llevan a contraseñas previsibles como «Contraseña1!»."""
+        desaconseja esas reglas, que llevan a contraseñas previsibles como “Contraseña1!”."""
         if not isinstance(clave, str):
             raise TypeError("La contraseña debe ser texto")
         if not CLAVE_MINIMA <= len(clave) <= CLAVE_MAXIMA:
@@ -1048,7 +1048,7 @@ class Destino:
             # crearlo si fue un error (catálogo, no datos personales).
             registrar_evento(con, solicitante.obtener_id(),
                              "destino.no_disponible" if en_paquete else "destino.eliminar",
-                             f"destino {self.__id} «{self.__nombre}»")
+                             f"destino {self.__id} “{self.__nombre}”")
         self.__disponible = False
         return en_paquete is None
 
@@ -1175,7 +1175,7 @@ class Paquete:
         return self.__cupo_maximo - reservadas
 
     def estado(self, hoy: date | None = None) -> str:
-        """borrador, publicado o vencido. «Vencido» se calcula con la fecha: nadie tiene que
+        """borrador, publicado o vencido. “Vencido” se calcula con la fecha: nadie tiene que
         acordarse de sacarlo (S-02, P-03)."""
         hoy = hoy or date.today()
         if self.__fecha_salida <= hoy:
@@ -1278,7 +1278,7 @@ class Paquete:
                               " (SELECT 1 FROM reserva WHERE paquete_id = ?)", (self.__id, self.__id))
             if cur.rowcount == 1:
                 registrar_evento(con, solicitante.obtener_id(), "paquete.eliminar",
-                                 f"paquete {self.__id} «{self.__nombre}»")
+                                 f"paquete {self.__id} “{self.__nombre}”")
         if cur.rowcount != 1:
             raise ReglaNegocioError("RF-PAQ-09", "Un paquete con reservas no se elimina")
 

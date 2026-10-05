@@ -48,6 +48,7 @@ package "Cuentas y acceso" {
     + historial(): list
     + tieneReservaVigente(paquete: Paquete): bool
     + puede(accion: str): bool
+    # validarClave(clave: str): void
   }
 
   class Administrador {

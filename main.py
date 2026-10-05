@@ -90,7 +90,7 @@ def limpiar() -> None:
 
 
 # --- Entrada del usuario ---------------------------------------------------
-# Toda lectura pasa por leer(): así «x» cancela en cualquier dato.
+# Toda lectura pasa por leer(): así “x” cancela en cualquier dato.
 
 AVISO_CANCELAR = "   (escriba x y Enter para cancelar)"
 # atender() lo enciende antes de cada acción: la primera pregunta de la acción recuerda cómo
@@ -132,8 +132,8 @@ def pedir_valido(mensaje: str, validar) -> str:
             print(f"   ! {error}")
 
 
-# Un entero, con o sin separador de miles: 1050000 o 1.050.000, como la planilla. «2.5» no calza:
-# antes se borraban todos los puntos y «2.5» personas se registraba como 25 (hallazgo 3).
+# Un entero, con o sin separador de miles: 1050000 o 1.050.000, como la planilla. “2.5” no calza:
+# antes se borraban todos los puntos y “2.5” personas se registraba como 25 (hallazgo 3).
 ENTERO_CON_MILES = re.compile(r"\d{1,3}(?:\.\d{3})+", re.ASCII)
 
 
@@ -142,7 +142,7 @@ def pedir_entero(mensaje: str) -> int:
         valor = leer(mensaje)
         if ENTERO_CON_MILES.fullmatch(valor):
             valor = valor.replace(".", "")
-        # isdecimal y no isdigit: isdigit acepta caracteres como «²» que int() rechaza.
+        # isdecimal y no isdigit: isdigit acepta caracteres como “²” que int() rechaza.
         if not valor.isdecimal():
             print("   ! Escriba un número entero, sin letras ni decimales.")
         elif len(valor) > 12 or int(valor) > MAXIMO_ENTERO:
@@ -319,7 +319,7 @@ def eliminar_destino(sesion: Usuario) -> None:
         print("   Eliminado del catálogo.")
     else:
         # R8: el destino está en un paquete; se conserva para no cambiar lo que ya se vendió.
-        print("   Está en al menos un paquete: quedó «no disponible» y no se ofrecerá en"
+        print("   Está en al menos un paquete: quedó “no disponible” y no se ofrecerá en"
               " paquetes nuevos.")
 
 
@@ -449,7 +449,7 @@ def crear_socio(sesion: Administrador) -> None:
 
 def reservar(sesion: Cliente) -> None:
     ver_oferta()
-    # «No existe» y «no está publicado» dan el mismo mensaje: un cliente no puede deducir los ids
+    # “No existe” y “no está publicado” dan el mismo mensaje: un cliente no puede deducir los ids
     # de los paquetes en borrador (H-13). El dominio vuelve a revisar todo al reservar.
     paquete = Paquete.buscar(pedir_entero(PIDE_ID_PAQUETE))
     if paquete is None or not paquete.esta_disponible():
@@ -467,7 +467,7 @@ def mis_reservas(sesion: Cliente) -> list[Reserva]:
     correo = sesion.obtener_correo()
     print("\n   Mis reservas")
     for numero, reserva in enumerate(reservas, 1):
-        # Enmascarado como en «ver mis datos»; el socio sí lo ve completo, para contactarlo (RF-RES-11).
+        # Enmascarado como en “ver mis datos”; el socio sí lo ve completo, para contactarlo (RF-RES-11).
         print(f"   {numero:>2}) {str(reserva).replace(correo, enmascarar_correo(correo))}")
     if not reservas:
         print("   (todavía no tiene reservas)")
@@ -563,7 +563,7 @@ def mostrar_menu(sesion: Usuario, opciones: list[tuple]) -> None:
             seccion = nombre_seccion
             print(f"\n   {seccion.upper()}")
         print(f"   {numero:>2}. {etiqueta}")
-    print("\n   Escriba «x» para cancelar la acción en curso  ·  0. Salir\n" + "=" * 66)
+    print("\n   Escriba “x” para cancelar la acción en curso  ·  0. Salir\n" + "=" * 66)
 
 
 # --- Ejecución y errores ---------------------------------------------------
@@ -664,7 +664,7 @@ def alta_inicial() -> None:
         try:
             admin = Administrador.crear_primero(pedir_texto(PIDE_CORREO), pedir_clave_nueva())
             print(f"   Cuenta creada para {admin.obtener_correo()}. Ahora inicie sesión con la"
-                  " opción 1, «Iniciar sesión (socios y clientes)».")
+                  " opción 1, “Iniciar sesión (socios y clientes)”.")
             return
         except (ReglaNegocioError, ValueError, TypeError) as error:
             print(f"   ! {error}")
@@ -700,7 +700,7 @@ def inicio() -> bool:
 
 
 def activar_ansi_en_windows() -> None:
-    """La consola clásica de Windows muestra «←[2J» en vez de limpiar, salvo que se le pida
+    """La consola clásica de Windows muestra “←[2J” en vez de limpiar, salvo que se le pida
     interpretar las secuencias ANSI (Windows Terminal, macOS y Linux ya lo hacen)."""
     if os.name != "nt":
         return
@@ -737,7 +737,7 @@ PAQUETES_DE_EJEMPLO = [
 def clave_al_azar() -> str:
     """16 caracteres al azar. Se descarta la rara que trae una secuencia o 4 dígitos seguidos, que
     RF-SEG-04 rechazaría (los teléfonos de ejemplo son 9 1111 1111 y 9 2222 2222)."""
-    # Que traiga «soto» o «pedro» por azar es menos de 1 en 100.000: eso no se revisa.
+    # Que traiga “soto” o “pedro” por azar es menos de 1 en 100.000: eso no se revisa.
     clave = secrets.token_urlsafe(12)
     while tiene_secuencia(clave) or re.search(r"\d{4}", clave):
         clave = secrets.token_urlsafe(12)
@@ -846,7 +846,7 @@ def recorrer_inicio() -> None:
 
 
 def entrar_al_sistema() -> bool:
-    """La base real. Siempre False: «0. Salir» en la pantalla de inicio cierra el programa."""
+    """La base real. Siempre False: “0. Salir” en la pantalla de inicio cierra el programa."""
     crear_tablas()
     if not hay_usuarios():
         alta_inicial()

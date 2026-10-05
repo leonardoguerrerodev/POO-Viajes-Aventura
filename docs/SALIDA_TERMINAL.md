@@ -1,6 +1,6 @@
 # Sesión real del menú
 
-Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal, con datos ficticios (ningún nombre, RUT ni teléfono corresponde a una persona). Las contraseñas se teclearon sin eco y aquí se ven como ••••; las del modo demostración se generan al azar en cada ejecución.
+Generada por `pruebas/verificar.py` (sección “menu”) sobre una base temporal, con datos ficticios (ningún nombre, RUT ni teléfono corresponde a una persona). Las contraseñas se teclearon sin eco y aquí se ven como ••••; las del modo demostración se generan al azar en cada ejecución.
 
 ```text
 
@@ -61,7 +61,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    19. Cambiar mi contraseña
    20. Cerrar sesión
 
-   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+   Escriba “x” para cancelar la acción en curso  ·  0. Salir
 ==================================================================
 
    Opción: 3
@@ -130,7 +130,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
     7. Cambiar mi contraseña
     8. Cerrar sesión
 
-   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+   Escriba “x” para cancelar la acción en curso  ·  0. Salir
 ==================================================================
 
    Opción: 2
@@ -180,7 +180,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Correo: ana@viajes.cl
    Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
    Repita la contraseña: ••••
-   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
+   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, “Iniciar sesión (socios y clientes)”.
 
 ==================================================================
    Viajes Aventura
@@ -228,7 +228,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    19. Cambiar mi contraseña
    20. Cerrar sesión
 
-   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+   Escriba “x” para cancelar la acción en curso  ·  0. Salir
 ==================================================================
 
    Opción: 2
@@ -445,7 +445,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
 [pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 16
-   Respaldo guardado en /tmp/tmpyqg5073_/respaldos/viajes_20261005_081511_422089.db.
+   Respaldo guardado en /tmp/tmpadq94a30/respaldos/viajes_20261005_085552_764866.db.
    La clave de cifrado no va en el respaldo: respáldela aparte (ver README).
 
    Presione Enter para continuar...
@@ -660,7 +660,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
     7. Cambiar mi contraseña
     8. Cerrar sesión
 
-   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+   Escriba “x” para cancelar la acción en curso  ·  0. Salir
 ==================================================================
 
    Opción: 1
@@ -812,7 +812,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    (escriba x y Enter para cancelar)
    ¿Continuar? (s/n): s
    Clave cambiada: 1 cliente(s) cifrados de nuevo. La clave anterior quedó como
-   .env.anterior-20261005_081512_223359, junto a la nueva: guárdela con los respaldos anteriores, que la
+   .env.anterior-20261005_085553_614536, junto a la nueva: guárdela con los respaldos anteriores, que la
    necesitan para leerse, o bórrela si no hay ninguno. Respalde aparte la clave nueva.
 
    Presione Enter para continuar...
@@ -821,30 +821,30 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Opción: 18
 
    Registro de auditoría: los últimos 30 eventos (hora UTC)
-   2026-10-05 08:15:12  ana@viajes.cl          clave.rotar                1 clientes
-   2026-10-05 08:15:12  ana@viajes.cl          sesion.inicio              
-   2026-10-05 08:15:12  carolina@correo.cl     cliente.contacto           
-   2026-10-05 08:15:12  carolina@correo.cl     reserva.anular             reserva 2
-   2026-10-05 08:15:12  carolina@correo.cl     reserva.crear              reserva 2: paquete 1, 1 personas
-   2026-10-05 08:15:12  carolina@correo.cl     reserva.crear              reserva 1: paquete 1, 2 personas
-   2026-10-05 08:15:12  carolina@correo.cl     sesion.inicio              
-   2026-10-05 08:15:11  (sin cuenta)           sesion.correo_inexistente  
-   2026-10-05 08:15:11  carolina@correo.cl     sesion.fallida             
-   2026-10-05 08:15:11  carolina@correo.cl     cuenta.crear               cuenta 3 (cliente)
-   2026-10-05 08:15:11  matias@viajes.cl       sesion.rechazada_inactiva  
-   2026-10-05 08:15:11  ana@viajes.cl          cuenta.desactivar          cuenta 2
-   2026-10-05 08:15:11  ana@viajes.cl          base.respaldo              viajes_20261005_081511_422089.db
-   2026-10-05 08:15:11  ana@viajes.cl          cuenta.crear               cuenta 2 (administrador)
-   2026-10-05 08:15:11  ana@viajes.cl          paquete.cupo               paquete 1: 10
-   2026-10-05 08:15:11  ana@viajes.cl          paquete.publicar           paquete 1: 528000 por persona
-   2026-10-05 08:15:11  ana@viajes.cl          paquete.crear              paquete 1
-   2026-10-05 08:15:11  ana@viajes.cl          destino.crear              destino 2
-   2026-10-05 08:15:11  ana@viajes.cl          destino.eliminar           destino 2 «Salar de Surire»
-   2026-10-05 08:15:11  ana@viajes.cl          destino.costo              destino 1: 130000
-   2026-10-05 08:15:11  ana@viajes.cl          destino.crear              destino 2
-   2026-10-05 08:15:11  ana@viajes.cl          destino.crear              destino 1
-   2026-10-05 08:15:11  ana@viajes.cl          sesion.inicio              
-   2026-10-05 08:15:11  ana@viajes.cl          cuenta.crear               cuenta 1 (administrador)
+   2026-10-05 08:55:53  ana@viajes.cl          clave.rotar                1 clientes
+   2026-10-05 08:55:53  ana@viajes.cl          sesion.inicio              
+   2026-10-05 08:55:53  carolina@correo.cl     cliente.contacto           
+   2026-10-05 08:55:53  carolina@correo.cl     reserva.anular             reserva 2
+   2026-10-05 08:55:53  carolina@correo.cl     reserva.crear              reserva 2: paquete 1, 1 personas
+   2026-10-05 08:55:53  carolina@correo.cl     reserva.crear              reserva 1: paquete 1, 2 personas
+   2026-10-05 08:55:53  carolina@correo.cl     sesion.inicio              
+   2026-10-05 08:55:53  (sin cuenta)           sesion.correo_inexistente  
+   2026-10-05 08:55:53  carolina@correo.cl     sesion.fallida             
+   2026-10-05 08:55:53  carolina@correo.cl     cuenta.crear               cuenta 3 (cliente)
+   2026-10-05 08:55:52  matias@viajes.cl       sesion.rechazada_inactiva  
+   2026-10-05 08:55:52  ana@viajes.cl          cuenta.desactivar          cuenta 2
+   2026-10-05 08:55:52  ana@viajes.cl          base.respaldo              viajes_20261005_085552_764866.db
+   2026-10-05 08:55:52  ana@viajes.cl          cuenta.crear               cuenta 2 (administrador)
+   2026-10-05 08:55:52  ana@viajes.cl          paquete.cupo               paquete 1: 10
+   2026-10-05 08:55:52  ana@viajes.cl          paquete.publicar           paquete 1: 528000 por persona
+   2026-10-05 08:55:52  ana@viajes.cl          paquete.crear              paquete 1
+   2026-10-05 08:55:52  ana@viajes.cl          destino.crear              destino 2
+   2026-10-05 08:55:52  ana@viajes.cl          destino.eliminar           destino 2 “Salar de Surire”
+   2026-10-05 08:55:52  ana@viajes.cl          destino.costo              destino 1: 130000
+   2026-10-05 08:55:52  ana@viajes.cl          destino.crear              destino 2
+   2026-10-05 08:55:52  ana@viajes.cl          destino.crear              destino 1
+   2026-10-05 08:55:52  ana@viajes.cl          sesion.inicio              
+   2026-10-05 08:55:52  ana@viajes.cl          cuenta.crear               cuenta 1 (administrador)
 
    Presione Enter para continuar...
 [pantalla limpia · menú de a*******a@v****.cl (administrador)]
@@ -896,7 +896,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    Correo: ana@viajes.cl
    Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
    Repita la contraseña: ••••
-   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
+   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, “Iniciar sesión (socios y clientes)”.
 
 ==================================================================
    Viajes Aventura
@@ -944,7 +944,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    19. Cambiar mi contraseña
    20. Cerrar sesión
 
-   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+   Escriba “x” para cancelar la acción en curso  ·  0. Salir
 ==================================================================
 
    Opción: 14
@@ -977,7 +977,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    Correo: ana@viajes.cl
    Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
    Repita la contraseña: ••••
-   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
+   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, “Iniciar sesión (socios y clientes)”.
 
 ==================================================================
    Viajes Aventura
@@ -1025,7 +1025,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    19. Cambiar mi contraseña
    20. Cerrar sesión
 
-   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+   Escriba “x” para cancelar la acción en curso  ·  0. Salir
 ==================================================================
 
    Opción: 14
