@@ -48,6 +48,8 @@ PIDE_ID_PAQUETE = "   Id del paquete: "
 PIDE_CORREO = "   Correo: "
 PIDE_NOMBRE = "   Nombre: "
 MI_CUENTA = "Mi cuenta"
+PIDE_OPCION = "\n   Opción: "
+OPCION_DESCONOCIDA = "   ! Opción desconocida."
 
 
 class Cancelado(Exception):
@@ -557,7 +559,7 @@ def recorrer_menu(sesion: Usuario, opciones: list[tuple]) -> bool:
     while True:
         mostrar_menu(sesion, opciones)
         try:
-            eleccion = esperar(input, "\n   Opción: ").strip()
+            eleccion = esperar(input, PIDE_OPCION).strip()
         except (KeyboardInterrupt, EOFError):
             return False
         resultado = ejecutar_opcion(eleccion, opciones, sesion)
@@ -573,7 +575,7 @@ def ejecutar_opcion(eleccion: str, opciones: list[tuple], sesion: Usuario) -> bo
         return False
     # El largo va antes de int(): con más de 4.300 dígitos, int() lanza ValueError (H-12).
     if not (len(eleccion) <= 3 and eleccion.isdecimal() and 1 <= int(eleccion) <= len(opciones)):
-        print("   ! Opción desconocida.")
+        print(OPCION_DESCONOCIDA)
         return None
     try:
         return None if atender(opciones[int(eleccion) - 1][3], sesion) else False
@@ -606,7 +608,7 @@ def inicio() -> bool:
     print("   1. Iniciar sesión (socios y clientes)\n   2. Registrarme como cliente"
           "\n   3. Ver los paquetes disponibles\n   0. Salir")
     try:
-        eleccion = input("\n   Opción: ").strip()
+        eleccion = input(PIDE_OPCION).strip()
     except (KeyboardInterrupt, EOFError):
         return False
     if eleccion == "0":
@@ -622,7 +624,7 @@ def inicio() -> bool:
         if not atender(ver_oferta, None):
             return False
     else:
-        print("   ! Opción desconocida.")
+        print(OPCION_DESCONOCIDA)
     return True
 
 
@@ -694,35 +696,43 @@ def cargar_datos_de_ejemplo(hoy: date) -> dict[str, str]:
     return claves
 
 
+def mostrar_demostracion(claves: dict[str, str]) -> None:
+    print("\n" + "=" * 66 + "\n   MODO DEMOSTRACIÓN · base temporal, se borra al salir\n" + "=" * 66)
+    print("   Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),"
+          "\n   1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):")
+    for rol, correo in (("socio  ", DEMO_SOCIO), ("cliente", DEMO_CLIENTA), ("cliente", DEMO_CLIENTE)):
+        print(f"     {rol}  {correo:<18} {claves[correo]}")
+    print("\n   1. Entrar como socio (administrador)\n   2. Entrar como cliente (Carolina)"
+          "\n   3. Pantalla de inicio normal sobre la base de prueba"
+          "\n   0. Salir y borrar la base de prueba")
+
+
+def entrar_como(correo: str, claves: dict[str, str]) -> bool:
+    """La misma puerta que el inicio de sesión. False: salir del programa."""
+    sesion = Usuario.autenticar(correo, claves[correo])
+    if sesion is None:
+        print(CREDENCIALES_INVALIDAS)
+        return True
+    return usar_sesion(sesion)
+
+
 def menu_demostracion(claves: dict[str, str]) -> bool:
     """False: salir del programa. True: volver a la pantalla previa."""
     while True:
-        print("\n" + "=" * 66 + "\n   MODO DEMOSTRACIÓN · base temporal, se borra al salir\n" + "=" * 66)
-        print("   Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),"
-              "\n   1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):")
-        for rol, correo in (("socio  ", DEMO_SOCIO), ("cliente", DEMO_CLIENTA), ("cliente", DEMO_CLIENTE)):
-            print(f"     {rol}  {correo:<18} {claves[correo]}")
-        print("\n   1. Entrar como socio (administrador)\n   2. Entrar como cliente (Carolina)"
-              "\n   3. Pantalla de inicio normal sobre la base de prueba"
-              "\n   0. Salir y borrar la base de prueba")
+        mostrar_demostracion(claves)
         try:
-            eleccion = input("\n   Opción: ").strip()
+            eleccion = input(PIDE_OPCION).strip()
         except (KeyboardInterrupt, EOFError):
             return False
         if eleccion == "0":
             return True
         if eleccion in ("1", "2"):
-            correo = DEMO_SOCIO if eleccion == "1" else DEMO_CLIENTA
-            sesion = Usuario.autenticar(correo, claves[correo])     # la misma puerta que el login
-            if sesion is None:
-                print(CREDENCIALES_INVALIDAS)
-            elif not usar_sesion(sesion):
+            if not entrar_como(DEMO_SOCIO if eleccion == "1" else DEMO_CLIENTA, claves):
                 return False
         elif eleccion == "3":
-            while inicio():
-                pass
+            recorrer_inicio()
         else:
-            print("   ! Opción desconocida.")
+            print(OPCION_DESCONOCIDA)
 
 
 def modo_demostracion() -> bool:
@@ -747,13 +757,19 @@ def modo_demostracion() -> bool:
     return seguir
 
 
+def recorrer_inicio() -> None:
+    """La pantalla de inicio, hasta que se elija salir."""
+    seguir = True
+    while seguir:
+        seguir = inicio()
+
+
 def entrar_al_sistema() -> bool:
     """La base real. Siempre False: «0. Salir» en la pantalla de inicio cierra el programa."""
     crear_tablas()
     if not hay_usuarios():
         alta_inicial()
-    while inicio():
-        pass
+    recorrer_inicio()
     return False
 
 
@@ -763,7 +779,7 @@ def pantalla_previa() -> bool:
     print("   1. Entrar al sistema\n   2. Modo demostración (base temporal con datos de ejemplo;"
           " se borra al salir)\n   0. Salir")
     try:
-        eleccion = input("\n   Opción: ").strip()
+        eleccion = input(PIDE_OPCION).strip()
     except (KeyboardInterrupt, EOFError):
         return False
     if eleccion == "1":
@@ -771,7 +787,7 @@ def pantalla_previa() -> bool:
     if eleccion == "2":
         return modo_demostracion()
     if eleccion != "0":
-        print("   ! Opción desconocida.")
+        print(OPCION_DESCONOCIDA)
         return True
     return False
 

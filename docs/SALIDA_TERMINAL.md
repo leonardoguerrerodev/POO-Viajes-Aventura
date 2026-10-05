@@ -18,9 +18,9 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),
    1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):
-     socio    socio@demo.cl      7NTP6N2IcBOlCl19
-     cliente  carolina@demo.cl   6gL8OI3ogLsH9WeZ
-     cliente  pedro@demo.cl      Qgf_qzhowctBLcYa
+     socio    socio@demo.cl      wB2ZPXykFbNuqPOm
+     cliente  carolina@demo.cl   CbtJ4zMEm4mXcxhs
+     cliente  pedro@demo.cl      J_U-OWGwU4GXpOwH
 
    1. Entrar como socio (administrador)
    2. Entrar como cliente (Carolina)
@@ -98,9 +98,9 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),
    1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):
-     socio    socio@demo.cl      7NTP6N2IcBOlCl19
-     cliente  carolina@demo.cl   6gL8OI3ogLsH9WeZ
-     cliente  pedro@demo.cl      Qgf_qzhowctBLcYa
+     socio    socio@demo.cl      wB2ZPXykFbNuqPOm
+     cliente  carolina@demo.cl   CbtJ4zMEm4mXcxhs
+     cliente  pedro@demo.cl      J_U-OWGwU4GXpOwH
 
    1. Entrar como socio (administrador)
    2. Entrar como cliente (Carolina)
@@ -149,9 +149,9 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),
    1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):
-     socio    socio@demo.cl      7NTP6N2IcBOlCl19
-     cliente  carolina@demo.cl   6gL8OI3ogLsH9WeZ
-     cliente  pedro@demo.cl      Qgf_qzhowctBLcYa
+     socio    socio@demo.cl      wB2ZPXykFbNuqPOm
+     cliente  carolina@demo.cl   CbtJ4zMEm4mXcxhs
+     cliente  pedro@demo.cl      J_U-OWGwU4GXpOwH
 
    1. Entrar como socio (administrador)
    2. Entrar como cliente (Carolina)
@@ -419,7 +419,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
    Opción: 15
-   Respaldo guardado en /tmp/tmp_w40zeod/respaldos/viajes_20261005_041551_610636.db.
+   Respaldo guardado en /tmp/tmpk9wid2ft/respaldos/viajes_20261005_042730_125647.db.
    La clave de cifrado no va en el respaldo: respáldela aparte (ver README).
 
    Presione Enter para continuar...
