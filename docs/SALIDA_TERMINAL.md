@@ -1,6 +1,6 @@
 # Sesión real del menú
 
-Generada por `herramientas/driver.py` sobre una base temporal, con datos ficticios (ningún nombre, RUT ni teléfono corresponde a una persona). Las contraseñas se teclearon sin eco y aquí se ven como ••••.
+Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal, con datos ficticios (ningún nombre, RUT ni teléfono corresponde a una persona). Las contraseñas se teclearon sin eco y aquí se ven como ••••; las del modo demostración se generan al azar en cada ejecución.
 
 ```text
 
@@ -18,9 +18,9 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),
    1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):
-     socio    socio@demo.cl      wB2ZPXykFbNuqPOm
-     cliente  carolina@demo.cl   CbtJ4zMEm4mXcxhs
-     cliente  pedro@demo.cl      J_U-OWGwU4GXpOwH
+     socio    socio@demo.cl      <generada al azar>
+     cliente  carolina@demo.cl   <generada al azar>
+     cliente  pedro@demo.cl      <generada al azar>
 
    1. Entrar como socio (administrador)
    2. Entrar como cliente (Carolina)
@@ -98,9 +98,9 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),
    1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):
-     socio    socio@demo.cl      wB2ZPXykFbNuqPOm
-     cliente  carolina@demo.cl   CbtJ4zMEm4mXcxhs
-     cliente  pedro@demo.cl      J_U-OWGwU4GXpOwH
+     socio    socio@demo.cl      <generada al azar>
+     cliente  carolina@demo.cl   <generada al azar>
+     cliente  pedro@demo.cl      <generada al azar>
 
    1. Entrar como socio (administrador)
    2. Entrar como cliente (Carolina)
@@ -149,9 +149,9 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),
    1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):
-     socio    socio@demo.cl      wB2ZPXykFbNuqPOm
-     cliente  carolina@demo.cl   CbtJ4zMEm4mXcxhs
-     cliente  pedro@demo.cl      J_U-OWGwU4GXpOwH
+     socio    socio@demo.cl      <generada al azar>
+     cliente  carolina@demo.cl   <generada al azar>
+     cliente  pedro@demo.cl      <generada al azar>
 
    1. Entrar como socio (administrador)
    2. Entrar como cliente (Carolina)
@@ -171,10 +171,10 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 1
 
    Primer uso: cree la cuenta del primer administrador.
-   Correo: ana@viajes.cl
+   Correo: ana@v.cl
    Contraseña nueva (12 caracteres o más): ••••
    Repita la contraseña: ••••
-   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
+   Cuenta creada para ana@v.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
 
 ==================================================================
    Viajes Aventura
@@ -187,11 +187,11 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 1
 
    Inicio de sesión (escriba x para cancelar)
-   Correo: ana@viajes.cl
+   Correo: ana@v.cl
    Contraseña: ••••
 [pantalla limpia]
 ==================================================================
-   Viajes Aventura · ana@viajes.cl (administrador)
+   Viajes Aventura · ana@v.cl (administrador)
 ==================================================================
 
    DESTINOS
@@ -231,7 +231,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Registrado: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 2
    Nombre: valle del  elqui
@@ -242,7 +242,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    ! Ya existe un destino con ese nombre
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 2
    Nombre: Salar de Surire
@@ -253,7 +253,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    ! El costo base debe estar entre 1 y 100.000.000
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 2
    Nombre: Salar de Surire
@@ -264,7 +264,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Registrado: [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 4
      [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
@@ -275,7 +275,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Guardado: [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 1
    ¿Solo los disponibles? (s/n): n
@@ -285,7 +285,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 5
      [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
@@ -296,7 +296,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Eliminado del catálogo.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 1
    ¿Solo los disponibles? (s/n): s
@@ -305,7 +305,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 2
    Nombre: Salar de Surire
@@ -316,7 +316,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Registrado: [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 8
    Nombre: Solo uno
@@ -331,7 +331,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    ! Un paquete combina entre 2 y 5 destinos
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 8
    Nombre: Altiplano y estrellas
@@ -350,7 +350,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Guardado en borrador: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 9
      [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
@@ -360,7 +360,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Publicado: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 10
      [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
@@ -369,7 +369,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    ! Solo se edita un paquete en borrador; uno publicado solo cambia su cupo
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 11
      [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
@@ -379,7 +379,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Guardado: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 7
 
@@ -387,16 +387,16 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 14
-   Correo del socio: matias@viajes.cl
+   Correo del socio: matias@v.cl
    Contraseña nueva (12 caracteres o más): ••••
    Repita la contraseña: ••••
-   Cuenta de administrador creada para matias@viajes.cl.
+   Cuenta de administrador creada para matias@v.cl.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 2
    Nombre: Torres del Paine
@@ -404,26 +404,26 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Acción cancelada. No se guardó nada.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 99
    ! Opción desconocida.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 999999999999… (5000 caracteres)
    ! Opción desconocida.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 15
-   Respaldo guardado en /tmp/tmpk9wid2ft/respaldos/viajes_20261005_042730_125647.db.
+   Respaldo guardado en /tmp/tmpgk0ygec7/respaldos/viajes_20261005_051450_530063.db.
    La clave de cifrado no va en el respaldo: respáldela aparte (ver README).
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 17
    Sesión cerrada.
@@ -671,9 +671,9 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 1
 
    Inicio de sesión (escriba x para cancelar)
-   Correo: ana@viajes.cl
+   Correo: ana@v.cl
    Contraseña: ••••
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 13
      [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
@@ -684,7 +684,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    [2] Carolina Díaz Rojas <carolina@correo.cl> · paquete 1 · 1 persona(s) · $528.000 · emitida el 05-10-2026 · anulada
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de ana@v.cl (administrador)]
 
    Opción: 17
    Sesión cerrada.
@@ -730,10 +730,10 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    Opción: 1
 
    Primer uso: cree la cuenta del primer administrador.
-   Correo: ana@viajes.cl
+   Correo: ana@v.cl
    Contraseña nueva (12 caracteres o más): ••••
    Repita la contraseña: ••••
-   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
+   Cuenta creada para ana@v.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
 
 ==================================================================
    Viajes Aventura
@@ -746,11 +746,11 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    Opción: 1
 
    Inicio de sesión (escriba x para cancelar)
-   Correo: ana@viajes.cl
+   Correo: ana@v.cl
    Contraseña: ••••
 [pantalla limpia]
 ==================================================================
-   Viajes Aventura · ana@viajes.cl (administrador)
+   Viajes Aventura · ana@v.cl (administrador)
 ==================================================================
 
    DESTINOS
@@ -808,10 +808,10 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    Opción: 1
 
    Primer uso: cree la cuenta del primer administrador.
-   Correo: ana@viajes.cl
+   Correo: ana@v.cl
    Contraseña nueva (12 caracteres o más): ••••
    Repita la contraseña: ••••
-   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
+   Cuenta creada para ana@v.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
 
 ==================================================================
    Viajes Aventura
@@ -824,11 +824,11 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    Opción: 1
 
    Inicio de sesión (escriba x para cancelar)
-   Correo: ana@viajes.cl
+   Correo: ana@v.cl
    Contraseña: ••••
 [pantalla limpia]
 ==================================================================
-   Viajes Aventura · ana@viajes.cl (administrador)
+   Viajes Aventura · ana@v.cl (administrador)
 ==================================================================
 
    DESTINOS
@@ -860,7 +860,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 ==================================================================
 
    Opción: 14
-   Correo del socio: intruso@viajes.cl
+   Correo del socio: intruso@v.cl
 [pantalla limpia]
    ! La sesión se cerró por inactividad. Inicie sesión de nuevo.
 

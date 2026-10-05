@@ -8,6 +8,8 @@ on:
 permissions:
   contents: read
 
+# Las acciones se fijan por el hash de su commit, no por una etiqueta que se puede mover: lo que corre
+# es exactamente lo que se revisó (A03, cadena de suministro).
 jobs:
   pruebas:
     strategy:
@@ -17,38 +19,44 @@ jobs:
         python: ["3.12", "3.14"]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: ${{ matrix.python }}
 
       - name: Dependencias fijadas, verificadas por hash
         run: "pip install --only-binary :all: --require-hashes -r requirements.txt"
 
-      - name: Las librerías de seguridad cargan
-        run: python -c "import argon2, cryptography.fernet; print('OK')"
+      - name: Reglas del negocio R1 a R17
+        run: python pruebas/verificar.py --solo reglas
 
-      - name: Autoverificación del dominio
-        run: python viajes.py
+      - name: POO, persistencia y CRUD (G.13 a G.15)
+        run: python pruebas/verificar.py --solo implementacion
 
-      - name: Sesión completa del menú con los dos roles
-        run: python herramientas/driver.py
+      - name: Autenticación y credenciales (G.17, G.18)
+        run: python pruebas/verificar.py --solo credenciales
 
-      - name: El código implementa el diagrama de clases sin diferencias
-        run: python herramientas/uml_vs_codigo.py
+      - name: Datos personales (I.19)
+        run: python pruebas/verificar.py --solo datos
 
-      - name: Prueba por indicador de la rúbrica
-        run: python pruebas/prueba_rubrica.py
+      - name: Seguridad (I.20)
+        run: python pruebas/verificar.py --solo seguridad
+
+      - name: Recorrido del menú real con los dos roles
+        run: python pruebas/verificar.py --solo menu
+
+      - name: Diagrama de clases contra código (G.13, I.8)
+        run: python pruebas/verificar.py --solo uml
 
   mutaciones:
     # Rompe cada regla a propósito y exige que alguna prueba lo detecte. Tarda unos minutos, por
     # eso corre en una sola combinación.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.12"
 
@@ -56,4 +64,4 @@ jobs:
         run: "pip install --only-binary :all: --require-hashes -r requirements.txt"
 
       - name: Cada regla tiene una prueba que la vigila
-        run: python herramientas/mutaciones.py
+        run: python pruebas/verificar.py --solo mutaciones
