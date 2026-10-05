@@ -1,7 +1,8 @@
 """Viajes Aventura: menú de terminal.
 
-Pantalla de inicio (iniciar sesión o registrarse) y un menú por sesión que muestra solo lo que el
-rol puede hacer. No contiene ninguna sentencia SQL: todo el acceso a datos vive en viajes.py.
+Pantalla previa (entrar al sistema o modo demostración), pantalla de inicio (iniciar sesión o
+registrarse) y un menú por sesión que muestra solo lo que el rol puede hacer. No contiene ninguna
+sentencia SQL: todo el acceso a datos vive en viajes.py.
 
     python main.py
 """
@@ -9,10 +10,14 @@ rol puede hacer. No contiene ninguna sentencia SQL: todo el acceso a datos vive 
 import getpass                              # contraseñas sin eco en pantalla
 import os                                   # umask: archivos nuevos solo para su dueño (H-15)
 import re                                   # números con separador de miles (1.050.000)
+import secrets                              # contraseñas al azar del modo demostración (S-04)
 import sqlite3                              # solo para reconocer sus errores, nunca para consultar
+import tempfile                             # base temporal del modo demostración (RNF-USA-04)
 import time                                 # inactividad de la sesión (RF-SEG-09)
-from datetime import date, datetime         # fechas como día-mes-año (RNF-USA-02)
+from datetime import date, datetime, timedelta  # fechas como día-mes-año (RNF-USA-02)
+from pathlib import Path                    # la clave temporal del modo demostración
 
+import viajes                               # solo para aislar la base y la clave en la demostración
 from viajes import (MARGEN_PROPUESTO, Administrador, Cliente, Destino, Paquete,
                     ReglaNegocioError, Reserva, Usuario, crear_tablas, hay_usuarios, pesos,
                     validar_correo, validar_rut, validar_telefono)
@@ -171,14 +176,24 @@ def pedir_clave_nueva() -> str:
         print("   ! Las contraseñas no coinciden.")
 
 
+def mostrar_lista(elementos: list, vacia: str) -> None:
+    """La lista va justo antes de pedir un id: la pantalla se limpió al elegir la opción."""
+    for elemento in elementos:
+        print(f"     {elemento}")
+    if not elementos:
+        print(f"     ({vacia})")
+
+
 def pedir_destino() -> Destino:
+    mostrar_lista(Destino.listar(), "sin destinos")
     destino = Destino.buscar(pedir_entero(PIDE_ID_DESTINO))
     if destino is None:
         raise ValueError("No existe un destino con ese id")
     return destino
 
 
-def pedir_paquete() -> Paquete:
+def pedir_paquete(sesion: Usuario) -> Paquete:
+    mostrar_lista(Paquete.listar_todos(sesion), "sin paquetes")
     paquete = Paquete.buscar(pedir_entero(PIDE_ID_PAQUETE))
     if paquete is None:
         raise ValueError("No existe un paquete con ese id")
@@ -186,6 +201,8 @@ def pedir_paquete() -> Paquete:
 
 
 def pedir_destinos() -> list[Destino]:
+    print("   Destinos disponibles:")
+    mostrar_lista(Destino.listar(solo_disponibles=True), "no hay destinos disponibles")
     ids = leer("   Ids de los destinos, separados por coma (2 a 5): ").replace(" ", "").split(",")
     if not all(i.isdecimal() and len(i) < 10 for i in ids):
         raise ValueError("Escriba solo los números de los destinos, separados por coma")
@@ -308,7 +325,7 @@ def crear_paquete(sesion: Usuario) -> None:
 
 
 def publicar_paquete(sesion: Usuario) -> None:
-    paquete = pedir_paquete()
+    paquete = pedir_paquete(sesion)
     print(f"   {paquete}")
     if not pedir_si_no("   ¿Publicarlo? El precio por persona queda fijo desde ahora (R7)"):
         raise Cancelado
@@ -327,7 +344,7 @@ def listar_paquetes(sesion: Usuario) -> None:
 
 def editar_paquete(sesion: Usuario) -> None:
     """Solo en borrador (S-07): datos y, si se pide, los destinos."""
-    paquete = pedir_paquete()
+    paquete = pedir_paquete(sesion)
     print(f"   Actual: {paquete}")
     if paquete.estado() != "borrador":           # aviso temprano; el dominio lo vuelve a exigir
         raise ValueError("Solo se edita un paquete en borrador; uno publicado solo cambia su cupo")
@@ -339,14 +356,14 @@ def editar_paquete(sesion: Usuario) -> None:
 
 
 def cambiar_cupo(sesion: Usuario) -> None:
-    paquete = pedir_paquete()
+    paquete = pedir_paquete(sesion)
     print(f"   Actual: {paquete}")
     paquete.cambiar_cupo(pedir_entero("   Cupo máximo nuevo: "), sesion)
     print(f"   Guardado: {paquete}")
 
 
 def eliminar_paquete(sesion: Usuario) -> None:
-    paquete = pedir_paquete()
+    paquete = pedir_paquete(sesion)
     print(f"   {paquete}")
     if not pedir_si_no("   ¿Eliminarlo?"):
         raise Cancelado
@@ -356,7 +373,7 @@ def eliminar_paquete(sesion: Usuario) -> None:
 
 def reservas_de_paquete(sesion: Usuario) -> None:
     """RF-RES-11: nombre y correo de cada cliente; nunca RUT ni teléfono (S-16)."""
-    paquete = pedir_paquete()
+    paquete = pedir_paquete(sesion)
     reservas = Reserva.listar_por_paquete(paquete, sesion)
     print(f"\n   Reservas de: {paquete}")
     for reserva in reservas:
@@ -573,7 +590,8 @@ def alta_inicial() -> None:
     while True:
         try:
             admin = Administrador.crear_primero(pedir_texto(PIDE_CORREO), pedir_clave_nueva())
-            print(f"   Cuenta creada para {admin.obtener_correo()}. Ahora inicie sesión.")
+            print(f"   Cuenta creada para {admin.obtener_correo()}. Ahora inicie sesión con la"
+                  " opción 1, «Iniciar sesión (socios y clientes)».")
             return
         except (ReglaNegocioError, ValueError, TypeError) as error:
             print(f"   ! {error}")
@@ -585,8 +603,8 @@ def alta_inicial() -> None:
 def inicio() -> bool:
     """Pantalla sin sesión. False: salir del programa."""
     print("\n" + "=" * 66 + "\n   Viajes Aventura\n" + "=" * 66)
-    print("   1. Iniciar sesión\n   2. Registrarme como cliente\n   3. Ver los paquetes disponibles"
-          "\n   0. Salir")
+    print("   1. Iniciar sesión (socios y clientes)\n   2. Registrarme como cliente"
+          "\n   3. Ver los paquetes disponibles\n   0. Salir")
     try:
         eleccion = input("\n   Opción: ").strip()
     except (KeyboardInterrupt, EOFError):
@@ -621,16 +639,150 @@ def activar_ansi_en_windows() -> None:
         consola.SetConsoleMode(salida, modo.value | 0x0004)  # ENABLE_VIRTUAL_TERMINAL_PROCESSING
 
 
+# --- Modo demostración (RNF-USA-04) -----------------------------------------
+# Una base y una clave temporales con datos de ejemplo, para probar el CRUD con los dos roles sin
+# ingresar todo desde cero. Nunca toca viajes.db ni la clave real, y no salta la seguridad: las
+# cuentas de prueba entran con Usuario.autenticar(), como cualquier otra.
+
+DEMO_SOCIO, DEMO_CLIENTA, DEMO_CLIENTE = "socio@demo.cl", "carolina@demo.cl", "pedro@demo.cl"
+# (nombre, zona, descripción, días, costo base por persona)
+DESTINOS_DE_EJEMPLO = [
+    ("Valle del Elqui", "Norte Chico", "Observación astronómica y pisco", 3, 120_000),
+    ("Salar de Surire", "Altiplano", "Flamencos y termas de Polloquere", 4, 310_000),
+    ("San Pedro de Atacama", "Norte Grande", "Valle de la Luna y géiseres del Tatio", 4, 280_000),
+    ("Torres del Paine", "Patagonia", "Circuito W con guía", 5, 450_000),
+    ("Chiloé", "Sur", "Iglesias de madera y palafitos", 3, 150_000),
+]
+# (nombre, días hasta la salida, duración, cupo, destinos por posición, ¿publicado?)
+PAQUETES_DE_EJEMPLO = [
+    ("Norte de estrellas", 30, 7, 12, [0, 2], True),
+    ("Altiplano y desierto", 45, 8, 6, [1, 2], True),      # queda con un lugar: se prueba R14
+    ("Sur austral", 60, 9, 10, [3, 4], False),             # en borrador: se edita y se publica
+]
+
+
+def cargar_datos_de_ejemplo(hoy: date) -> dict[str, str]:
+    """Solo con los métodos públicos del dominio: cada dato pasa por las mismas validaciones que en
+    el menú y queda en el registro de auditoría. Devuelve correo → contraseña.
+
+    Las contraseñas se generan al azar en cada ejecución: ninguna queda escrita en el código (S-04).
+    Los RUT son ficticios a la vista (11.111.111-1 y 22.222.222-2)."""
+    claves = {correo: secrets.token_urlsafe(12) for correo in (DEMO_SOCIO, DEMO_CLIENTA, DEMO_CLIENTE)}
+    Administrador.crear_primero(DEMO_SOCIO, claves[DEMO_SOCIO])
+    socio = Usuario.autenticar(DEMO_SOCIO, claves[DEMO_SOCIO])
+    destinos = []
+    for nombre, zona, descripcion, dias, costo in DESTINOS_DE_EJEMPLO:
+        destino = Destino(nombre, zona, descripcion, dias, costo)
+        destino.guardar(socio)
+        destinos.append(destino)
+    paquetes = []
+    for nombre, faltan, duracion, cupo, posiciones, publicado in PAQUETES_DE_EJEMPLO:
+        salida = hoy + timedelta(days=faltan)
+        paquete = Paquete(nombre, salida, salida + timedelta(days=duracion), cupo,
+                          [destinos[i] for i in posiciones])
+        paquete.guardar(socio)
+        if publicado:
+            paquete.publicar(socio)
+        paquetes.append(paquete)
+    Cliente.registrar("Carolina Reyes", "11.111.111-1", DEMO_CLIENTA, "9 1111 1111", claves[DEMO_CLIENTA])
+    Cliente.registrar("Pedro Soto", "22.222.222-2", DEMO_CLIENTE, "9 2222 2222", claves[DEMO_CLIENTE])
+    carolina = Usuario.autenticar(DEMO_CLIENTA, claves[DEMO_CLIENTA])
+    pedro = Usuario.autenticar(DEMO_CLIENTE, claves[DEMO_CLIENTE])
+    Reserva.reservar(paquetes[0], 2, carolina)
+    Reserva.reservar(paquetes[1], 5, pedro)
+    Reserva.reservar(paquetes[0], 1, pedro).anular(pedro)
+    return claves
+
+
+def menu_demostracion(claves: dict[str, str]) -> bool:
+    """False: salir del programa. True: volver a la pantalla previa."""
+    while True:
+        print("\n" + "=" * 66 + "\n   MODO DEMOSTRACIÓN · base temporal, se borra al salir\n" + "=" * 66)
+        print("   Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),"
+              "\n   1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):")
+        for rol, correo in (("socio  ", DEMO_SOCIO), ("cliente", DEMO_CLIENTA), ("cliente", DEMO_CLIENTE)):
+            print(f"     {rol}  {correo:<18} {claves[correo]}")
+        print("\n   1. Entrar como socio (administrador)\n   2. Entrar como cliente (Carolina)"
+              "\n   3. Pantalla de inicio normal sobre la base de prueba"
+              "\n   0. Salir y borrar la base de prueba")
+        try:
+            eleccion = input("\n   Opción: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            return False
+        if eleccion == "0":
+            return True
+        if eleccion in ("1", "2"):
+            correo = DEMO_SOCIO if eleccion == "1" else DEMO_CLIENTA
+            sesion = Usuario.autenticar(correo, claves[correo])     # la misma puerta que el login
+            if sesion is None:
+                print(CREDENCIALES_INVALIDAS)
+            elif not usar_sesion(sesion):
+                return False
+        elif eleccion == "3":
+            while inicio():
+                pass
+        else:
+            print("   ! Opción desconocida.")
+
+
+def modo_demostracion() -> bool:
+    """Aísla la base y la clave en una carpeta temporal y las restaura al salir, también ante un
+    error o Ctrl+C. False: salir del programa."""
+    base_real, clave_real = viajes.RUTA_ACTIVA, viajes.RUTA_CLAVE
+    variable_real = os.environ.pop(viajes.VARIABLE_CLAVE, None)
+    try:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as carpeta:
+            viajes.usar_base(os.path.join(carpeta, "demostracion.db"))
+            viajes.RUTA_CLAVE = Path(carpeta) / "clave.env"
+            viajes.cifrador.cache_clear()
+            crear_tablas()
+            seguir = menu_demostracion(cargar_datos_de_ejemplo(date.today()))
+    finally:
+        viajes.usar_base(base_real)
+        viajes.RUTA_CLAVE = clave_real
+        viajes.cifrador.cache_clear()
+        if variable_real is not None:
+            os.environ[viajes.VARIABLE_CLAVE] = variable_real
+    print("   Base de prueba borrada. La base real no se tocó.")
+    return seguir
+
+
+def entrar_al_sistema() -> bool:
+    """La base real. Siempre False: «0. Salir» en la pantalla de inicio cierra el programa."""
+    crear_tablas()
+    if not hay_usuarios():
+        alta_inicial()
+    while inicio():
+        pass
+    return False
+
+
+def pantalla_previa() -> bool:
+    """False: salir del programa."""
+    print("\n" + "=" * 66 + "\n   Viajes Aventura\n" + "=" * 66)
+    print("   1. Entrar al sistema\n   2. Modo demostración (base temporal con datos de ejemplo;"
+          " se borra al salir)\n   0. Salir")
+    try:
+        eleccion = input("\n   Opción: ").strip()
+    except (KeyboardInterrupt, EOFError):
+        return False
+    if eleccion == "1":
+        return entrar_al_sistema()
+    if eleccion == "2":
+        return modo_demostracion()
+    if eleccion != "0":
+        print("   ! Opción desconocida.")
+        return True
+    return False
+
+
 def main() -> None:
     os.umask(0o077)       # la base, su diario y la clave nacen solo para su dueño (H-15)
     activar_ansi_en_windows()
     try:
-        crear_tablas()
-        if not hay_usuarios():
-            alta_inicial()
         seguir = True
         while seguir:
-            seguir = inicio()
+            seguir = pantalla_previa()
         print("   Hasta luego.")
     except sqlite3.Error:
         print("   ! No se pudo abrir la base de datos. El programa se cierra.")

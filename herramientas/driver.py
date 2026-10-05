@@ -33,7 +33,17 @@ REGRESO = (date.today() + timedelta(days=35)).strftime("%d-%m-%Y")
 # 17 cerrar sesión.
 # Menú del cliente: 1-4 reservas, 5-6 mis datos, 7 contraseña, 8 cerrar sesión.
 GUION = [
-    # Primer uso (S-04): la base no tiene cuentas.
+    # Modo demostración (RNF-USA-04): base temporal con datos de ejemplo. El socio edita un destino
+    # y publica el borrador eligiéndolos de la lista; la clienta reserva por sobre el cupo (R14).
+    "2",
+    "1", "3", "1", "Valle del Elqui", "Norte Chico", "Observación astronómica", "3", ENTER,
+    "9", "3", "s", ENTER,
+    "17",
+    "2", "2", "2", "2", ENTER,
+    "8",
+    "0",
+    # Entrar al sistema. Primer uso (S-04): la base real no tiene cuentas.
+    "1",
     ANA, "clave-larga-de-ana", "clave-larga-de-ana",
     # Inicio de sesión del administrador: catálogo de destinos.
     "1", ANA, "clave-larga-de-ana",
@@ -93,6 +103,14 @@ GUION = [
 
 # Lo que la sesión tiene que mostrar: si falta algo, el guion se desalineó con el menú.
 ESPERADO = [
+    "MODO DEMOSTRACIÓN · base temporal, se borra al salir",
+    "Datos de ejemplo cargados: 5 destinos",
+    "Guardado: [1] Valle del Elqui",
+    "Publicado: [3] Sur austral",
+    "No hay cupo: quedan 1 lugares",
+    "Base de prueba borrada. La base real no se tocó.",
+    "Iniciar sesión (socios y clientes)",
+    "Destinos disponibles:",
     "Ya existe un destino con ese nombre",
     "El costo base debe estar entre 1 y 100.000.000",
     "Eliminado del catálogo.",
@@ -177,7 +195,7 @@ class RelojQueSalta:
 
 def probar_inactividad() -> str:
     """RF-SEG-09: tras más de 10 minutos ante el menú, la opción elegida no se ejecuta."""
-    guion = [ANA, "clave-larga-de-ana", "clave-larga-de-ana",
+    guion = ["1", ANA, "clave-larga-de-ana", "clave-larga-de-ana",    # entrar al sistema y primer uso
              "1", ANA, "clave-larga-de-ana",
              "14",                    # crear un socio: no debe llegar a pedir el correo
              "0"]
@@ -185,7 +203,7 @@ def probar_inactividad() -> str:
     assert "Correo del socio" not in texto, "la sesión caducada ejecutó la opción"
     # H-11: también dentro de una acción. Se elige «crear socio» a tiempo, pero el correo llega
     # 11 minutos después: la cuenta no se crea.
-    guion = [ANA, "clave-larga-de-ana", "clave-larga-de-ana",
+    guion = ["1", ANA, "clave-larga-de-ana", "clave-larga-de-ana",    # entrar al sistema y primer uso
              "1", ANA, "clave-larga-de-ana",
              "14", "intruso@viajes.cl",
              "0"]

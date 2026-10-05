@@ -150,6 +150,34 @@ def g15(admin: v.Administrador) -> None:
     g15.datos = (paquete, cliente)
 
 
+def demostracion(admin: v.Administrador) -> None:
+    """El modo demostración (RNF-USA-04) carga sus datos en una base temporal y deja intactas la
+    base, la clave y la variable de entorno reales, aunque la variable esté definida."""
+    import builtins
+    import io
+    from contextlib import redirect_stdout
+
+    import main as menu
+    base, clave = v.RUTA_ACTIVA, v.RUTA_CLAVE
+    antes = (len(v.Destino.listar()), len(v.Paquete.listar_todos(admin)))
+    os.environ[v.VARIABLE_CLAVE] = "marca-de-la-variable-real"
+    entrada, salida = builtins.input, io.StringIO()
+    builtins.input = lambda _mensaje="": "0"              # sale de la demostración apenas entra
+    try:
+        with redirect_stdout(salida):
+            volver = menu.modo_demostracion()
+        restaurada = os.environ.get(v.VARIABLE_CLAVE) == "marca-de-la-variable-real"
+    finally:
+        builtins.input = entrada
+        os.environ.pop(v.VARIABLE_CLAVE, None)
+        v.cifrador.cache_clear()
+    assert volver and "Datos de ejemplo cargados: 5 destinos" in salida.getvalue()
+    assert v.RUTA_ACTIVA == base and v.RUTA_CLAVE == clave and restaurada
+    assert (len(v.Destino.listar()), len(v.Paquete.listar_todos(admin))) == antes
+    ok("G.15", "modo demostración: datos de ejemplo en una base temporal; la base, la clave y la"
+       " variable reales quedan intactas")
+
+
 # --- 4.1.5.G.17: autenticación con una librería oficial especializada ----------
 
 def g17() -> None:
@@ -304,6 +332,7 @@ def main() -> None:
             g13()
             g14(admin)
             g15(admin)
+            demostracion(admin)
             g17()
             g18()
             i19()

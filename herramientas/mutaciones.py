@@ -97,6 +97,8 @@ MUTACIONES = [
      "        if False:\n            raise SesionCaducada", [DR]),
     ("H-12 int() sin límite de largo", MENU,
      "if not (len(eleccion) <= 3 and eleccion.isdecimal()", "if not (eleccion.isdecimal()", [DR]),
+    ("RNF-USA-04 la demostración escribe en la base real", MENU,
+     'viajes.usar_base(os.path.join(carpeta, "demostracion.db"))', "pass", [PR]),
     ("H-13 mensajes distintos para «no existe» y «no publicado»", MENU,
      "    if paquete is None or not paquete.esta_disponible():\n        raise ValueError(NO_DISPONIBLE)",
      "    if paquete is None:\n        raise ValueError('No existe')", [DR]),

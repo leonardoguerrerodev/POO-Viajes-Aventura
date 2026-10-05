@@ -4,16 +4,182 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 
 ```text
 
-   Primer uso: cree la cuenta del primer administrador.
-   Correo: ana@viajes.cl
-   Contraseña nueva (12 caracteres o más): ••••
-   Repita la contraseña: ••••
-   Cuenta creada para ana@viajes.cl. Ahora inicie sesión.
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Entrar al sistema
+   2. Modo demostración (base temporal con datos de ejemplo; se borra al salir)
+   0. Salir
+
+   Opción: 2
+
+==================================================================
+   MODO DEMOSTRACIÓN · base temporal, se borra al salir
+==================================================================
+   Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),
+   1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):
+     socio    socio@demo.cl      7NTP6N2IcBOlCl19
+     cliente  carolina@demo.cl   6gL8OI3ogLsH9WeZ
+     cliente  pedro@demo.cl      Qgf_qzhowctBLcYa
+
+   1. Entrar como socio (administrador)
+   2. Entrar como cliente (Carolina)
+   3. Pantalla de inicio normal sobre la base de prueba
+   0. Salir y borrar la base de prueba
+
+   Opción: 1
+[pantalla limpia]
+==================================================================
+   Viajes Aventura · socio@demo.cl (administrador)
+==================================================================
+
+   DESTINOS
+    1. Listar el catálogo
+    2. Registrar un destino
+    3. Editar un destino
+    4. Cambiar el costo de un destino
+    5. Eliminar un destino
+    6. Volver a ofrecer un destino
+
+   PAQUETES
+    7. Listar todos los paquetes
+    8. Crear un paquete
+    9. Publicar un paquete
+   10. Editar un paquete en borrador
+   11. Cambiar el cupo de un paquete
+   12. Eliminar un paquete
+   13. Ver las reservas de un paquete
+
+   CUENTAS
+   14. Crear la cuenta de un socio
+   15. Respaldar la base de datos
+
+   MI CUENTA
+   16. Cambiar mi contraseña
+   17. Cerrar sesión
+
+   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+==================================================================
+
+   Opción: 3
+     [5] Chiloé · Sur · 3 días · $150.000 (costo al 05-10-2026) · disponible
+     [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
+     [3] San Pedro de Atacama · Norte Grande · 4 días · $280.000 (costo al 05-10-2026) · disponible
+     [4] Torres del Paine · Patagonia · 5 días · $450.000 (costo al 05-10-2026) · disponible
+     [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
+   Id del destino: 1
+   Actual: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
+   Nombre: Valle del Elqui
+   Zona: Norte Chico
+   Descripción: Observación astronómica
+   Duración en días: 3
+   Guardado: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
+
+   Presione Enter para continuar...
+[pantalla limpia · menú de socio@demo.cl (administrador)]
+
+   Opción: 9
+     [1] Norte de estrellas · 04-11-2026 a 11-11-2026 · Valle del Elqui, San Pedro de Atacama · $480.000 por persona · cupo 10 de 12 · publicado
+     [2] Altiplano y desierto · 19-11-2026 a 27-11-2026 · Salar de Surire, San Pedro de Atacama · $708.000 por persona · cupo 1 de 6 · publicado
+     [3] Sur austral · 04-12-2026 a 13-12-2026 · Torres del Paine, Chiloé · $720.000 por persona · cupo 10 de 10 · borrador
+   Id del paquete: 3
+   [3] Sur austral · 04-12-2026 a 13-12-2026 · Torres del Paine, Chiloé · $720.000 por persona · cupo 10 de 10 · borrador
+   ¿Publicarlo? El precio por persona queda fijo desde ahora (R7) (s/n): s
+   Publicado: [3] Sur austral · 04-12-2026 a 13-12-2026 · Torres del Paine, Chiloé · $720.000 por persona · cupo 10 de 10 · publicado
+
+   Presione Enter para continuar...
+[pantalla limpia · menú de socio@demo.cl (administrador)]
+
+   Opción: 17
+   Sesión cerrada.
+
+==================================================================
+   MODO DEMOSTRACIÓN · base temporal, se borra al salir
+==================================================================
+   Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),
+   1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):
+     socio    socio@demo.cl      7NTP6N2IcBOlCl19
+     cliente  carolina@demo.cl   6gL8OI3ogLsH9WeZ
+     cliente  pedro@demo.cl      Qgf_qzhowctBLcYa
+
+   1. Entrar como socio (administrador)
+   2. Entrar como cliente (Carolina)
+   3. Pantalla de inicio normal sobre la base de prueba
+   0. Salir y borrar la base de prueba
+
+   Opción: 2
+[pantalla limpia]
+==================================================================
+   Viajes Aventura · carolina@demo.cl (cliente)
+==================================================================
+
+   RESERVAS
+    1. Ver los paquetes disponibles
+    2. Reservar un paquete
+    3. Mis reservas
+    4. Anular una reserva
+
+   MI CUENTA
+    5. Ver mis datos
+    6. Actualizar nombre y teléfono
+    7. Cambiar mi contraseña
+    8. Cerrar sesión
+
+   Escriba «x» para cancelar la acción en curso  ·  0. Salir
+==================================================================
+
+   Opción: 2
+
+   Paquetes disponibles
+   [1] Norte de estrellas · 04-11-2026 a 11-11-2026 · Valle del Elqui, San Pedro de Atacama · $480.000 por persona · cupo 10 de 12 · publicado
+   [2] Altiplano y desierto · 19-11-2026 a 27-11-2026 · Salar de Surire, San Pedro de Atacama · $708.000 por persona · cupo 1 de 6 · publicado
+   [3] Sur austral · 04-12-2026 a 13-12-2026 · Torres del Paine, Chiloé · $720.000 por persona · cupo 10 de 10 · publicado
+   Id del paquete: 2
+   Cantidad de personas: 2
+   ! No hay cupo: quedan 1 lugares
+
+   Presione Enter para continuar...
+[pantalla limpia · menú de carolina@demo.cl (cliente)]
+
+   Opción: 8
+   Sesión cerrada.
+
+==================================================================
+   MODO DEMOSTRACIÓN · base temporal, se borra al salir
+==================================================================
+   Datos de ejemplo cargados: 5 destinos, 3 paquetes (2 publicados y 1 en borrador),
+   1 socio y 2 clientes con reservas. Cuentas de prueba (contraseñas generadas ahora):
+     socio    socio@demo.cl      7NTP6N2IcBOlCl19
+     cliente  carolina@demo.cl   6gL8OI3ogLsH9WeZ
+     cliente  pedro@demo.cl      Qgf_qzhowctBLcYa
+
+   1. Entrar como socio (administrador)
+   2. Entrar como cliente (Carolina)
+   3. Pantalla de inicio normal sobre la base de prueba
+   0. Salir y borrar la base de prueba
+
+   Opción: 0
+   Base de prueba borrada. La base real no se tocó.
 
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Entrar al sistema
+   2. Modo demostración (base temporal con datos de ejemplo; se borra al salir)
+   0. Salir
+
+   Opción: 1
+
+   Primer uso: cree la cuenta del primer administrador.
+   Correo: ana@viajes.cl
+   Contraseña nueva (12 caracteres o más): ••••
+   Repita la contraseña: ••••
+   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
+
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -62,7 +228,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Descripción: Observación astronómica y pisco
    Duración en días: 3
    Costo base por persona ($): 120.000
-   Registrado: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 03-10-2026) · disponible
+   Registrado: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
@@ -95,16 +261,18 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Descripción: Flamencos y termas
    Duración en días: 4
    Costo base por persona ($): 310.000
-   Registrado: [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 03-10-2026) · disponible
+   Registrado: [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
    Opción: 4
+     [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
+     [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
    Id del destino: 1
-   Actual: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 03-10-2026) · disponible
+   Actual: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
    Costo base nuevo ($): 130.000
-   Guardado: [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 03-10-2026) · disponible
+   Guardado: [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
@@ -113,15 +281,17 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    ¿Solo los disponibles? (s/n): n
 
    Catálogo de destinos
-   [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 03-10-2026) · disponible
-   [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 03-10-2026) · disponible
+   [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
+   [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
    Opción: 5
+     [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
+     [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
    Id del destino: 2
-   [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 03-10-2026) · disponible
+   [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
    ¿Eliminarlo? (s/n): s
    Eliminado del catálogo.
 
@@ -132,7 +302,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    ¿Solo los disponibles? (s/n): s
 
    Catálogo de destinos disponibles
-   [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 03-10-2026) · disponible
+   [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
@@ -143,16 +313,19 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Descripción: Flamencos y termas
    Duración en días: 4
    Costo base por persona ($): 310.000
-   Registrado: [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 03-10-2026) · disponible
+   Registrado: [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
    Opción: 8
    Nombre: Solo uno
-   Fecha de salida (dd-mm-aaaa): 02-11-2026
-   Fecha de regreso (dd-mm-aaaa): 07-11-2026
+   Fecha de salida (dd-mm-aaaa): 04-11-2026
+   Fecha de regreso (dd-mm-aaaa): 09-11-2026
    Cupo máximo de personas: 12
+   Destinos disponibles:
+     [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
+     [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
    Ids de los destinos, separados por coma (2 a 5): 1
    Margen de operación en % (Enter = 20): 
    ! Un paquete combina entre 2 y 5 destinos
@@ -162,42 +335,48 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 
    Opción: 8
    Nombre: Altiplano y estrellas
-   Fecha de salida (dd-mm-aaaa): 02-11-2026
-   Fecha de regreso (dd-mm-aaaa): 07-11-2026
+   Fecha de salida (dd-mm-aaaa): 04-11-2026
+   Fecha de regreso (dd-mm-aaaa): 09-11-2026
    Cupo máximo de personas: 12
+   Destinos disponibles:
+     [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
+     [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
    Ids de los destinos, separados por coma (2 a 5): 2,1
    Margen de operación en % (Enter = 20): 
-     [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 03-10-2026) · disponible
-     [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 03-10-2026) · disponible
+     [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
+     [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
    Precio por persona calculado: $528.000
    ¿Guardar el paquete en borrador? (s/n): s
-   Guardado en borrador: [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
+   Guardado en borrador: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
    Opción: 9
+     [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
    Id del paquete: 1
-   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
+   [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
    ¿Publicarlo? El precio por persona queda fijo desde ahora (R7) (s/n): s
-   Publicado: [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
+   Publicado: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
    Opción: 10
+     [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
    Id del paquete: 1
-   Actual: [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
+   Actual: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
    ! Solo se edita un paquete en borrador; uno publicado solo cambia su cupo
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
    Opción: 11
+     [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
    Id del paquete: 1
-   Actual: [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
+   Actual: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
    Cupo máximo nuevo: 10
-   Guardado: [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
+   Guardado: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
@@ -205,7 +384,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 7
 
    Todos los paquetes
-   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
+   [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
@@ -240,7 +419,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
    Opción: 15
-   Respaldo guardado en /tmp/tmpagl3embd/respaldos/viajes_20261004_010234_497434.db.
+   Respaldo guardado en /tmp/tmp_w40zeod/respaldos/viajes_20261005_041551_610636.db.
    La clave de cifrado no va en el respaldo: respáldela aparte (ver README).
 
    Presione Enter para continuar...
@@ -252,7 +431,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -283,7 +462,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -312,7 +491,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -327,7 +506,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -342,7 +521,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -375,7 +554,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 1
 
    Paquetes disponibles
-   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
+   [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
 
    Presione Enter para continuar...
 [pantalla limpia · menú de carolina@correo.cl (cliente)]
@@ -383,7 +562,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 2
 
    Paquetes disponibles
-   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
+   [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
    Id del paquete: 99
    ! Ese paquete no está en la oferta
 
@@ -393,7 +572,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 2
 
    Paquetes disponibles
-   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
+   [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
    Id del paquete: 1
    Cantidad de personas: 2.5
    ! Escriba un número entero, sin letras ni decimales.
@@ -406,7 +585,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 2
 
    Paquetes disponibles
-   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
+   [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
    Id del paquete: 1
    Ya tiene una reserva vigente en este paquete. ¿Reservar otra? (s/n): n
    Acción cancelada. No se guardó nada.
@@ -417,7 +596,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 2
 
    Paquetes disponibles
-   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
+   [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
    Id del paquete: 1
    Ya tiene una reserva vigente en este paquete. ¿Reservar otra? (s/n): s
    Cantidad de personas: 20
@@ -429,7 +608,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 3
 
    Mis reservas
-    1) [1] Carolina Díaz <carolina@correo.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 03-10-2026 · vigente
+    1) [1] Carolina Díaz <carolina@correo.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 05-10-2026 · vigente
 
    Presione Enter para continuar...
 [pantalla limpia · menú de carolina@correo.cl (cliente)]
@@ -437,7 +616,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 2
 
    Paquetes disponibles
-   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
+   [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
    Id del paquete: 1
    Ya tiene una reserva vigente en este paquete. ¿Reservar otra? (s/n): s
    Cantidad de personas: 1
@@ -449,8 +628,8 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 4
 
    Mis reservas
-    1) [1] Carolina Díaz <carolina@correo.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 03-10-2026 · vigente
-    2) [2] Carolina Díaz <carolina@correo.cl> · paquete 1 · 1 persona(s) · $528.000 · emitida el 03-10-2026 · vigente
+    1) [1] Carolina Díaz <carolina@correo.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 05-10-2026 · vigente
+    2) [2] Carolina Díaz <carolina@correo.cl> · paquete 1 · 1 persona(s) · $528.000 · emitida el 05-10-2026 · vigente
    Número de la reserva a anular: 2
    Reserva anulada. Sus lugares vuelven al cupo del paquete.
 
@@ -484,7 +663,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -497,11 +676,12 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
 
    Opción: 13
+     [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
    Id del paquete: 1
 
-   Reservas de: [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
-   [1] Carolina Díaz Rojas <carolina@correo.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 03-10-2026 · vigente
-   [2] Carolina Díaz Rojas <carolina@correo.cl> · paquete 1 · 1 persona(s) · $528.000 · emitida el 03-10-2026 · anulada
+   Reservas de: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
+   [1] Carolina Díaz Rojas <carolina@correo.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 05-10-2026 · vigente
+   [2] Carolina Díaz Rojas <carolina@correo.cl> · paquete 1 · 1 persona(s) · $528.000 · emitida el 05-10-2026 · anulada
 
    Presione Enter para continuar...
 [pantalla limpia · menú de ana@viajes.cl (administrador)]
@@ -512,7 +692,7 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -520,12 +700,12 @@ Generada por `herramientas/driver.py` sobre una base temporal, con datos fictici
    Opción: 3
 
    Paquetes disponibles
-   [1] Altiplano y estrellas · 02-11-2026 a 07-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
+   [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
 
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -540,16 +720,25 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 
 ```text
 
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Entrar al sistema
+   2. Modo demostración (base temporal con datos de ejemplo; se borra al salir)
+   0. Salir
+
+   Opción: 1
+
    Primer uso: cree la cuenta del primer administrador.
    Correo: ana@viajes.cl
    Contraseña nueva (12 caracteres o más): ••••
    Repita la contraseña: ••••
-   Cuenta creada para ana@viajes.cl. Ahora inicie sesión.
+   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
 
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -599,7 +788,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -609,16 +798,25 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 
 [inactividad dentro de una acción]
 
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Entrar al sistema
+   2. Modo demostración (base temporal con datos de ejemplo; se borra al salir)
+   0. Salir
+
+   Opción: 1
+
    Primer uso: cree la cuenta del primer administrador.
    Correo: ana@viajes.cl
    Contraseña nueva (12 caracteres o más): ••••
    Repita la contraseña: ••••
-   Cuenta creada para ana@viajes.cl. Ahora inicie sesión.
+   Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
 
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
@@ -669,7 +867,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 ==================================================================
    Viajes Aventura
 ==================================================================
-   1. Iniciar sesión
+   1. Iniciar sesión (socios y clientes)
    2. Registrarme como cliente
    3. Ver los paquetes disponibles
    0. Salir
