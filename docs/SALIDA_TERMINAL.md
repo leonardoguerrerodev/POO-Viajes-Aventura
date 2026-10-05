@@ -30,7 +30,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Opción: 1
 [pantalla limpia]
 ==================================================================
-   Viajes Aventura · socio@demo.cl (administrador)
+   Viajes Aventura · s*******o@d****.cl (administrador)
 ==================================================================
 
    DESTINOS
@@ -55,7 +55,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    15. Desactivar una cuenta
    16. Respaldar la base de datos
    17. Rotar la clave de cifrado de los datos personales
-   18. Ver el registro de auditoría
+   18. Ver el registro de auditoría (actividad y seguridad)
 
    MI CUENTA
    19. Cambiar mi contraseña
@@ -70,6 +70,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
      [3] San Pedro de Atacama · Norte Grande · 4 días · $280.000 (costo al 05-10-2026) · disponible
      [4] Torres del Paine · Patagonia · 5 días · $450.000 (costo al 05-10-2026) · disponible
      [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
+   (escriba x y Enter para cancelar)
    Id del destino: 1
    Actual: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
    Nombre: Valle del Elqui
@@ -79,19 +80,20 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Guardado: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de socio@demo.cl (administrador)]
+[pantalla limpia · menú de s*******o@d****.cl (administrador)]
 
    Opción: 9
      [1] Norte de estrellas · 04-11-2026 a 11-11-2026 · Valle del Elqui, San Pedro de Atacama · $480.000 por persona · cupo 10 de 12 · publicado
      [2] Altiplano y desierto · 19-11-2026 a 27-11-2026 · Salar de Surire, San Pedro de Atacama · $708.000 por persona · cupo 1 de 6 · publicado
      [3] Sur austral · 04-12-2026 a 13-12-2026 · Torres del Paine, Chiloé · $720.000 por persona · cupo 10 de 10 · borrador
+   (escriba x y Enter para cancelar)
    Id del paquete: 3
    [3] Sur austral · 04-12-2026 a 13-12-2026 · Torres del Paine, Chiloé · $720.000 por persona · cupo 10 de 10 · borrador
    ¿Publicarlo? El precio por persona queda fijo desde ahora (R7) (s/n): s
    Publicado: [3] Sur austral · 04-12-2026 a 13-12-2026 · Torres del Paine, Chiloé · $720.000 por persona · cupo 10 de 10 · publicado
 
    Presione Enter para continuar...
-[pantalla limpia · menú de socio@demo.cl (administrador)]
+[pantalla limpia · menú de s*******o@d****.cl (administrador)]
 
    Opción: 20
    Sesión cerrada.
@@ -113,7 +115,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Opción: 2
 [pantalla limpia]
 ==================================================================
-   Viajes Aventura · carolina@demo.cl (cliente)
+   Viajes Aventura · c*******a@d****.cl (cliente)
 ==================================================================
 
    RESERVAS
@@ -137,12 +139,13 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    [1] Norte de estrellas · 04-11-2026 a 11-11-2026 · Valle del Elqui, San Pedro de Atacama · $480.000 por persona · cupo 10 de 12 · publicado
    [2] Altiplano y desierto · 19-11-2026 a 27-11-2026 · Salar de Surire, San Pedro de Atacama · $708.000 por persona · cupo 1 de 6 · publicado
    [3] Sur austral · 04-12-2026 a 13-12-2026 · Torres del Paine, Chiloé · $720.000 por persona · cupo 10 de 10 · publicado
+   (escriba x y Enter para cancelar)
    Id del paquete: 2
    Cantidad de personas: 2
    ! No hay cupo: quedan 1 lugares
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@demo.cl (cliente)]
+[pantalla limpia · menú de c*******a@d****.cl (cliente)]
 
    Opción: 8
    Sesión cerrada.
@@ -173,9 +176,9 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
 
    Opción: 1
 
-   Primer uso: cree la cuenta del primer administrador.
+   Primer uso: cree la cuenta del primer administrador (escriba x para salir).
    Correo: ana@viajes.cl
-   Contraseña nueva (12 caracteres o más): ••••
+   Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
    Repita la contraseña: ••••
    Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
 
@@ -194,7 +197,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Contraseña: ••••
 [pantalla limpia]
 ==================================================================
-   Viajes Aventura · ana@viajes.cl (administrador)
+   Viajes Aventura · a*******a@v****.cl (administrador)
 ==================================================================
 
    DESTINOS
@@ -219,7 +222,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    15. Desactivar una cuenta
    16. Respaldar la base de datos
    17. Rotar la clave de cifrado de los datos personales
-   18. Ver el registro de auditoría
+   18. Ver el registro de auditoría (actividad y seguridad)
 
    MI CUENTA
    19. Cambiar mi contraseña
@@ -229,6 +232,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
 ==================================================================
 
    Opción: 2
+   (escriba x y Enter para cancelar)
    Nombre: Valle del Elqui
    Zona: Norte Chico
    Descripción: Observación astronómica y pisco
@@ -237,9 +241,10 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Registrado: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 2
+   (escriba x y Enter para cancelar)
    Nombre: valle del  elqui
    Zona: Norte
    Descripción: Repetido a propósito (R1)
@@ -248,9 +253,10 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    ! Ya existe un destino con ese nombre
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 2
+   (escriba x y Enter para cancelar)
    Nombre: Salar de Surire
    Zona: Altiplano
    Descripción: Flamencos y termas
@@ -259,9 +265,10 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    ! El costo base debe estar entre 1 y 100.000.000
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 2
+   (escriba x y Enter para cancelar)
    Nombre: Salar de Surire
    Zona: Altiplano
    Descripción: Flamencos y termas
@@ -270,20 +277,22 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Registrado: [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 4
      [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
      [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
+   (escriba x y Enter para cancelar)
    Id del destino: 1
    Actual: [1] Valle del Elqui · Norte Chico · 3 días · $120.000 (costo al 05-10-2026) · disponible
    Costo base nuevo ($): 130.000
    Guardado: [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 1
+   (escriba x y Enter para cancelar)
    ¿Solo los disponibles? (s/n): n
 
    Catálogo de destinos
@@ -291,29 +300,32 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 5
      [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
      [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
+   (escriba x y Enter para cancelar)
    Id del destino: 2
    [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
    ¿Eliminarlo? (s/n): s
    Eliminado del catálogo.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 1
+   (escriba x y Enter para cancelar)
    ¿Solo los disponibles? (s/n): s
 
    Catálogo de destinos disponibles
    [1] Valle del Elqui · Norte Chico · 3 días · $130.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 2
+   (escriba x y Enter para cancelar)
    Nombre: Salar de Surire
    Zona: Altiplano
    Descripción: Flamencos y termas
@@ -322,9 +334,10 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Registrado: [2] Salar de Surire · Altiplano · 4 días · $310.000 (costo al 05-10-2026) · disponible
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 8
+   (escriba x y Enter para cancelar)
    Nombre: Solo uno
    Fecha de salida (dd-mm-aaaa): 04-11-2026
    Fecha de regreso (dd-mm-aaaa): 09-11-2026
@@ -337,9 +350,10 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    ! Un paquete combina entre 2 y 5 destinos
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 8
+   (escriba x y Enter para cancelar)
    Nombre: Altiplano y estrellas
    Fecha de salida (dd-mm-aaaa): 04-11-2026
    Fecha de regreso (dd-mm-aaaa): 09-11-2026
@@ -356,36 +370,39 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Guardado en borrador: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 9
      [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
+   (escriba x y Enter para cancelar)
    Id del paquete: 1
    [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · borrador
    ¿Publicarlo? El precio por persona queda fijo desde ahora (R7) (s/n): s
    Publicado: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 10
      [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
+   (escriba x y Enter para cancelar)
    Id del paquete: 1
    Actual: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
    ! Solo se edita un paquete en borrador; uno publicado solo cambia su cupo
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 11
      [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
+   (escriba x y Enter para cancelar)
    Id del paquete: 1
    Actual: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 12 de 12 · publicado
    Cupo máximo nuevo: 10
    Guardado: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 7
 
@@ -393,51 +410,55 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 14
+   (escriba x y Enter para cancelar)
    Correo del socio: matias@viajes.cl
-   Contraseña nueva (12 caracteres o más): ••••
+   ¿Crear una cuenta de administrador para matias@viajes.cl? Tendrá todos los permisos de un socio (s/n): s
+   Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
    Repita la contraseña: ••••
    Cuenta de administrador creada para matias@viajes.cl.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 2
+   (escriba x y Enter para cancelar)
    Nombre: Torres del Paine
    Zona: x
    Acción cancelada. No se guardó nada.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 99
    ! Opción desconocida.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 999999999999… (5000 caracteres)
    ! Opción desconocida.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 16
-   Respaldo guardado en /tmp/tmpx0e5l_sv/respaldos/viajes_20261005_053154_728168.db.
+   Respaldo guardado en /tmp/tmpyqg5073_/respaldos/viajes_20261005_081511_422089.db.
    La clave de cifrado no va en el respaldo: respáldela aparte (ver README).
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 15
+   (escriba x y Enter para cancelar)
    Correo de la cuenta a desactivar: matias@viajes.cl
    ¿Desactivar matias@viajes.cl? No podrá volver a entrar (s/n): s
    Cuenta desactivada. Sus reservas y el registro de auditoría se conservan.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 20
    Sesión cerrada.
@@ -467,7 +488,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
 
    Opción: 2
 
-   Registro de cliente (escriba x para cancelar)
+   Registro de cliente
    Responsable: Viajes Aventura, Valparaíso.
    Datos: nombre, RUT, correo y teléfono. Finalidad: registrar sus reservas y contactarlo
    por ellas; no se usan para nada más. Base legal: la ejecución de la reserva que usted
@@ -477,6 +498,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Derechos: acceso, rectificación, supresión, oposición, portabilidad y bloqueo; se
    ejercen ante los socios de la agencia, que responden en 30 días corridos
    (Ley 19.628 modificada por la Ley 21.719).
+   (escriba x y Enter para cancelar)
    ¿Acepta? (s/n): s
    Nombre completo: Carolina Díaz
    RUT (12.345.678-5): 12.345.678-6
@@ -484,7 +506,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    RUT (12.345.678-5): 12.345.678-5
    Correo: carolina@correo.cl
    Teléfono (9 1234 5678): 9 1234 5678
-   Contraseña nueva (12 caracteres o más): ••••
+   Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
    Repita la contraseña: ••••
    ! La contraseña debe tener entre 12 y 128 caracteres
 
@@ -498,7 +520,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
 
    Opción: 2
 
-   Registro de cliente (escriba x para cancelar)
+   Registro de cliente
    Responsable: Viajes Aventura, Valparaíso.
    Datos: nombre, RUT, correo y teléfono. Finalidad: registrar sus reservas y contactarlo
    por ellas; no se usan para nada más. Base legal: la ejecución de la reserva que usted
@@ -508,12 +530,73 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Derechos: acceso, rectificación, supresión, oposición, portabilidad y bloqueo; se
    ejercen ante los socios de la agencia, que responden en 30 días corridos
    (Ley 19.628 modificada por la Ley 21.719).
+   (escriba x y Enter para cancelar)
    ¿Acepta? (s/n): s
    Nombre completo: Carolina Díaz
    RUT (12.345.678-5): 12.345.678-5
    Correo: carolina@correo.cl
    Teléfono (9 1234 5678): 9 1234 5678
-   Contraseña nueva (12 caracteres o más): ••••
+   Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
+   Repita la contraseña: ••••
+   ! La contraseña no puede tener secuencias como 1234 o abcd
+
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Iniciar sesión (socios y clientes)
+   2. Registrarme como cliente
+   3. Ver los paquetes disponibles
+   0. Salir
+
+   Opción: 2
+
+   Registro de cliente
+   Responsable: Viajes Aventura, Valparaíso.
+   Datos: nombre, RUT, correo y teléfono. Finalidad: registrar sus reservas y contactarlo
+   por ellas; no se usan para nada más. Base legal: la ejecución de la reserva que usted
+   solicita. Destinatarios: solo los socios de la agencia; no se ceden a terceros.
+   Conservación: mientras su cuenta exista; las reservas, como respaldo de lo cobrado.
+   Protección: el RUT y el teléfono se guardan cifrados y nunca se muestran completos.
+   Derechos: acceso, rectificación, supresión, oposición, portabilidad y bloqueo; se
+   ejercen ante los socios de la agencia, que responden en 30 días corridos
+   (Ley 19.628 modificada por la Ley 21.719).
+   (escriba x y Enter para cancelar)
+   ¿Acepta? (s/n): s
+   Nombre completo: Carolina Díaz
+   RUT (12.345.678-5): 12.345.678-5
+   Correo: carolina@correo.cl
+   Teléfono (9 1234 5678): 9 1234 5678
+   Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
+   Repita la contraseña: ••••
+   ! La contraseña no puede contener partes de su correo
+
+==================================================================
+   Viajes Aventura
+==================================================================
+   1. Iniciar sesión (socios y clientes)
+   2. Registrarme como cliente
+   3. Ver los paquetes disponibles
+   0. Salir
+
+   Opción: 2
+
+   Registro de cliente
+   Responsable: Viajes Aventura, Valparaíso.
+   Datos: nombre, RUT, correo y teléfono. Finalidad: registrar sus reservas y contactarlo
+   por ellas; no se usan para nada más. Base legal: la ejecución de la reserva que usted
+   solicita. Destinatarios: solo los socios de la agencia; no se ceden a terceros.
+   Conservación: mientras su cuenta exista; las reservas, como respaldo de lo cobrado.
+   Protección: el RUT y el teléfono se guardan cifrados y nunca se muestran completos.
+   Derechos: acceso, rectificación, supresión, oposición, portabilidad y bloqueo; se
+   ejercen ante los socios de la agencia, que responden en 30 días corridos
+   (Ley 19.628 modificada por la Ley 21.719).
+   (escriba x y Enter para cancelar)
+   ¿Acepta? (s/n): s
+   Nombre completo: Carolina Díaz
+   RUT (12.345.678-5): 12.345.678-5
+   Correo: carolina@correo.cl
+   Teléfono (9 1234 5678): 9 1234 5678
+   Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
    Repita la contraseña: ••••
    Cuenta creada para carolina@correo.cl. Ya puede iniciar sesión.
 
@@ -562,7 +645,7 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Contraseña: ••••
 [pantalla limpia]
 ==================================================================
-   Viajes Aventura · carolina@correo.cl (cliente)
+   Viajes Aventura · c*******a@c****.cl (cliente)
 ==================================================================
 
    RESERVAS
@@ -586,22 +669,24 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 2
 
    Paquetes disponibles
    [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
+   (escriba x y Enter para cancelar)
    Id del paquete: 99
    ! Ese paquete no está en la oferta
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 2
 
    Paquetes disponibles
    [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 10 de 10 · publicado
+   (escriba x y Enter para cancelar)
    Id del paquete: 1
    Cantidad de personas: 2.5
    ! Escriba un número entero, sin letras ni decimales.
@@ -609,82 +694,88 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Reserva confirmada por $1.056.000.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 2
 
    Paquetes disponibles
    [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
+   (escriba x y Enter para cancelar)
    Id del paquete: 1
    Ya tiene una reserva vigente en este paquete. ¿Reservar otra? (s/n): n
    Acción cancelada. No se guardó nada.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 2
 
    Paquetes disponibles
    [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
+   (escriba x y Enter para cancelar)
    Id del paquete: 1
    Ya tiene una reserva vigente en este paquete. ¿Reservar otra? (s/n): s
    Cantidad de personas: 20
    ! No hay cupo: quedan 8 lugares
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 3
 
    Mis reservas
-    1) [1] Carolina Díaz <carolina@correo.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 05-10-2026 · vigente
+    1) [1] Carolina Díaz <c*******a@c****.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 05-10-2026 · vigente
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 2
 
    Paquetes disponibles
    [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
+   (escriba x y Enter para cancelar)
    Id del paquete: 1
    Ya tiene una reserva vigente en este paquete. ¿Reservar otra? (s/n): s
    Cantidad de personas: 1
    Reserva confirmada por $528.000.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 4
 
    Mis reservas
-    1) [1] Carolina Díaz <carolina@correo.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 05-10-2026 · vigente
-    2) [2] Carolina Díaz <carolina@correo.cl> · paquete 1 · 1 persona(s) · $528.000 · emitida el 05-10-2026 · vigente
+    1) [1] Carolina Díaz <c*******a@c****.cl> · paquete 1 · 2 persona(s) · $1.056.000 · emitida el 05-10-2026 · vigente
+    2) [2] Carolina Díaz <c*******a@c****.cl> · paquete 1 · 1 persona(s) · $528.000 · emitida el 05-10-2026 · vigente
+   (escriba x y Enter para cancelar)
    Número de la reserva a anular: 2
+   ¿Anular la reserva 2? No se puede deshacer (s/n): s
    Reserva anulada. Sus lugares vuelven al cupo del paquete.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 5
    Nombre:   Carolina Díaz
-   Correo:   carolina@correo.cl
+   Correo:   c*******a@c****.cl
    RUT:      12.***.***-5
-   Teléfono: +56 9 **** 5678
+   Teléfono: +56 9 ******* 8
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 6
+   (escriba x y Enter para cancelar)
    Nombre: Carolina Díaz Rojas
    Teléfono: 987654321
    Datos actualizados.
    Nombre:   Carolina Díaz Rojas
-   Correo:   carolina@correo.cl
+   Correo:   c*******a@c****.cl
    RUT:      12.***.***-5
-   Teléfono: +56 9 **** 4321
+   Teléfono: +56 9 ******* 1
 
    Presione Enter para continuar...
-[pantalla limpia · menú de carolina@correo.cl (cliente)]
+[pantalla limpia · menú de c*******a@c****.cl (cliente)]
 
    Opción: 8
    Sesión cerrada.
@@ -702,10 +793,11 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    Inicio de sesión (escriba x para cancelar)
    Correo: ana@viajes.cl
    Contraseña: ••••
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 13
      [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
+   (escriba x y Enter para cancelar)
    Id del paquete: 1
 
    Reservas de: [1] Altiplano y estrellas · 04-11-2026 a 09-11-2026 · Salar de Surire, Valle del Elqui · $528.000 por persona · cupo 8 de 10 · publicado
@@ -713,48 +805,49 @@ Generada por `pruebas/verificar.py` (sección «menu») sobre una base temporal,
    [2] Carolina Díaz Rojas <carolina@correo.cl> · paquete 1 · 1 persona(s) · $528.000 · emitida el 05-10-2026 · anulada
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 17
    Se genera una clave nueva y se vuelven a cifrar el RUT y el teléfono de todos los clientes.
+   (escriba x y Enter para cancelar)
    ¿Continuar? (s/n): s
    Clave cambiada: 1 cliente(s) cifrados de nuevo. La clave anterior quedó como
-   .env.anterior-20261005_053157_515280, junto a la nueva: guárdela con los respaldos anteriores, que la
+   .env.anterior-20261005_081512_223359, junto a la nueva: guárdela con los respaldos anteriores, que la
    necesitan para leerse, o bórrela si no hay ninguno. Respalde aparte la clave nueva.
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 18
 
    Registro de auditoría: los últimos 30 eventos (hora UTC)
-   2026-10-05 05:31:57  ana@viajes.cl          clave.rotar                1 clientes
-   2026-10-05 05:31:57  ana@viajes.cl          sesion.inicio              
-   2026-10-05 05:31:57  carolina@correo.cl     cliente.contacto           
-   2026-10-05 05:31:57  carolina@correo.cl     reserva.anular             reserva 2
-   2026-10-05 05:31:57  carolina@correo.cl     reserva.crear              reserva 2: paquete 1, 1 personas
-   2026-10-05 05:31:57  carolina@correo.cl     reserva.crear              reserva 1: paquete 1, 2 personas
-   2026-10-05 05:31:57  carolina@correo.cl     sesion.inicio              
-   2026-10-05 05:31:56  (sin cuenta)           sesion.correo_inexistente  
-   2026-10-05 05:31:55  carolina@correo.cl     sesion.fallida             
-   2026-10-05 05:31:55  carolina@correo.cl     cuenta.crear               cuenta 3 (cliente)
-   2026-10-05 05:31:55  matias@viajes.cl       sesion.rechazada_inactiva  
-   2026-10-05 05:31:54  ana@viajes.cl          cuenta.desactivar          cuenta 2
-   2026-10-05 05:31:54  ana@viajes.cl          base.respaldo              viajes_20261005_053154_728168.db
-   2026-10-05 05:31:54  ana@viajes.cl          cuenta.crear               cuenta 2 (administrador)
-   2026-10-05 05:31:54  ana@viajes.cl          paquete.cupo               paquete 1: 10
-   2026-10-05 05:31:54  ana@viajes.cl          paquete.publicar           paquete 1: 528000 por persona
-   2026-10-05 05:31:54  ana@viajes.cl          paquete.crear              paquete 1
-   2026-10-05 05:31:54  ana@viajes.cl          destino.crear              destino 2
-   2026-10-05 05:31:54  ana@viajes.cl          destino.eliminar           destino 2
-   2026-10-05 05:31:54  ana@viajes.cl          destino.costo              destino 1: 130000
-   2026-10-05 05:31:54  ana@viajes.cl          destino.crear              destino 2
-   2026-10-05 05:31:54  ana@viajes.cl          destino.crear              destino 1
-   2026-10-05 05:31:54  ana@viajes.cl          sesion.inicio              
-   2026-10-05 05:31:54  ana@viajes.cl          cuenta.crear               cuenta 1 (administrador)
+   2026-10-05 08:15:12  ana@viajes.cl          clave.rotar                1 clientes
+   2026-10-05 08:15:12  ana@viajes.cl          sesion.inicio              
+   2026-10-05 08:15:12  carolina@correo.cl     cliente.contacto           
+   2026-10-05 08:15:12  carolina@correo.cl     reserva.anular             reserva 2
+   2026-10-05 08:15:12  carolina@correo.cl     reserva.crear              reserva 2: paquete 1, 1 personas
+   2026-10-05 08:15:12  carolina@correo.cl     reserva.crear              reserva 1: paquete 1, 2 personas
+   2026-10-05 08:15:12  carolina@correo.cl     sesion.inicio              
+   2026-10-05 08:15:11  (sin cuenta)           sesion.correo_inexistente  
+   2026-10-05 08:15:11  carolina@correo.cl     sesion.fallida             
+   2026-10-05 08:15:11  carolina@correo.cl     cuenta.crear               cuenta 3 (cliente)
+   2026-10-05 08:15:11  matias@viajes.cl       sesion.rechazada_inactiva  
+   2026-10-05 08:15:11  ana@viajes.cl          cuenta.desactivar          cuenta 2
+   2026-10-05 08:15:11  ana@viajes.cl          base.respaldo              viajes_20261005_081511_422089.db
+   2026-10-05 08:15:11  ana@viajes.cl          cuenta.crear               cuenta 2 (administrador)
+   2026-10-05 08:15:11  ana@viajes.cl          paquete.cupo               paquete 1: 10
+   2026-10-05 08:15:11  ana@viajes.cl          paquete.publicar           paquete 1: 528000 por persona
+   2026-10-05 08:15:11  ana@viajes.cl          paquete.crear              paquete 1
+   2026-10-05 08:15:11  ana@viajes.cl          destino.crear              destino 2
+   2026-10-05 08:15:11  ana@viajes.cl          destino.eliminar           destino 2 «Salar de Surire»
+   2026-10-05 08:15:11  ana@viajes.cl          destino.costo              destino 1: 130000
+   2026-10-05 08:15:11  ana@viajes.cl          destino.crear              destino 2
+   2026-10-05 08:15:11  ana@viajes.cl          destino.crear              destino 1
+   2026-10-05 08:15:11  ana@viajes.cl          sesion.inicio              
+   2026-10-05 08:15:11  ana@viajes.cl          cuenta.crear               cuenta 1 (administrador)
 
    Presione Enter para continuar...
-[pantalla limpia · menú de ana@viajes.cl (administrador)]
+[pantalla limpia · menú de a*******a@v****.cl (administrador)]
 
    Opción: 20
    Sesión cerrada.
@@ -799,9 +892,9 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 
    Opción: 1
 
-   Primer uso: cree la cuenta del primer administrador.
+   Primer uso: cree la cuenta del primer administrador (escriba x para salir).
    Correo: ana@viajes.cl
-   Contraseña nueva (12 caracteres o más): ••••
+   Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
    Repita la contraseña: ••••
    Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
 
@@ -820,7 +913,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    Contraseña: ••••
 [pantalla limpia]
 ==================================================================
-   Viajes Aventura · ana@viajes.cl (administrador)
+   Viajes Aventura · a*******a@v****.cl (administrador)
 ==================================================================
 
    DESTINOS
@@ -845,7 +938,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    15. Desactivar una cuenta
    16. Respaldar la base de datos
    17. Rotar la clave de cifrado de los datos personales
-   18. Ver el registro de auditoría
+   18. Ver el registro de auditoría (actividad y seguridad)
 
    MI CUENTA
    19. Cambiar mi contraseña
@@ -880,9 +973,9 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 
    Opción: 1
 
-   Primer uso: cree la cuenta del primer administrador.
+   Primer uso: cree la cuenta del primer administrador (escriba x para salir).
    Correo: ana@viajes.cl
-   Contraseña nueva (12 caracteres o más): ••••
+   Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus datos): ••••
    Repita la contraseña: ••••
    Cuenta creada para ana@viajes.cl. Ahora inicie sesión con la opción 1, «Iniciar sesión (socios y clientes)».
 
@@ -901,7 +994,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    Contraseña: ••••
 [pantalla limpia]
 ==================================================================
-   Viajes Aventura · ana@viajes.cl (administrador)
+   Viajes Aventura · a*******a@v****.cl (administrador)
 ==================================================================
 
    DESTINOS
@@ -926,7 +1019,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
    15. Desactivar una cuenta
    16. Respaldar la base de datos
    17. Rotar la clave de cifrado de los datos personales
-   18. Ver el registro de auditoría
+   18. Ver el registro de auditoría (actividad y seguridad)
 
    MI CUENTA
    19. Cambiar mi contraseña
@@ -936,6 +1029,7 @@ El reloj se adelanta 11 minutos mientras el menú espera.
 ==================================================================
 
    Opción: 14
+   (escriba x y Enter para cancelar)
    Correo del socio: intruso@viajes.cl
 [pantalla limpia]
    ! La sesión se cerró por inactividad. Inicie sesión de nuevo.

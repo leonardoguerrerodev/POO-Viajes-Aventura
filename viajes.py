@@ -192,6 +192,32 @@ def validar_telefono(telefono: str) -> str:
     return m.group(1)
 
 
+def enmascarar_correo(correo: str) -> str:
+    """j*******9@g****.com: del usuario, el primer y el último carácter; del dominio, la inicial y la
+    terminación (RF-SEG-10). Los asteriscos son siempre los mismos: no delatan el largo."""
+    usuario, _, dominio = correo.partition("@")
+    nombre, _, terminacion = dominio.rpartition(".")
+    final = usuario[-1] if len(usuario) > 2 else ""
+    return f"{usuario[0]}*******{final}@{nombre[0]}****.{terminacion}"
+
+
+def tiene_secuencia(clave: str, largo: int = 4) -> bool:
+    """«1234», «abcd», «4321» o «dcba» en cualquier parte: lo primero que prueba quien adivina (RF-SEG-04)."""
+    minusculas = clave.casefold()
+    for i in range(len(minusculas) - largo + 1):
+        trozo = minusculas[i:i + largo]
+        if trozo.isascii() and (trozo.isdigit() or trozo.isalpha()):
+            if {ord(b) - ord(a) for a, b in zip(trozo, trozo[1:])} in ({1}, {-1}):
+                return True
+    return False
+
+
+def partes_propias(*datos: str) -> set[str]:
+    """Las partes de 4 caracteres o más de un correo o un nombre, sin tildes ni mayúsculas. Una
+    contraseña que las contiene se adivina con lo que ya se sabe de la persona (RF-SEG-04)."""
+    return {p for dato in datos for p in re.findall(r"[^\W_]{4,}", normalizar(dato))}
+
+
 def _leer_clave(ruta: Path) -> str | None:
     """La clave de un archivo «VIAJES_CLAVE_DATOS=...». Si volvió de un respaldo con permisos
     abiertos, se cierran."""
@@ -458,7 +484,7 @@ def registrar_evento(con: sqlite3.Connection, usuario_id: int | None, accion: st
     """Agrega una línea al registro de auditoría, en la misma transacción de la operación (H-02).
 
     Si la operación se deshace, su registro también: el registro nunca dice algo que no ocurrió.
-    El detalle lleva ids y montos, nunca RUT, teléfono, correo ni contraseña.
+    El detalle lleva ids, montos y el nombre de lo eliminado, nunca RUT, teléfono, correo ni contraseña.
     """
     con.execute("INSERT INTO auditoria (fecha_utc, usuario_id, accion, detalle) VALUES (?, ?, ?, ?)",
                 (datetime.now(timezone.utc).isoformat(timespec="seconds"), usuario_id, accion, detalle))
@@ -469,7 +495,7 @@ def consultar_auditoria(solicitante: "Usuario", limite: int = 30) -> list[tuple[
 
     Es la pareja de registrar_evento(): lo que se escribe, un socio lo puede leer desde el menú.
     Cada fila: fecha UTC, cuenta que actuó (su correo, o «sin cuenta» si el correo no existía),
-    acción y detalle, que solo lleva ids y montos.
+    acción y detalle, que solo lleva ids, montos y el nombre de lo eliminado.
     """
     autorizar(solicitante, "auditoria")
     limite = entero(limite, "La cantidad de eventos", 1, 1000, "RF-SEG-16")
@@ -565,7 +591,9 @@ class Usuario(ABC):
         """Cada rol responde a su manera: el menú pregunta sin saber qué rol tiene enfrente."""
 
     def _validar_clave(self, clave: str) -> None:
-        """Política de contraseña (RF-SEG-04): 12 caracteres o más y distinta del correo."""
+        """Política de contraseña (RF-SEG-04): 12 caracteres o más, no común ni repetitiva, sin
+        secuencias y sin partes del correo. Sin exigir mayúsculas ni símbolos: NIST SP 800-63B
+        desaconseja esas reglas, que llevan a contraseñas previsibles como «Contraseña1!»."""
         if not isinstance(clave, str):
             raise TypeError("La contraseña debe ser texto")
         if not CLAVE_MINIMA <= len(clave) <= CLAVE_MAXIMA:
@@ -575,6 +603,10 @@ class Usuario(ABC):
             raise ReglaNegocioError("RF-SEG-04", "La contraseña no puede ser igual al correo")
         if clave.casefold() in CLAVES_COMUNES or len(set(clave)) < CLAVE_DISTINTOS:
             raise ReglaNegocioError("RF-SEG-04", "Esa contraseña es demasiado común o repetitiva")
+        if tiene_secuencia(clave):
+            raise ReglaNegocioError("RF-SEG-04", "La contraseña no puede tener secuencias como 1234 o abcd")
+        if any(p in normalizar(clave) for p in partes_propias(self.__correo.partition("@")[0])):
+            raise ReglaNegocioError("RF-SEG-04", "La contraseña no puede contener partes de su correo")
 
     def __verificar(self, clave: str) -> bool:
         try:
@@ -738,7 +770,8 @@ class Usuario(ABC):
 class Cliente(Usuario):
     """Usuario con datos personales. RUT y teléfono se guardan cifrados y se muestran enmascarados.
 
-    También en memoria van cifrados: se descifran solo para enmascararlos. Iniciar sesión o listar
+    También en memoria van cifrados: se descifran solo para enmascararlos y para revisar que una
+    contraseña nueva no contenga el teléfono. Iniciar sesión o listar
     reservas no descifra el RUT de nadie, y un registro alterado no impide listar los demás
     (H-04 y H-05 de la auditoría; minimización, Ley 21.719).
     """
@@ -772,9 +805,19 @@ class Cliente(Usuario):
         return f"{cuerpo[:-6]}.***.***-{dv}"
 
     def telefono_enmascarado(self) -> str:
-        """+56 9 **** 1234 (RF-SEG-10)."""
+        """+56 9 ******* 4: solo el primer y el último dígito (RF-SEG-10). Con los cuatro últimos se
+        veían 5 de los 9 dígitos."""
         telefono = descifrar(self.__telefono)
-        return f"+56 {telefono[0]} **** {telefono[-4:]}"
+        return f"+56 {telefono[0]} ******* {telefono[-1]}"
+
+    def _validar_clave(self, clave: str) -> None:
+        """Además de la política común, sin partes del nombre ni 4 dígitos seguidos del teléfono
+        (RF-SEG-04). El teléfono se descifra solo aquí, al registrarse o al cambiar la contraseña."""
+        super()._validar_clave(clave)
+        telefono = descifrar(self.__telefono)
+        propias = partes_propias(self.__nombre) | {telefono[i:i + 4] for i in range(len(telefono) - 3)}
+        if any(p in normalizar(clave) for p in propias):
+            raise ReglaNegocioError("RF-SEG-04", "La contraseña no puede contener su nombre ni su teléfono")
 
     # El registro público tiene que decir si un correo ya existe: es la única forma de enumerar
     # cuentas (H-06). Tras 5 correos repetidos en 10 minutos, el registro se pausa (RF-SEG-17).
@@ -1001,9 +1044,11 @@ class Destino:
                 con.execute("UPDATE destino SET disponible = 0 WHERE id = ?", (self.__id,))
             else:
                 con.execute("DELETE FROM destino WHERE id = ?", (self.__id,))
+            # Con el nombre: un id borrado ya no dice qué se borró, y el nombre basta para volver a
+            # crearlo si fue un error (catálogo, no datos personales).
             registrar_evento(con, solicitante.obtener_id(),
                              "destino.no_disponible" if en_paquete else "destino.eliminar",
-                             f"destino {self.__id}")
+                             f"destino {self.__id} «{self.__nombre}»")
         self.__disponible = False
         return en_paquete is None
 
@@ -1232,7 +1277,8 @@ class Paquete:
             cur = con.execute("DELETE FROM paquete WHERE id = ? AND NOT EXISTS"
                               " (SELECT 1 FROM reserva WHERE paquete_id = ?)", (self.__id, self.__id))
             if cur.rowcount == 1:
-                registrar_evento(con, solicitante.obtener_id(), "paquete.eliminar", f"paquete {self.__id}")
+                registrar_evento(con, solicitante.obtener_id(), "paquete.eliminar",
+                                 f"paquete {self.__id} «{self.__nombre}»")
         if cur.rowcount != 1:
             raise ReglaNegocioError("RF-PAQ-09", "Un paquete con reservas no se elimina")
 

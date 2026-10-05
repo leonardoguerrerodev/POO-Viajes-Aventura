@@ -97,7 +97,7 @@ def entorno_temporal(nombre: str):
 
 
 def primer_administrador() -> Administrador:
-    return Administrador.crear_primero("admin@viajes.cl", "clave-larga-admin")
+    return Administrador.crear_primero("admin@viajes.cl", "cumbre-nevada-9x")
 
 
 # =====================================================================
@@ -142,22 +142,22 @@ def _verificar_cuentas() -> None:
     # S-04: la primera cuenta es de administrador y solo puede crearse una vez.
     assert not hay_usuarios()
     admin = Administrador.crear_primero("ana@viajes.cl", "clave-larga-de-ana")
-    _rechaza(PermissionError, Administrador.crear_primero, "otro@viajes.cl", "clave-larga-otro")
-    socio = admin.crear_administrador("matias@viajes.cl", "clave-larga-matias")
+    _rechaza(PermissionError, Administrador.crear_primero, "otro@viajes.cl", "clave-larga-ajena")
+    socio = admin.crear_administrador("matias@viajes.cl", "brisa-del-pacifico-7")
     assert socio.puede("catalogo") and not socio.puede("reservar")
     # Hallazgo 5: la cuenta creada por otro no trae sesión; la tendrá al iniciarla con su clave.
     assert admin.tiene_sesion() and not socio.tiene_sesion()
     _rechaza(PermissionError, Destino("Del socio", "Z", "d", 1, 1).guardar, socio)
-    assert Usuario.autenticar("matias@viajes.cl", "clave-larga-matias").tiene_sesion()
+    assert Usuario.autenticar("matias@viajes.cl", "brisa-del-pacifico-7").tiene_sesion()
 
     # RF-RES-01 a RF-RES-03 y RF-SEG-12: el registro público crea clientes y valida cada dato.
     carolina = Cliente.registrar("Carolina Díaz", "12.345.678-5", CAROLINA,
-                                 "+56 9 1234 5678", "clave-de-carolina")
+                                 "+56 9 1234 5678", "luna-sobre-el-salar")
     assert isinstance(carolina, Cliente) and carolina.puede("reservar")
     assert not carolina.puede("catalogo")
     _rechaza(PermissionError, autorizar, carolina, "cuentas")
     _rechaza(ReglaNegocioError, Cliente.registrar, "Otra", "11.111.111-1", "Carolina@Correo.cl",
-             "912345678", "otra-clave-larga", regla="R9")
+             "912345678", "brisa-de-la-tarde", regla="R9")
     for rut, correo, fono in (("12.345.678-6", "a@b.cl", "912345678"),
                               ("12.345.678-5", "sin-arroba.cl", "912345678"),
                               ("12.345.678-5", "a@b.cl", "9123abc78")):
@@ -194,14 +194,14 @@ def _verificar_cuentas() -> None:
 
     # RF-SEG-10 y C4: enmascarado, y fuera de la representación del objeto.
     assert carolina.rut_enmascarado() == "12.***.***-5"
-    assert carolina.telefono_enmascarado() == "+56 9 **** 5678"
+    assert carolina.telefono_enmascarado() == "+56 9 ******* 8"
     assert "12345678" not in repr(carolina) and "5678" not in repr(carolina)
 
     # RF-SEG-01 y RF-SEG-02: inicio de sesión; los tres fallos devuelven lo mismo.
-    entrada = Usuario.autenticar("Carolina@correo.cl", "clave-de-carolina")
+    entrada = Usuario.autenticar("Carolina@correo.cl", "luna-sobre-el-salar")
     assert isinstance(entrada, Cliente) and entrada.rut_enmascarado() == "12.***.***-5"
     assert isinstance(Usuario.autenticar("ana@viajes.cl", "clave-larga-de-ana"), Administrador)
-    assert Usuario.autenticar("nadie@correo.cl", "clave-de-carolina") is None
+    assert Usuario.autenticar("nadie@correo.cl", "luna-sobre-el-salar") is None
     assert Usuario.autenticar(CAROLINA, "otra-clave") is None
     assert Usuario.autenticar("no es correo", "x") is None
 
@@ -209,20 +209,20 @@ def _verificar_cuentas() -> None:
     # está en la base (sobrevive a cerrar el programa). Al vencer, se puede entrar.
     for _ in range(4):
         Usuario.autenticar(CAROLINA, "otra-clave")   # 1 ya contó arriba: 5 en total
-    assert Usuario.autenticar(CAROLINA, "clave-de-carolina") is None
+    assert Usuario.autenticar(CAROLINA, "luna-sobre-el-salar") is None
     with conectar() as con:
         con.execute("UPDATE usuario SET bloqueado_hasta = ? WHERE correo = ?",
                     ((datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat(), CAROLINA))
-    assert Usuario.autenticar(CAROLINA, "clave-de-carolina") is not None
+    assert Usuario.autenticar(CAROLINA, "luna-sobre-el-salar") is not None
 
     # RF-SEG-11 y RF-RES-12.
     _rechaza(PermissionError, carolina.cambiar_clave, "clave-equivocada", "nueva-clave-larga")
-    carolina.cambiar_clave("clave-de-carolina", "nueva-clave-larga")
+    carolina.cambiar_clave("luna-sobre-el-salar", "nueva-clave-larga")
     assert Usuario.autenticar(CAROLINA, "nueva-clave-larga") is not None
     carolina.actualizar_contacto("Carolina Díaz R.", "987654321")
     releida = Usuario.autenticar(CAROLINA, "nueva-clave-larga")
     assert releida.obtener_nombre() == "Carolina Díaz R."
-    assert releida.telefono_enmascarado() == "+56 9 **** 4321"
+    assert releida.telefono_enmascarado() == "+56 9 ******* 1"
 
     # La base rechaza por sí misma una contraseña en claro y un cliente sin RUT.
     with conectar() as con:
@@ -264,7 +264,7 @@ def _verificar_destinos() -> None:
     _rechaza(PermissionError, elqui.cambiar_costo, 1, cliente)
     _rechaza(PermissionError, Destino("Nuevo", "Z", "d", 1, 1).guardar, cliente)
     _rechaza(PermissionError, Destino("Nuevo", "Z", "d", 1, 1).guardar,
-             Administrador("intruso@viajes.cl", "clave-larga-intruso"))
+             Administrador("intruso@viajes.cl", "clave-larga-ajena"))
 
     # Hallazgo 4: una edición que falla no deja el objeto a medias.
     antes = str(elqui)
@@ -305,7 +305,7 @@ def _verificar_destinos() -> None:
 def _verificar_paquetes_y_reservas() -> None:
     admin, carolina = _verificar_cuentas.cuentas
     pedro = Cliente.registrar("Pedro Soto", "11.111.111-1", PEDRO, "922223333",
-                              "clave-de-pedro-1")
+                              "viento-en-la-pampa-1")
     salida, regreso = date.today() + timedelta(days=30), date.today() + timedelta(days=35)
     surire = Destino("Salar de Surire 2", "Altiplano", "Flamencos", 4, 310_000)
     elqui = Destino("Valle del Elqui 2", ZONA_PRUEBA, "Estrellas", 3, 120_000)
@@ -476,6 +476,8 @@ def _verificar_auditoria() -> None:
     detalles = " ".join(f["detalle"] for f in filas)
     for dato in ("12345678", "@", "clave", "5678"):       # las contraseñas de prueba dicen «clave»
         assert dato not in detalles, dato                                  # sin datos personales
+    # Lo eliminado queda con su nombre: el id solo ya no dice qué se borró.
+    assert "destino" in detalles and "«Valle del Elqui»" in detalles
     # Una operación rechazada se deshace entera, con su registro: el registro no miente.
     antes = len(filas)
     _rechaza(ReglaNegocioError, Destino("Destino 0", "Z", "d", 1, 1).guardar, admin, regla="R1")
@@ -505,14 +507,14 @@ def _verificar_auditoria() -> None:
                    CUPO_MAXIMO, caros, MARGEN_MAXIMO)
     lujo.guardar(admin)
     lujo.publicar(admin)
-    pedro = Usuario.autenticar(PEDRO, "clave-de-pedro-1")
+    pedro = Usuario.autenticar(PEDRO, "viento-en-la-pampa-1")
     assert Reserva.reservar(lujo, CUPO_MAXIMO, pedro).obtener_total() == PRECIO_MAXIMO * CUPO_MAXIMO
     assert max(r.obtener_total() for r in pedro.historial()) == PRECIO_MAXIMO * CUPO_MAXIMO
 
     # H-04 y H-05: un RUT alterado en la base no impide entrar ni listar; solo falla al mostrarlo.
     with conectar() as con:
         con.execute("UPDATE usuario SET rut_cifrado = 'alterado' WHERE correo = ?", (PEDRO,))
-    pedro = Usuario.autenticar(PEDRO, "clave-de-pedro-1")
+    pedro = Usuario.autenticar(PEDRO, "viento-en-la-pampa-1")
     assert pedro is not None and len(Reserva.listar_por_paquete(lujo, admin)) == 1
     _rechaza(ValueError, pedro.rut_enmascarado)
 
@@ -624,9 +626,9 @@ def g15(admin: v.Administrador) -> None:
     ok("G.15", "Paquete: crear, leer (oferta, todos y buscar), actualizar (editar, publicar, cupo) y eliminar")
 
     cliente = v.Cliente.registrar("Carolina Díaz", "12.345.678-5", "carolina@c.cl", "912345678",
-                                  "clave-de-carolina")
+                                  "luna-sobre-el-salar")
     cliente.actualizar_contacto("Carolina Díaz R.", "987654321")
-    assert v.Usuario.autenticar("carolina@c.cl", "clave-de-carolina").obtener_nombre() == "Carolina Díaz R."
+    assert v.Usuario.autenticar("carolina@c.cl", "luna-sobre-el-salar").obtener_nombre() == "Carolina Díaz R."
     ok("G.15", "Cliente: crear (registro), leer (inicio de sesión) y actualizar su contacto")
 
     reserva = v.Reserva.reservar(paquete, 2, cliente)
@@ -665,11 +667,11 @@ PEDRO_C, NADIE = "pedro@c.cl", "nadie@c.cl"
 
 
 def g18() -> None:
-    cuenta = v.Cliente.registrar("Pedro", "11.111.111-1", PEDRO_C, "922223333", "clave-de-pedro-1")
-    assert isinstance(v.Usuario.autenticar("PEDRO@c.cl", "clave-de-pedro-1"), v.Cliente)
+    cuenta = v.Cliente.registrar("Pedro", "11.111.111-1", PEDRO_C, "922223333", "viento-en-la-pampa-1")
+    assert isinstance(v.Usuario.autenticar("PEDRO@c.cl", "viento-en-la-pampa-1"), v.Cliente)
     ok("G.18", "credenciales correctas: entra, sin importar mayúsculas en el correo")
     assert v.Usuario.autenticar(PEDRO_C, "clave-equivocada") is None
-    assert v.Usuario.autenticar(NADIE, "clave-de-pedro-1") is None
+    assert v.Usuario.autenticar(NADIE, "viento-en-la-pampa-1") is None
     assert v.Usuario.autenticar("no es correo", "") is None and v.Usuario.autenticar("", "") is None
     ok("G.18", "contraseña errónea, correo inexistente, formato inválido o vacío: la misma respuesta")
 
@@ -688,7 +690,7 @@ def g18() -> None:
         con.execute("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE correo = ?", (PEDRO_C,))
     for _ in range(5):
         v.Usuario.autenticar(PEDRO_C, "clave-equivocada")
-    assert v.Usuario.autenticar(PEDRO_C, "clave-de-pedro-1") is None
+    assert v.Usuario.autenticar(PEDRO_C, "viento-en-la-pampa-1") is None
     otra = sqlite3.connect(v.RUTA_ACTIVA)
     hasta = otra.execute("SELECT bloqueado_hasta FROM usuario WHERE correo = ?", (PEDRO_C,)).fetchone()[0]
     otra.close()
@@ -698,27 +700,43 @@ def g18() -> None:
     for clave, motivo in (("a" * 11, "11 caracteres"), ("Pedro2@c.cl", "igual al correo")):
         rechaza(v.ReglaNegocioError, v.Cliente, "P", "11.111.111-1", "pedro2@c.cl", "922223333", clave)
     ok("G.18", "política de contraseña: se rechaza con 11 caracteres o si es igual al correo")
+    # Teléfono sin secuencias propias (982736150): así cada caso cae en su regla y no en otra.
+    for correo, nombre, clave, motivo in (
+            ("ana@c.cl", "Ana", "viaje-al-sur-1234", "secuencias"),
+            ("ana@c.cl", "Ana", "viaje-al-sur-DCBA", "secuencias"),
+            ("juan.perez@c.cl", "Ana", "mi-ruta-perez-sur", "partes de su correo"),
+            ("ana@c.cl", "José Díaz", "ruta-de-diaz-sur", "su nombre"),       # sin tilde, igual
+            ("ana@c.cl", "Ana", "llamar-al-7361-hoy", "su teléfono")):
+        e = rechaza(v.ReglaNegocioError, v.Cliente, nombre, "11.111.111-1", correo, "982736150", clave)
+        assert e.obtener_regla() == "RF-SEG-04" and motivo in str(e), (clave, str(e))
+    v.Cliente("José Díaz", "11.111.111-1", "juan.perez@c.cl", "982736150", "luna-sobre-el-salar")
+    ok("G.18", "política de contraseña: sin secuencias (1234, dcba) ni partes del correo, del nombre"
+               " o del teléfono; sin exigir mayúsculas ni símbolos (RF-SEG-04)")
     rechaza(PermissionError, cuenta.cambiar_clave, "clave-equivocada", "otra-clave-larga")
     ok("G.18", "cambiar la contraseña exige la actual")
-    debil = PasswordHasher(time_cost=1, memory_cost=8192, parallelism=1).hash("clave-de-pedro-1")
+    debil = PasswordHasher(time_cost=1, memory_cost=8192, parallelism=1).hash("viento-en-la-pampa-1")
     with v.conectar() as con:
         con.execute("UPDATE usuario SET hash_clave = ?, bloqueado_hasta = NULL WHERE correo = ?",
                     (debil, PEDRO_C))
-    assert v.Usuario.autenticar(PEDRO_C, "clave-de-pedro-1") is not None
+    assert v.Usuario.autenticar(PEDRO_C, "viento-en-la-pampa-1") is not None
     with v.conectar() as con:
         nuevo = con.execute("SELECT hash_clave FROM usuario WHERE correo = ?", (PEDRO_C,)).fetchone()[0]
     assert "m=65536,t=4,p=4" in nuevo
     ok("G.18", "un hash con parámetros viejos se rehace al entrar (check_needs_rehash)")
+    sesion = v.Usuario.autenticar(PEDRO_C, "viento-en-la-pampa-1")
+    e = rechaza(v.ReglaNegocioError, sesion.cambiar_clave, "viento-en-la-pampa-1", "ruta-sur-922223333")
+    assert e.obtener_regla() == "RF-SEG-04"
+    ok("G.18", "la misma política rige al cambiar la contraseña: la nueva no puede traer el teléfono")
 
 
 def g18_endurecido() -> None:
     """Los riesgos que la auditoría había dejado como aceptados, cerrados y comprobados."""
-    admin = v.Usuario.autenticar("admin@viajes.cl", "clave-larga-admin")
-    admin.crear_administrador("socio@viajes.cl", "clave-larga-socio")
-    rita = v.Cliente.registrar("Rita", "11.111.111-1", "rita@c.cl", "933334444", "clave-larga-rita")
+    admin = v.Usuario.autenticar("admin@viajes.cl", "cumbre-nevada-9x")
+    admin.crear_administrador("socio@viajes.cl", "rio-baker-turquesa")
+    rita = v.Cliente.registrar("Rita", "11.111.111-1", "rita@c.cl", "933334444", "glaciar-grey-azul")
     for _ in range(5):
         rechaza(PermissionError, rita.cambiar_clave, "clave-equivocada", "otra-clave-larga-1")
-    assert v.Usuario.autenticar("rita@c.cl", "clave-larga-rita") is None
+    assert v.Usuario.autenticar("rita@c.cl", "glaciar-grey-azul") is None
     ok("G.18", "al cambiar la contraseña, la actual equivocada cuenta como intento: 5 errores bloquean la"
                " cuenta (H-10)")
 
@@ -732,22 +750,22 @@ def g18_endurecido() -> None:
         return round((datetime.fromisoformat(hasta) - datetime.now(timezone.utc)) / timedelta(minutes=1))
 
     assert [bloquear("socio@viajes.cl") for _ in range(4)] == [5, 15, 60, 60]
-    assert v.Usuario.autenticar("socio@viajes.cl", "clave-larga-socio") is not None
+    assert v.Usuario.autenticar("socio@viajes.cl", "rio-baker-turquesa") is not None
     assert bloquear("socio@viajes.cl") == 5
     ok("G.18", "bloqueo progresivo: 5, 15 y 60 minutos mientras siga fallando; un acierto vuelve a 5 (H-17)")
 
-    una, otra = (v.Usuario.autenticar("socio@viajes.cl", "clave-larga-socio") for _ in range(2))
-    una.cambiar_clave("clave-larga-socio", "clave-nueva-del-socio")
+    una, otra = (v.Usuario.autenticar("socio@viajes.cl", "rio-baker-turquesa") for _ in range(2))
+    una.cambiar_clave("rio-baker-turquesa", "rio-baker-esmeralda")
     assert una.tiene_sesion() and not otra.tiene_sesion()
     rechaza(PermissionError, v.Destino("Sesión vieja", "Zona", "d", 1, 1000).guardar, otra)
     ok("G.18", "cambiar la contraseña invalida las otras sesiones abiertas de esa cuenta")
 
-    abierta = v.Usuario.autenticar("socio@viajes.cl", "clave-nueva-del-socio")
+    abierta = v.Usuario.autenticar("socio@viajes.cl", "rio-baker-esmeralda")
     admin.desactivar_cuenta("socio@viajes.cl")
-    assert v.Usuario.autenticar("socio@viajes.cl", "clave-nueva-del-socio") is None
+    assert v.Usuario.autenticar("socio@viajes.cl", "rio-baker-esmeralda") is None
     assert not abierta.tiene_sesion()
     rechaza(PermissionError, v.Destino("Cuenta cerrada", "Zona", "d", 1, 1000).guardar, abierta)
-    rechaza(PermissionError, abierta.cambiar_clave, "clave-nueva-del-socio", "otra-clave-larga-2")
+    rechaza(PermissionError, abierta.cambiar_clave, "rio-baker-esmeralda", "otra-clave-larga-2")
     rechaza(v.ReglaNegocioError, admin.desactivar_cuenta, "admin@viajes.cl")
     rechaza(PermissionError, v.Administrador.desactivar_cuenta, rita, "admin@viajes.cl")
     ok("G.18", "una cuenta desactivada no entra (mismo mensaje), pierde sus sesiones abiertas y no cambia"
@@ -755,9 +773,9 @@ def g18_endurecido() -> None:
 
     for _ in range(v.Cliente.REPETIDOS_MAXIMO):
         rechaza(v.ReglaNegocioError, v.Cliente.registrar, "Otra", "11.111.111-1", "rita@c.cl",
-                "933334444", "clave-larga-otra")
+                "933334444", "brisa-de-la-tarde")
     pausa = rechaza(v.ReglaNegocioError, v.Cliente.registrar, "Nueva", "11.111.111-1", "nueva@c.cl",
-                    "933334444", "clave-larga-nueva")
+                    "933334444", "brisa-de-la-tarde")
     assert pausa.obtener_regla() == "RF-SEG-17"
     ok("G.18", f"tras {v.Cliente.REPETIDOS_MAXIMO} correos ya registrados en 10 minutos, el registro"
                " público se pausa: no sirve para averiguar qué correos existen (RF-SEG-17, H-06)")
@@ -782,10 +800,15 @@ def i19(admin: v.Administrador, paquete: v.Paquete, cliente: v.Cliente) -> None:
     assert ".env" in (RAIZ / ".gitignore").read_text() and "*.db" in (RAIZ / ".gitignore").read_text()
     assert RAIZ not in RUTA_CLAVE_REAL.parents
     ok("I.19", "la clave vive fuera del proyecto (carpeta del usuario) y la base no viaja al repositorio")
-    assert cliente.rut_enmascarado() == "12.***.***-5" and cliente.telefono_enmascarado() == "+56 9 **** 4321"
+    assert cliente.rut_enmascarado() == "12.***.***-5" and cliente.telefono_enmascarado() == "+56 9 ******* 1"
     assert all("12345678" not in str(r) for r in v.Reserva.listar_por_paquete(paquete, admin))
     assert "12345678" not in repr(cliente)
     ok("I.19", "RUT y teléfono solo enmascarados: en pantalla, en listados y en la representación del objeto")
+    # El correo: primer y último carácter, siempre los mismos asteriscos (no delatan el largo).
+    assert v.enmascarar_correo("juan9@gmail.com") == "j*******9@g****.com"
+    assert v.enmascarar_correo("carolina@c.cl") == "c*******a@c****.cl"
+    assert v.enmascarar_correo("jo@mail.uc.cl") == "j*******@m****.cl"
+    ok("I.19", "el correo también sale enmascarado en «ver mis datos» y en la cabecera del menú (RF-SEG-10)")
     e = rechaza(ValueError, v.Cliente, "P", "12.345.678-6", "x@c.cl", "912345678", "clave-larga-xx")
     assert "12.345.678" not in str(e) and "12345678" not in str(e)
     ok("I.19", "los mensajes de error nombran el campo, nunca el RUT ni el teléfono ingresados")
@@ -801,7 +824,7 @@ def i19_rotacion(admin: v.Administrador, cliente: v.Cliente) -> None:
     cantidad, anterior = v.rotar_clave_de_datos(admin)
     despues = rut_guardado()
     assert cantidad == 1 and despues != antes
-    assert v.Usuario.autenticar("carolina@c.cl", "clave-de-carolina").rut_enmascarado() == "12.***.***-5"
+    assert v.Usuario.autenticar("carolina@c.cl", "luna-sobre-el-salar").rut_enmascarado() == "12.***.***-5"
     rechaza(InvalidToken, Fernet(clave_vieja.encode()).decrypt, despues.encode())
     archivo = v.RUTA_CLAVE.with_name(anterior)
     assert archivo.exists() and (os.name != "posix" or archivo.stat().st_mode & 0o777 == 0o600)
@@ -881,7 +904,7 @@ def escenario_cliente(admin: v.Administrador) -> tuple[v.Paquete, v.Cliente]:
     paquete.guardar(admin)
     paquete.publicar(admin)
     cliente = v.Cliente.registrar("Carolina Díaz", "12.345.678-5", "carolina@c.cl", "912345678",
-                                  "clave-de-carolina")
+                                  "luna-sobre-el-salar")
     cliente.actualizar_contacto("Carolina Díaz R.", "987654321")
     v.Reserva.reservar(paquete, 2, cliente)
     return paquete, cliente
@@ -1040,7 +1063,7 @@ GUION = [
     "11", "1", "10", ENTER,
     "7", ENTER,
     # Cuentas, cancelación y opción inexistente.
-    "14", "matias@viajes.cl", "clave-larga-de-matias", "clave-larga-de-matias", ENTER,
+    "14", "matias@viajes.cl", "s", "brisa-del-pacifico-7", "brisa-del-pacifico-7", ENTER,
     "2", "Torres del Paine", "x", ENTER,
     "99", ENTER,
     "9" * 5000, ENTER,                 # H-12: int() con más de 4.300 dígitos ya no rompe el menú
@@ -1048,18 +1071,23 @@ GUION = [
     "15", "matias@viajes.cl", "s", ENTER,   # el socio deja la agencia: su cuenta se desactiva (RF-SEG-14)
     "20",
     # La cuenta desactivada ya no entra, con el mismo mensaje que una contraseña errónea.
-    "1", "matias@viajes.cl", "clave-larga-de-matias",
+    "1", "matias@viajes.cl", "brisa-del-pacifico-7",
     # Registro público de un cliente: el RUT con el dígito verificador malo se rechaza al
-    # escribirlo, y se vuelve a pedir; una contraseña corta la rechaza el dominio.
+    # escribirlo, y se vuelve a pedir; una contraseña corta, con una secuencia o con su correo la
+    # rechaza el dominio (RF-SEG-04).
     "2", "s", "Carolina Díaz", "12.345.678-6", "12.345.678-5", CAROLINA, "9 1234 5678",
     "corta", "corta",
     "2", "s", "Carolina Díaz", "12.345.678-5", CAROLINA, "9 1234 5678",
+    "viaje-al-sur-1234", "viaje-al-sur-1234",
+    "2", "s", "Carolina Díaz", "12.345.678-5", CAROLINA, "9 1234 5678",
     "clave-de-carolina", "clave-de-carolina",
+    "2", "s", "Carolina Díaz", "12.345.678-5", CAROLINA, "9 1234 5678",
+    "luna-sobre-el-salar", "luna-sobre-el-salar",
     # Contraseña errónea y correo inexistente: el mismo mensaje (RF-SEG-02).
     "1", CAROLINA, "clave-equivocada",
     "1", "nadie@correo.cl", "clave-equivocada",
     # Sesión de cliente: oferta, reserva, segunda reserva advertida, sobre el cupo, anulación.
-    "1", CAROLINA, "clave-de-carolina",
+    "1", CAROLINA, "luna-sobre-el-salar",
     "1", ENTER,
     "2", "99", ENTER,                  # H-13: un id inexistente recibe el mismo mensaje
     "2", "1", "2.5", "2", ENTER,       # «2.5» personas se rechaza, no se lee como 25
@@ -1067,7 +1095,7 @@ GUION = [
     "2", "1", "s", "20", ENTER,
     "3", ENTER,
     "2", "1", "s", "1", ENTER,
-    "4", "2", ENTER,
+    "4", "2", "s", ENTER,
     "5", ENTER,
     "6", "Carolina Díaz Rojas", "987654321", ENTER,
     "8",
@@ -1117,14 +1145,21 @@ ESPERADO = [
     "sin letras ni decimales",
     "Respaldo guardado en",
     "Base legal: la ejecución de la reserva",
-    "carolina@correo.cl (cliente)",
+    "c*******a@c****.cl (cliente)",         # el correo, enmascarado también en la cabecera
+    "Correo:   c*******a@c****.cl",
     "Reserva confirmada por $1.056.000.",
     "Ya tiene una reserva vigente en este paquete",
     "No hay cupo: quedan 8 lugares",
     "Reserva confirmada por $528.000.",
     "Reserva anulada.",
     "RUT:      12.***.***-5",
-    "Teléfono: +56 9 **** 4321",
+    "Teléfono: +56 9 ******* 1",
+    "(escriba x y Enter para cancelar)",
+    "La contraseña no puede tener secuencias como 1234 o abcd",
+    "La contraseña no puede contener partes de su correo",
+    "¿Crear una cuenta de administrador para matias@viajes.cl?",
+    "¿Anular la reserva 2? No se puede deshacer",
+    "1) [1] Carolina Díaz <c*******a@c****.cl>",
     "Carolina Díaz Rojas <carolina@correo.cl>",
     "· anulada",
 ]
@@ -1473,6 +1508,13 @@ MUTACIONES = [
      'SQL_CREDENCIAL = "SELECT hash_clave, activa FROM usuario WHERE id = " + "?"', ["seguridad"]),
     ("H-16 sin lista de contraseñas comunes", VIAJES,
      "if clave.casefold() in CLAVES_COMUNES or len(set(clave)) < CLAVE_DISTINTOS:", "if False:", ["reglas"]),
+    ("RF-SEG-04 acepta secuencias como 1234", VIAJES,
+     "if tiene_secuencia(clave):\n            raise", "if False:\n            raise", ["credenciales"]),
+    ("RF-SEG-04 acepta partes del correo", VIAJES,
+     "if any(p in normalizar(clave) for p in partes_propias(self.__correo",
+     "if False and any(p in normalizar(clave) for p in partes_propias(self.__correo", ["credenciales"]),
+    ("RF-SEG-04 acepta el nombre o el teléfono", VIAJES,
+     "        if any(p in normalizar(clave) for p in propias):", "        if False:", ["credenciales"]),
     ("H-17 bloqueo con hora local", VIAJES,
      "        ahora = datetime.now(timezone.utc)\n        with conectar() as con:\n            hasta",
      "        ahora = datetime.now()\n        with conectar() as con:\n            hasta", ["reglas"]),
@@ -1486,6 +1528,11 @@ MUTACIONES = [
     ("K-05 la clave exige «sin usuarios»", VIAJES,
      'con.execute("SELECT 1 FROM usuario WHERE rut_cifrado IS NOT NULL LIMIT 1"',
      'con.execute("SELECT 1 FROM usuario LIMIT 1"', ["reglas", "menu"]),
+    ("RF-SEG-10 el teléfono muestra los cuatro últimos dígitos", VIAJES,
+     'return f"+56 {telefono[0]} ******* {telefono[-1]}"', 'return f"+56 {telefono[0]} **** {telefono[-4:]}"',
+     ["datos"]),
+    ("RF-SEG-10 el correo completo en «ver mis datos»", MENU,
+     "Correo:   {enmascarar_correo(sesion.obtener_correo())}", "Correo:   {sesion.obtener_correo()}", ["menu"]),
     ("H-01 clave dentro del proyecto", VIAJES,
      'RUTA_CLAVE = Path.home() / ".config" / "viajes-aventura" / "clave.env"',
      'RUTA_CLAVE = Path(__file__).with_name(".env")', ["datos"]),
@@ -1495,6 +1542,8 @@ MUTACIONES = [
     ("H-02 reserva sin registro de auditoría", VIAJES,
      '            registrar_evento(con, solicitante.obtener_id(), "reserva.crear",',
      '            (lambda *a: None)(con, solicitante.obtener_id(), "reserva.crear",', ["reglas"]),
+    ("RF-SEG-16 el registro no dice qué destino se eliminó", VIAJES,
+     'f"destino {self.__id} «{self.__nombre}»"', 'f"destino {self.__id}"', ["reglas"]),
     ("Hallazgo 4 editar deja el objeto a medias", VIAJES,
      '        autorizar(solicitante, "catalogo")\n        datos = self.__validar_datos(nombre, zona, descripcion, duracion_dias)',
      '        autorizar(solicitante, "catalogo")\n        self.__nombre = nombre\n'
@@ -1511,6 +1560,14 @@ MUTACIONES = [
      "        if False:\n            raise SesionCaducada", ["menu"]),
     ("H-12 int() sin límite de largo", MENU,
      "if not (len(eleccion) <= 3 and eleccion.isdecimal()", "if not (eleccion.isdecimal()", ["menu"]),
+    ("RNF-USA-01 anular una reserva sin confirmar", MENU,
+     '    if not pedir_si_no(f"   ¿Anular la reserva {numero}? No se puede deshacer"):\n        raise Cancelado\n', "", ["menu"]),
+    ("RNF-USA-01 crear un socio sin confirmar", MENU,
+     '    if not pedir_si_no(f"   ¿Crear una cuenta de administrador para {correo}? Tendrá todos los"\n'
+     '                       " permisos de un socio"):\n        raise Cancelado\n', "", ["menu"]),
+    ("RNF-USA-01 sin el aviso de cómo cancelar", MENU,
+     "        AVISAR_CANCELAR = False\n        print(AVISO_CANCELAR)", "        AVISAR_CANCELAR = False",
+     ["menu"]),
     ("RNF-USA-04 la demostración escribe en la base real", MENU,
      'viajes.usar_base(os.path.join(carpeta, "demostracion.db"))', "pass", ["seguridad"]),
     ("H-13 mensajes distintos para «no existe» y «no publicado»", MENU,

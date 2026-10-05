@@ -20,8 +20,8 @@ from pathlib import Path                    # la clave temporal del modo demostr
 import viajes                               # solo para aislar la base y la clave en la demostración
 from viajes import (MARGEN_PROPUESTO, Administrador, Cliente, Destino, Paquete,
                     ReglaNegocioError, Reserva, Usuario, consultar_auditoria, contar_bloqueos,
-                    crear_tablas, hay_usuarios, pesos, rotar_clave_de_datos, validar_correo,
-                    validar_rut, validar_telefono)
+                    crear_tablas, enmascarar_correo, hay_usuarios, pesos, rotar_clave_de_datos,
+                    tiene_secuencia, validar_correo, validar_rut, validar_telefono)
 
 # Techo de todo entero que se teclea: un número enorme no debe llegar a int() ni a la base.
 MAXIMO_ENTERO = 10**9
@@ -92,7 +92,21 @@ def limpiar() -> None:
 # --- Entrada del usuario ---------------------------------------------------
 # Toda lectura pasa por leer(): así «x» cancela en cualquier dato.
 
+AVISO_CANCELAR = "   (escriba x y Enter para cancelar)"
+# atender() lo enciende antes de cada acción: la primera pregunta de la acción recuerda cómo
+# cancelar, y una acción que no pregunta nada (ver mis datos) no lo muestra.
+AVISAR_CANCELAR = False
+
+
+def recordar_cancelar() -> None:
+    global AVISAR_CANCELAR
+    if AVISAR_CANCELAR:
+        AVISAR_CANCELAR = False
+        print(AVISO_CANCELAR)
+
+
 def leer(mensaje: str) -> str:
+    recordar_cancelar()
     valor = esperar(input, mensaje).strip()
     if valor.lower() == "x":
         raise Cancelado
@@ -166,6 +180,7 @@ def pedir_si_no(mensaje: str) -> bool:
 
 
 def pedir_clave(mensaje: str = "   Contraseña: ") -> str:
+    recordar_cancelar()
     clave = esperar(getpass.getpass, mensaje)
     if clave.strip().lower() == "x":
         raise Cancelado
@@ -173,9 +188,10 @@ def pedir_clave(mensaje: str = "   Contraseña: ") -> str:
 
 
 def pedir_clave_nueva() -> str:
-    """Dos veces y sin eco. La política (12 o más, distinta del correo) la valida Usuario."""
+    """Dos veces y sin eco. La política (RF-SEG-04) la valida Usuario."""
     while True:
-        clave = pedir_clave("   Contraseña nueva (12 caracteres o más): ")
+        clave = pedir_clave("   Contraseña nueva (12 caracteres o más, sin secuencias como 1234 ni sus"
+                            " datos): ")
         if clave == pedir_clave("   Repita la contraseña: "):
             return clave
         print("   ! Las contraseñas no coinciden.")
@@ -231,7 +247,7 @@ def ver_oferta(_sesion: Usuario | None = None) -> None:
 
 def registrarse() -> None:
     """Registro público: siempre crea un cliente (RF-SEG-12). Nada en pantalla permite elegir rol."""
-    print("\n   Registro de cliente (escriba x para cancelar)")
+    print("\n   Registro de cliente")
     print(AVISO_DATOS)
     if not pedir_si_no("   ¿Acepta?"):
         raise Cancelado
@@ -421,7 +437,11 @@ def ver_auditoria(sesion: Administrador) -> None:
 
 
 def crear_socio(sesion: Administrador) -> None:
-    nuevo = sesion.crear_administrador(pedir_texto("   Correo del socio: "), pedir_clave_nueva())
+    correo = pedir_texto("   Correo del socio: ")
+    if not pedir_si_no(f"   ¿Crear una cuenta de administrador para {correo}? Tendrá todos los"
+                       " permisos de un socio"):
+        raise Cancelado
+    nuevo = sesion.crear_administrador(correo, pedir_clave_nueva())
     print(f"   Cuenta de administrador creada para {nuevo.obtener_correo()}.")
 
 
@@ -444,9 +464,11 @@ def reservar(sesion: Cliente) -> None:
 
 def mis_reservas(sesion: Cliente) -> list[Reserva]:
     reservas = sesion.historial()
+    correo = sesion.obtener_correo()
     print("\n   Mis reservas")
     for numero, reserva in enumerate(reservas, 1):
-        print(f"   {numero:>2}) {reserva}")
+        # Enmascarado como en «ver mis datos»; el socio sí lo ve completo, para contactarlo (RF-RES-11).
+        print(f"   {numero:>2}) {str(reserva).replace(correo, enmascarar_correo(correo))}")
     if not reservas:
         print("   (todavía no tiene reservas)")
     return reservas
@@ -460,13 +482,16 @@ def anular_reserva(sesion: Cliente) -> None:
     numero = pedir_entero("   Número de la reserva a anular: ")
     if not 1 <= numero <= len(reservas):
         raise ValueError("Ese número no está en la lista")
+    if not pedir_si_no(f"   ¿Anular la reserva {numero}? No se puede deshacer"):
+        raise Cancelado
     reservas[numero - 1].anular(sesion)
     print("   Reserva anulada. Sus lugares vuelven al cupo del paquete.")
 
 
 def mis_datos(sesion: Cliente) -> None:
-    # RUT y teléfono solo enmascarados, incluso para su dueño (RF-SEG-10, S-16).
-    print(f"   Nombre:   {sesion.obtener_nombre()}\n   Correo:   {sesion.obtener_correo()}\n"
+    # RUT, correo y teléfono solo enmascarados, incluso para su dueño (RF-SEG-10, S-16): la
+    # pantalla puede estar a la vista de otros.
+    print(f"   Nombre:   {sesion.obtener_nombre()}\n   Correo:   {enmascarar_correo(sesion.obtener_correo())}\n"
           f"   RUT:      {sesion.rut_enmascarado()}\n   Teléfono: {sesion.telefono_enmascarado()}")
 
 
@@ -506,7 +531,7 @@ OPCIONES = [
     ("Cuentas", "Desactivar una cuenta", "cuentas", desactivar_una_cuenta),
     ("Cuentas", "Respaldar la base de datos", "respaldo", respaldar),
     ("Cuentas", "Rotar la clave de cifrado de los datos personales", "clave", rotar_clave),
-    ("Cuentas", "Ver el registro de auditoría", "auditoria", ver_auditoria),
+    ("Cuentas", "Ver el registro de auditoría (actividad y seguridad)", "auditoria", ver_auditoria),
     ("Reservas", "Ver los paquetes disponibles", "reservar", ver_oferta),
     ("Reservas", "Reservar un paquete", "reservar", reservar),
     ("Reservas", "Mis reservas", "reservar", mis_reservas),
@@ -526,7 +551,8 @@ def opciones_de(sesion: Usuario) -> list[tuple]:
 def mostrar_menu(sesion: Usuario, opciones: list[tuple]) -> None:
     limpiar()
     rol = "administrador" if sesion.puede("catalogo") else "cliente"
-    print("=" * 66 + f"\n   Viajes Aventura · {sesion.obtener_correo()} ({rol})\n" + "=" * 66)
+    print("=" * 66 + f"\n   Viajes Aventura · {enmascarar_correo(sesion.obtener_correo())} ({rol})\n"
+          + "=" * 66)
     if sesion.puede("auditoria") and (bloqueos := contar_bloqueos(sesion)):
         # RF-SEG-16: alguien probando contraseñas no pasa desapercibido.
         print(f"   ! Aviso: {bloqueos} bloqueo(s) de cuenta por contraseñas erróneas en las últimas"
@@ -547,6 +573,8 @@ def atender(funcion, sesion: Usuario | None) -> bool:
 
     Ningún mensaje muestra trazas, rutas ni datos personales (RNF-SEG-05).
     """
+    global AVISAR_CANCELAR
+    AVISAR_CANCELAR = True
     try:
         funcion(sesion) if sesion is not None else funcion()
     except Cancelado:
@@ -566,6 +594,8 @@ def atender(funcion, sesion: Usuario | None) -> bool:
     except Exception as error:
         # Solo el tipo: el texto de un error desconocido puede traer rutas, consultas o datos.
         print(f"   ! Error inesperado ({type(error).__name__}). La acción no se completó.")
+    finally:
+        AVISAR_CANCELAR = False
     return True
 
 
@@ -629,7 +659,7 @@ def ejecutar_opcion(eleccion: str, opciones: list[tuple], sesion: Usuario) -> bo
 
 def alta_inicial() -> None:
     """Primer uso (S-04): sin cuentas en la base, se crea la del primer administrador."""
-    print("\n   Primer uso: cree la cuenta del primer administrador.")
+    print("\n   Primer uso: cree la cuenta del primer administrador (escriba x para salir).")
     while True:
         try:
             admin = Administrador.crear_primero(pedir_texto(PIDE_CORREO), pedir_clave_nueva())
@@ -704,13 +734,23 @@ PAQUETES_DE_EJEMPLO = [
 ]
 
 
+def clave_al_azar() -> str:
+    """16 caracteres al azar. Se descarta la rara que trae una secuencia o 4 dígitos seguidos, que
+    RF-SEG-04 rechazaría (los teléfonos de ejemplo son 9 1111 1111 y 9 2222 2222)."""
+    # Que traiga «soto» o «pedro» por azar es menos de 1 en 100.000: eso no se revisa.
+    clave = secrets.token_urlsafe(12)
+    while tiene_secuencia(clave) or re.search(r"\d{4}", clave):
+        clave = secrets.token_urlsafe(12)
+    return clave
+
+
 def cargar_datos_de_ejemplo(hoy: date) -> dict[str, str]:
     """Solo con los métodos públicos del dominio: cada dato pasa por las mismas validaciones que en
     el menú y queda en el registro de auditoría. Devuelve correo → contraseña.
 
     Las contraseñas se generan al azar en cada ejecución: ninguna queda escrita en el código (S-04).
     Los RUT son ficticios a la vista (11.111.111-1 y 22.222.222-2)."""
-    claves = {correo: secrets.token_urlsafe(12) for correo in (DEMO_SOCIO, DEMO_CLIENTA, DEMO_CLIENTE)}
+    claves = {correo: clave_al_azar() for correo in (DEMO_SOCIO, DEMO_CLIENTA, DEMO_CLIENTE)}
     Administrador.crear_primero(DEMO_SOCIO, claves[DEMO_SOCIO])
     socio = Usuario.autenticar(DEMO_SOCIO, claves[DEMO_SOCIO])
     destinos = []
