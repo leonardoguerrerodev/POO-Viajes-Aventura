@@ -923,32 +923,41 @@ def demostracion(admin: v.Administrador) -> None:
        " variable reales quedan intactas")
 
 
+def es_literal(nodo: ast.expr) -> bool:
+    """Un texto fijo, una constante con nombre, o la elección entre dos de ellos."""
+    if isinstance(nodo, ast.IfExp):
+        return es_literal(nodo.body) and es_literal(nodo.orelse)
+    return isinstance(nodo, (ast.Constant, ast.Name, ast.Attribute))
+
+
+def sql_armado(nodo: ast.AST) -> bool:
+    """Un execute() que recibe texto armado, o una constante SQL_..., ESQUEMA o sql que lo es."""
+    if isinstance(nodo, ast.Call) and getattr(nodo.func, "attr", "") in ("execute", "executescript",
+                                                                         "executemany"):
+        return bool(nodo.args) and not es_literal(nodo.args[0])
+    if isinstance(nodo, ast.Assign):
+        nombres = [t.id for t in nodo.targets if isinstance(t, ast.Name)]
+        return any(n.upper().startswith("SQL") or n == "ESQUEMA" for n in nombres) and not es_literal(nodo.value)
+    return False
+
+
+def revisar_producto_con_ast() -> tuple[list[str], dict[str, int]]:
+    """Lee el producto sin ejecutarlo: dónde hay SQL armado con texto y cuántos assert tiene."""
+    armadas, asserts = [], {}
+    for archivo in ("viajes.py", "main.py"):
+        arbol = ast.parse((RAIZ / archivo).read_text(encoding="utf-8"))
+        asserts[archivo] = sum(isinstance(n, ast.Assert) for n in ast.walk(arbol))
+        armadas += [f"{archivo}:{n.lineno}" for n in ast.walk(arbol) if sql_armado(n)]
+    return armadas, asserts
+
+
 def i20(admin: v.Administrador) -> None:
     """La seguridad comprobada desde afuera: permisos, SQL, registro, dependencias y workflow."""
     rechaza(PermissionError, v.Destino("Sin sesión", "Zona", "d", 1, 1000).guardar,
             v.Administrador("x@y.cl", "clave-larga-xyz"))
     ok("I.20", "un Administrador armado sin iniciar sesión no tiene ningún permiso (hallazgo 5)")
 
-    def literal(nodo: ast.expr) -> bool:
-        """Un texto fijo, una constante con nombre, o la elección entre dos de ellos."""
-        if isinstance(nodo, ast.IfExp):
-            return literal(nodo.body) and literal(nodo.orelse)
-        return isinstance(nodo, (ast.Constant, ast.Name, ast.Attribute))
-
-    armadas, asserts = [], {}
-    for archivo in ("viajes.py", "main.py"):
-        arbol = ast.parse((RAIZ / archivo).read_text(encoding="utf-8"))
-        asserts[archivo] = sum(isinstance(n, ast.Assert) for n in ast.walk(arbol))
-        for nodo in ast.walk(arbol):
-            if (isinstance(nodo, ast.Call) and getattr(nodo.func, "attr", "") in ("execute", "executescript",
-                                                                                  "executemany")
-                    and nodo.args and not literal(nodo.args[0])):
-                armadas.append(f"{archivo}:{nodo.lineno}")
-            # Y las constantes con SQL (SQL_..., ESQUEMA, sql): un texto pegado ahí también cuenta.
-            if isinstance(nodo, ast.Assign) and any(
-                    isinstance(t, ast.Name) and (t.id.upper().startswith("SQL") or t.id == "ESQUEMA")
-                    for t in nodo.targets) and not literal(nodo.value):
-                armadas.append(f"{archivo}:{nodo.lineno}")
+    armadas, asserts = revisar_producto_con_ast()
     assert not armadas, f"SQL armado con texto en {armadas}"
     ok("I.20", "ninguna consulta SQL se arma pegando textos: todas son literales con parámetros ?"
                " (RNF-SEG-03, revisado con ast en todo el producto)")

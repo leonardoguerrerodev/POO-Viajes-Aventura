@@ -37,7 +37,7 @@ git checkout $(git rev-list -n 1 --before="2026-10-05 23:00:00 -0300" main)
 python3 -m venv .venv
 source .venv/bin/activate
 pip install --only-binary :all: --require-hashes -r requirements.txt
-python viajes.py
+python pruebas/verificar.py --rapido
 python main.py
 ```
 
@@ -50,7 +50,7 @@ git checkout (git rev-list -n 1 --before="2026-10-05 23:00:00 -0300" main)
 py -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install --only-binary :all: --require-hashes -r requirements.txt
-python viajes.py
+python pruebas/verificar.py --rapido
 python main.py
 ```
 
@@ -64,8 +64,9 @@ igual.
 - `pip install` instala las dos librerías del proyecto, `argon2-cffi` (contraseñas) y `cryptography`
   (cifrado), más las tres de las que dependen. Cada archivo se verifica contra su hash: se instala
   exactamente lo que se probó.
-- `python viajes.py` es la autoverificación de las reglas del negocio, sobre una base temporal:
-  debe terminar en `OK`.
+- `python pruebas/verificar.py --rapido` corre las pruebas, menos las mutaciones, sobre una base
+  temporal; debe terminar en «ninguna falla». No hace falta para usar el programa: el programa no
+  depende de las pruebas.
 - `python main.py` abre el programa.
 
 **Para volver a ejecutar** otro día basta con entrar a la carpeta, activar el entorno
@@ -106,8 +107,11 @@ igual.
 - El administrador es un socio de la agencia (el caso no tiene otro personal). Crea las cuentas de los
   otros socios en «Cuentas → Crear la cuenta de un socio».
 - **Qué hace cada rol:**
-  - el administrador crea destinos y paquetes de 2 a 5 destinos, los publica y ve sus reservas;
-  - el cliente reserva, ve sus reservas y las anula.
+  - el administrador crea destinos y paquetes de 2 a 5 destinos, los publica y ve sus reservas. Además
+    administra la seguridad: crea y desactiva cuentas, respalda la base, rota la clave de cifrado y
+    lee el registro de auditoría. Al entrar, se le avisa si hubo cuentas bloqueadas en las últimas 24
+    horas;
+  - el cliente reserva, ve sus reservas y las anula, y actualiza su nombre y su teléfono.
 - Toda opción que pide un id muestra antes la lista correspondiente.
 - **`x`** en cualquier dato cancela la acción sin guardar. La sesión se cierra sola tras 10 minutos sin
   uso.
@@ -119,6 +123,7 @@ igual.
 | `viajes.db` | Junto al código | La base de datos |
 | `respaldos/` | Junto al código | Copias de la base, desde la opción «Respaldar la base de datos» del administrador |
 | `clave.env` | Linux y macOS: `~/.config/viajes-aventura/`<br>Windows: `C:\Users\<usuario>\.config\viajes-aventura\` | La clave que cifra el RUT y el teléfono. Se crea con el primer cliente, fuera del proyecto |
+| `clave.env.anterior-<fecha>` | Junto a `clave.env` | La clave anterior, si se rotó desde el menú. Sirve para leer los respaldos hechos antes de la rotación; si no hay ninguno, se puede borrar |
 
 - **La clave se respalda aparte:** sin ella, los RUT y teléfonos guardados no se pueden leer, y el
   programa se niega a crear otra si ya hay datos cifrados.
@@ -129,19 +134,32 @@ igual.
 
 ## 3. Verificar
 
-Con el entorno activado, en cualquiera de los tres sistemas:
+Todas las pruebas están en un solo archivo, ordenado por la rúbrica. Con el entorno activado, en
+cualquiera de los tres sistemas:
 
 ```bash
-python viajes.py                     # autoverificación de las reglas R1 a R17: imprime OK
-python pruebas/prueba_rubrica.py     # una afirmación verificable por indicador de la rúbrica
-python herramientas/uml_vs_codigo.py # el diagrama de clases contra el código: 0 diferencias
-python herramientas/driver.py        # recorre el menú con los dos roles y reescribe docs/SALIDA_TERMINAL.md
-python herramientas/mutaciones.py    # rompe 28 reglas a propósito y exige que alguna prueba lo detecte
+python pruebas/verificar.py            # interfaz: elige la sección y la corre paso a paso
+python pruebas/verificar.py --todo     # todo, incluidas 36 mutaciones (unos 5 minutos)
+python pruebas/verificar.py --rapido   # todo menos las mutaciones (menos de 1 minuto)
 ```
 
-Las cinco corren en cada envío al repositorio: las cuatro primeras en Windows, macOS y Linux con
-Python 3.12 y 3.14, y las mutaciones en Linux (tardan unos minutos). Ninguna toca `viajes.db` ni la
-clave real: trabajan sobre archivos temporales.
+**Secciones:**
+- reglas del negocio;
+- POO, persistencia y CRUD;
+- autenticación y credenciales;
+- datos personales;
+- seguridad;
+- recorrido del menú real, que reescribe `docs/SALIDA_TERMINAL.md`;
+- diagrama de clases contra código;
+- mutaciones.
+
+**Cómo leer el resultado:** cada afirmación se imprime recién después de comprobarse, con su indicador
+de la rúbrica. Qué prueba cada una, y dónde está el control en el código, se explica en
+[`pruebas/README.md`](pruebas/README.md).
+
+**Dónde corren:** todas, en cada envío al repositorio, en Windows, macOS y Linux con Python 3.12 y
+3.14 (las mutaciones, en Linux). Ninguna toca `viajes.db` ni la clave real: trabajan sobre archivos
+temporales.
 
 ## 4. Problemas frecuentes
 
@@ -158,10 +176,9 @@ clave real: trabajan sobre archivos temporales.
 
 | Ruta | Contenido |
 |---|---|
-| `viajes.py` | Dominio: las clases del diagrama, su persistencia (todo el SQL) y la autoverificación |
-| `main.py` | Menú de terminal, sin SQL |
+| `viajes.py` | El producto: las clases del diagrama, su persistencia (todo el SQL), la autenticación y el cifrado. Sin pruebas |
+| `main.py` | Menú de terminal, pantalla previa y modo demostración. Sin SQL |
 | `requirements.txt` | Las dependencias, con versión exacta y los hashes de Windows, macOS y Linux |
 | `diagramas/` | Diagrama de clases (`clases.puml`, la fuente), casos de uso y BPMN, con sus generadores |
-| `herramientas/` | Driver del menú, comparador del diagrama con el código y pruebas de mutación |
-| `pruebas/` | Prueba por indicador de la rúbrica |
-| `docs/` | Auditoría de seguridad, análisis del uso de IA, sesión real del menú, transcripciones de la IA e informe técnico |
+| `pruebas/` | `verificar.py`, todas las pruebas por indicador de la rúbrica, y su índice `README.md` |
+| `docs/` | Informe técnico, auditoría de seguridad, privacidad (conservación e incidentes), análisis del uso de IA, sesión real del menú y transcripciones de la IA |

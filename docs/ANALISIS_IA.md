@@ -38,13 +38,17 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
     Su respuesta se resume en la sección 5; el texto completo queda en el registro de trabajo.
 - **Ningún resultado se aceptó por haberlo producido la IA.** Todo pasó por al menos una de estas
   verificaciones:
-  - `herramientas/trazabilidad.py`: el catálogo de requerimientos contra el caso.
-  - `herramientas/uml_vs_codigo.py`: el diagrama contra el código, con 0 diferencias.
-  - La autoverificación de `viajes.py`: las reglas R1 a R17.
-  - `herramientas/driver.py`: una sesión real del menú, con los dos roles.
-  - `pruebas/prueba_rubrica.py`: una afirmación por indicador.
+  - `trazabilidad.py`, script de trabajo del informe: el catálogo de requerimientos contra el caso.
+  - El diagrama contra el código, con 0 diferencias.
+  - Las reglas R1 a R17.
+  - Una sesión real del menú, con los dos roles (en esta página, «el driver»).
+  - Una afirmación por indicador de la rúbrica.
   - Bandit, pip-audit y SonarCloud.
   - **Pruebas de mutación:** romper a propósito una regla y comprobar que alguna prueba falla.
+
+  Desde el 5-oct, todas esas pruebas están en un solo archivo, `pruebas/verificar.py`, con una sección
+  por cada una (índice en [`pruebas/README.md`](../pruebas/README.md)). Antes eran cinco archivos, en
+  `herramientas/`, `pruebas/` y al final de `viajes.py`.
     Detectaron 46 de 46 mutaciones en total. Una de ellas, un atributo público, recién se detectó
     después de corregir el comparador (K-08).
 
@@ -140,7 +144,7 @@ cinco eran errores reales del código o del informe, y se confirmaron con una pr
 | X-07 | Faltaban los RNF en la matriz de trazabilidad | **Adoptado** | La matriz tiene una fila por requerimiento, RF y RNF, con la comprobación concreta |
 | X-08 | La tabla de IA del informe solo contaba | **Adoptado** | El capítulo 6 tiene ahora la tabla «qué se pidió, qué devolvió, decisión y fundamento» |
 | X-09 | Los hallazgos no tenían las cinco partes | **Adoptado** | `AUDITORIA.md` §2.1 y §2.3 |
-| X-10 | Las mutaciones no se podían repetir | **Adoptado** | `herramientas/mutaciones.py`, hoy 28 de 28, en el workflow |
+| X-10 | Las mutaciones no se podían repetir | **Adoptado** | Script de mutaciones en el workflow; hoy, la sección «mutaciones» de `pruebas/verificar.py`, con 36 de 36 |
 | X-11 | Referencias cruzadas que quedaron del orden anterior | **Adoptado** | Corregidas las cinco |
 | X-12 | Adjetivos sin medida | **Adoptado** | Reemplazados por el dato |
 | X-13 | Los RF Should y Could no tenían criterio de aceptación | **Adoptado** | 13 criterios nuevos; `trazabilidad.py` exige ahora un criterio por RF |
