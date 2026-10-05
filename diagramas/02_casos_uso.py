@@ -44,7 +44,7 @@ YS = 62
 cu(XC, YS, "CU-02 Iniciar sesión", "RF-SEG-01 a 03 · 05 · 08 · 09", rx=72)
 
 # columna del cliente (orden temporal: registrarse, mirar, reservar, revisar)
-cu(XL, Y[0], "CU-01 Registrarse", "RF-RES-01 a 03\nRF-SEG-04 · 12 · 13")
+cu(XL, Y[0], "CU-01 Registrarse", "RF-RES-01 a 03\nRF-SEG-04 · 12 · 13 · 17")
 cu(XL, Y[1], "CU-03 Consultar paquetes", "RF-PAQ-06 · 07")
 cu(XL, Y[2], "CU-04 Reservar paquete", "RF-RES-04 a 07 · 10", fill=AMARILLO)
 cu(XL, Y[3], "CU-05 Ver mis reservas", "RF-RES-08 · RF-SEG-10")
@@ -55,7 +55,7 @@ cu(XR, Y[0], "CU-09 Gestionar destinos", "RF-DES-01 a 10")
 cu(XR, Y[1], "CU-10 Gestionar paquetes", "RF-PAQ-01 a 04 · 08 a 11")
 cu(XR, Y[2], "CU-11 Publicar paquete", "RF-PAQ-05", fill=AMARILLO)
 cu(XR, Y[3], "CU-12 Ver reservas\nde un paquete", "RF-RES-11 · RF-SEG-10")
-cu(XR, Y[4], "CU-13 Crear\nadministrador", "RF-SEG-06 · 07")
+cu(XR, Y[4], "CU-13 Gestionar cuentas\ny seguridad", "RF-SEG-06 · 07 · 14\nRF-SEG-15 · 16")
 # abajo al centro, el caso de los dos actores
 YC = 418
 cu(XC, YC, "CU-08 Cambiar contraseña", "RF-SEG-11 · 04", rx=72)

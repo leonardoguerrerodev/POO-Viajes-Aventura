@@ -42,6 +42,11 @@ python pruebas/verificar.py --solo datos
 | `uml` | G.13, I.8 | El diagrama `diagramas/clases.puml` contra `viajes.py`, clase por clase y miembro por miembro | `leer_diagrama`, `leer_codigo`, `comparar` |
 | `mutaciones` | I.20 | Rompe a propósito cada regla y cada corrección de seguridad, una por vez, en una copia del proyecto, y exige que alguna sección lo detecte | `MUTACIONES`, `mutacion_detectada` |
 
+**Nombres en el informe.** El informe técnico llama a estas pruebas por lo que hacen:
+- la «autoverificación» es la sección `reglas`;
+- la «prueba por indicador», las secciones `implementacion`, `credenciales`, `datos` y `seguridad`;
+- la «sesión del menú», la sección `menu`.
+
 ## Dónde está cada control en el producto
 
 Las pruebas comprueban; el control vive en el producto. Para revisar el código que cumple cada

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="556pt" height="618pt" viewBox="0 0 556 618">
+<svg xmlns="http://www.w3.org/2000/svg" width="556pt" height="630pt" viewBox="0 0 556 630">
 <rect width="100%" height="100%" fill="#fff"/>
 <rect x="16" y="24" width="244" height="146.60000000000002" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
 <text x="138.0" y="44" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold" font-style="italic"><tspan x="138.0" dy="0">Usuario</tspan></text>
@@ -17,61 +17,62 @@
 <text x="21" y="147.2" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+obtenerCorreo(): str</tspan></text>
 <text x="21" y="156.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" font-style="italic"><tspan x="21" dy="0">+puede(accion: str): bool</tspan></text>
 <text x="21" y="165.8" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">#validarClave(clave: str): void</tspan></text>
-<rect x="16" y="200.60000000000002" width="244" height="63.2" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<rect x="16" y="200.60000000000002" width="244" height="72.5" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
 <text x="138.0" y="211.60000000000002" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="138.0" dy="0">Administrador</tspan></text>
 <path d="M16,216.60000000000002 L260,216.60000000000002" fill="none" stroke="#333333" stroke-width="0.7"/>
 <path d="M16,221.60000000000002 L260,221.60000000000002" fill="none" stroke="#333333" stroke-width="0.7"/>
 <text x="21" y="231.10000000000002" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="21" dy="0">+crearPrimero(correo: str, clave: str): Administrador</tspan></text>
 <text x="21" y="240.40000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+crearAdministrador(correo: str, clave: str): Administrador</tspan></text>
-<text x="21" y="249.70000000000002" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+respaldarBase(): str</tspan></text>
-<text x="21" y="259.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+puede(accion: str): bool</tspan></text>
-<rect x="16" y="279.8" width="244" height="137.60000000000002" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="138.0" y="290.8" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="138.0" dy="0">Cliente</tspan></text>
-<path d="M16,295.8 L260,295.8" fill="none" stroke="#333333" stroke-width="0.7"/>
-<text x="21" y="305.3" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-nombre: str</tspan></text>
-<text x="21" y="314.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-rut: str {cifrado}</tspan></text>
-<text x="21" y="323.90000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-telefono: str {cifrado}</tspan></text>
-<path d="M16,328.70000000000005 L260,328.70000000000005" fill="none" stroke="#333333" stroke-width="0.7"/>
-<text x="21" y="338.20000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="21" dy="0">+registrar(nombre: str, rut: str, correo: str, telefono: str,</tspan></text>
-<text x="29" y="347.50000000000006" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="29" dy="0">clave: str): Cliente</tspan></text>
-<text x="21" y="356.80000000000007" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+actualizarContacto(nombre: str, telefono: str): void</tspan></text>
-<text x="21" y="366.1" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+obtenerNombre(): str</tspan></text>
-<text x="21" y="375.40000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+rutEnmascarado(): str</tspan></text>
-<text x="21" y="384.70000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+telefonoEnmascarado(): str</tspan></text>
-<text x="21" y="394.00000000000006" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+historial(): list</tspan></text>
-<text x="21" y="403.30000000000007" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+tieneReservaVigente(paquete: Paquete): bool</tspan></text>
-<text x="21" y="412.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+puede(accion: str): bool</tspan></text>
+<text x="21" y="249.70000000000002" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+desactivarCuenta(correo: str)</tspan></text>
+<text x="21" y="259.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+respaldarBase(): str</tspan></text>
+<text x="21" y="268.3" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+puede(accion: str): bool</tspan></text>
+<rect x="16" y="289.1" width="244" height="137.60000000000002" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="138.0" y="300.1" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="138.0" dy="0">Cliente</tspan></text>
+<path d="M16,305.1 L260,305.1" fill="none" stroke="#333333" stroke-width="0.7"/>
+<text x="21" y="314.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-nombre: str</tspan></text>
+<text x="21" y="323.90000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-rut: str {cifrado}</tspan></text>
+<text x="21" y="333.20000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">-telefono: str {cifrado}</tspan></text>
+<path d="M16,338.0 L260,338.0" fill="none" stroke="#333333" stroke-width="0.7"/>
+<text x="21" y="347.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="21" dy="0">+registrar(nombre: str, rut: str, correo: str, telefono: str,</tspan></text>
+<text x="29" y="356.8" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="29" dy="0">clave: str): Cliente</tspan></text>
+<text x="21" y="366.1" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+actualizarContacto(nombre: str, telefono: str): void</tspan></text>
+<text x="21" y="375.4" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+obtenerNombre(): str</tspan></text>
+<text x="21" y="384.7" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+rutEnmascarado(): str</tspan></text>
+<text x="21" y="394.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+telefonoEnmascarado(): str</tspan></text>
+<text x="21" y="403.3" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+historial(): list</tspan></text>
+<text x="21" y="412.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+tieneReservaVigente(paquete: Paquete): bool</tspan></text>
+<text x="21" y="421.9" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">+puede(accion: str): bool</tspan></text>
 <rect x="4" y="4" width="73.99659375" height="12" rx="0" fill="#eeeeee" stroke="#333333" stroke-width="0.8"/>
 <text x="9" y="13" font-family="Liberation Sans" font-size="7.8" text-anchor="start" fill="#000" font-weight="bold"><tspan x="9" dy="0">Cuentas y acceso</tspan></text>
-<rect x="4" y="16" width="262" height="411.40000000000003" rx="0" fill="none" stroke="#333333" stroke-width="0.8"/>
+<rect x="4" y="16" width="262" height="420.70000000000005" rx="0" fill="none" stroke="#333333" stroke-width="0.8"/>
 <path d="M138.0,200.60000000000002 L138.0,170.60000000000002" fill="none" stroke="#333333" stroke-width="0.8"/>
 <path d="M141.5,177.60000000000002 L138.0,170.60000000000002 L134.5,177.60000000000002 Z" fill="#fff" stroke="#333333" stroke-width="0.9"/>
-<path d="M16,309.8 L9,309.8 L9,188.60000000000002 L138.0,188.60000000000002" fill="none" stroke="#333333" stroke-width="0.8"/>
-<rect x="4" y="451.40000000000003" width="44.9428125" height="12" rx="0" fill="#eeeeee" stroke="#333333" stroke-width="0.8"/>
-<text x="9" y="460.40000000000003" font-family="Liberation Sans" font-size="7.8" text-anchor="start" fill="#000" font-weight="bold"><tspan x="9" dy="0">Reservas</tspan></text>
-<rect x="4" y="463.40000000000003" width="262" height="150.59999999999997" rx="0" fill="#fffdf3" stroke="#333333" stroke-width="0.8"/>
-<rect x="90" y="473.40000000000003" width="170" height="137.60000000000002" rx="0" fill="#fff6d6" stroke="#333333" stroke-width="0.8"/>
-<text x="175.0" y="484.40000000000003" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="175.0" dy="0">Reserva</tspan></text>
-<path d="M90,489.40000000000003 L260,489.40000000000003" fill="none" stroke="#333333" stroke-width="0.7"/>
-<text x="95" y="498.90000000000003" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-id: int</tspan></text>
-<text x="95" y="508.20000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-fechaEmision: date</tspan></text>
-<text x="95" y="517.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-personas: int</tspan></text>
-<text x="95" y="526.8000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-total: int</tspan></text>
-<text x="95" y="536.1" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-estado: EstadoReserva</tspan></text>
-<path d="M90,540.9000000000001 L260,540.9000000000001" fill="none" stroke="#333333" stroke-width="0.7"/>
-<text x="95" y="550.4000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="95" dy="0">+reservar(paquete: Paquete, personas: int,</tspan></text>
-<text x="103" y="559.7" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="103" dy="0">solicitante: Cliente,</tspan></text>
-<text x="103" y="569.0000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="103" dy="0">hoy: date = today()): Reserva</tspan></text>
-<text x="95" y="578.3000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">+anular(solicitante: Cliente): void</tspan></text>
-<text x="95" y="587.6000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">+obtenerTotal(): int</tspan></text>
-<text x="95" y="596.9000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="95" dy="0">+listarPorPaquete(paquete: Paquete,</tspan></text>
-<text x="103" y="606.2" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="103" dy="0">solicitante: Usuario): list</tspan></text>
-<rect x="16" y="503.40000000000003" width="66" height="48.6" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
-<text x="49.0" y="513.4000000000001" font-family="Liberation Sans" font-size="7" text-anchor="middle" fill="#000" font-style="italic"><tspan x="49.0" dy="0">«enumeration»</tspan></text>
-<text x="49.0" y="523.4000000000001" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="49.0" dy="0">EstadoReserva</tspan></text>
-<path d="M16,528.4000000000001 L82,528.4000000000001" fill="none" stroke="#333333" stroke-width="0.7"/>
-<text x="21" y="537.9000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">VIGENTE</tspan></text>
-<text x="21" y="547.2" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">ANULADA</tspan></text>
+<path d="M16,319.1 L9,319.1 L9,188.60000000000002 L138.0,188.60000000000002" fill="none" stroke="#333333" stroke-width="0.8"/>
+<rect x="4" y="460.70000000000005" width="44.9428125" height="12" rx="0" fill="#eeeeee" stroke="#333333" stroke-width="0.8"/>
+<text x="9" y="469.70000000000005" font-family="Liberation Sans" font-size="7.8" text-anchor="start" fill="#000" font-weight="bold"><tspan x="9" dy="0">Reservas</tspan></text>
+<rect x="4" y="472.70000000000005" width="262" height="153.29999999999995" rx="0" fill="#fffdf3" stroke="#333333" stroke-width="0.8"/>
+<rect x="90" y="482.70000000000005" width="170" height="137.60000000000002" rx="0" fill="#fff6d6" stroke="#333333" stroke-width="0.8"/>
+<text x="175.0" y="493.70000000000005" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="175.0" dy="0">Reserva</tspan></text>
+<path d="M90,498.70000000000005 L260,498.70000000000005" fill="none" stroke="#333333" stroke-width="0.7"/>
+<text x="95" y="508.20000000000005" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-id: int</tspan></text>
+<text x="95" y="517.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-fechaEmision: date</tspan></text>
+<text x="95" y="526.8000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-personas: int</tspan></text>
+<text x="95" y="536.1" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-total: int</tspan></text>
+<text x="95" y="545.4000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">-estado: EstadoReserva</tspan></text>
+<path d="M90,550.2 L260,550.2" fill="none" stroke="#333333" stroke-width="0.7"/>
+<text x="95" y="559.7" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="95" dy="0">+reservar(paquete: Paquete, personas: int,</tspan></text>
+<text x="103" y="569.0" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="103" dy="0">solicitante: Cliente,</tspan></text>
+<text x="103" y="578.3000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="103" dy="0">hoy: date = today()): Reserva</tspan></text>
+<text x="95" y="587.6" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">+anular(solicitante: Cliente): void</tspan></text>
+<text x="95" y="596.9000000000001" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="95" dy="0">+obtenerTotal(): int</tspan></text>
+<text x="95" y="606.2" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="95" dy="0">+listarPorPaquete(paquete: Paquete,</tspan></text>
+<text x="103" y="615.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000" text-decoration="underline"><tspan x="103" dy="0">solicitante: Usuario): list</tspan></text>
+<rect x="16" y="512.7" width="66" height="48.6" rx="0" fill="#f5f5f5" stroke="#333333" stroke-width="0.8"/>
+<text x="49.0" y="522.7" font-family="Liberation Sans" font-size="7" text-anchor="middle" fill="#000" font-style="italic"><tspan x="49.0" dy="0">«enumeration»</tspan></text>
+<text x="49.0" y="532.7" font-family="Liberation Sans" font-size="8.5" text-anchor="middle" fill="#000" font-weight="bold"><tspan x="49.0" dy="0">EstadoReserva</tspan></text>
+<path d="M16,537.7 L82,537.7" fill="none" stroke="#333333" stroke-width="0.7"/>
+<text x="21" y="547.2" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">VIGENTE</tspan></text>
+<text x="21" y="556.5" font-family="Liberation Sans" font-size="7.5" text-anchor="start" fill="#000"><tspan x="21" dy="0">ANULADA</tspan></text>
 <rect x="290" y="4" width="43.22071875" height="12" rx="0" fill="#eeeeee" stroke="#333333" stroke-width="0.8"/>
 <text x="295" y="13" font-family="Liberation Sans" font-size="7.8" text-anchor="start" fill="#000" font-weight="bold"><tspan x="295" dy="0">Catálogo</tspan></text>
 <rect x="290" y="16" width="262" height="525.2" rx="0" fill="none" stroke="#333333" stroke-width="0.8"/>
@@ -144,14 +145,14 @@
 <text x="427.0" y="246.0" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="427.0" dy="0">2..5</tspan></text>
 <text x="411.0" y="262.0" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="411.0" dy="0">combina</tspan></text>
 <path d="M412.0,257.0 h6 l-3,-5 Z" fill="#333333"/>
-<path d="M175.0,417.40000000000003 L175.0,473.40000000000003" fill="none" stroke="#333333" stroke-width="0.8"/>
-<text x="180.0" y="427.40000000000003" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="180.0" dy="0">1</tspan></text>
-<text x="170.0" y="470.40000000000003" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="170.0" dy="0">0..*</tspan></text>
-<text x="169.0" y="441.40000000000003" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="169.0" dy="0">realiza</tspan></text>
-<path d="M168.0,435.40000000000003 h6 l-3,5 Z" fill="#333333"/>
-<path d="M260,513.4000000000001 L296,513.4000000000001" fill="none" stroke="#333333" stroke-width="0.8"/>
-<text x="264" y="509.4000000000001" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="264" dy="0">0..*</tspan></text>
-<text x="292" y="509.4000000000001" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="292" dy="0">1</tspan></text>
-<text x="274.0" y="524.4000000000001" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="274.0" dy="0">sobre</tspan></text>
-<path d="M288.0,518.4000000000001 l5,3 l-5,3 Z" fill="#333333"/>
+<path d="M175.0,426.70000000000005 L175.0,482.70000000000005" fill="none" stroke="#333333" stroke-width="0.8"/>
+<text x="180.0" y="436.70000000000005" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="180.0" dy="0">1</tspan></text>
+<text x="170.0" y="479.70000000000005" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="170.0" dy="0">0..*</tspan></text>
+<text x="169.0" y="450.70000000000005" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="169.0" dy="0">realiza</tspan></text>
+<path d="M168.0,444.70000000000005 h6 l-3,5 Z" fill="#333333"/>
+<path d="M260,522.7 L296,522.7" fill="none" stroke="#333333" stroke-width="0.8"/>
+<text x="264" y="518.7" font-family="Liberation Sans" font-size="7.2" text-anchor="start" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="264" dy="0">0..*</tspan></text>
+<text x="292" y="518.7" font-family="Liberation Sans" font-size="7.2" text-anchor="end" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="292" dy="0">1</tspan></text>
+<text x="274.0" y="533.7" font-family="Liberation Sans" font-size="7.2" text-anchor="middle" fill="#000" style="paint-order:stroke" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"><tspan x="274.0" dy="0">sobre</tspan></text>
+<path d="M288.0,527.7 l5,3 l-5,3 Z" fill="#333333"/>
 </svg>
