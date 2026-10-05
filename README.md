@@ -151,7 +151,7 @@ cualquiera de los tres sistemas:
 
 ```bash
 python pruebas/verificar.py            # interfaz: elige la sección y la corre paso a paso
-python pruebas/verificar.py --todo     # todo, incluidas 45 mutaciones (unos 6 minutos)
+python pruebas/verificar.py --todo     # todo, incluidas 46 mutaciones (unos 6 minutos)
 python pruebas/verificar.py --rapido   # todo menos las mutaciones (menos de 1 minuto)
 ```
 

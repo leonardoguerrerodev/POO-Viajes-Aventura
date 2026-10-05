@@ -10,14 +10,14 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
 |---|---|---|---|---|
 | 1. Requerimientos, modelos y planificación (asistente) | 2 | 3 | 3 | 8 |
 | 2. Iteraciones independientes sobre el modelo de clases | 0 | 5 | 11 | 16 |
-| 3. Código y pruebas (asistente) | 4 | 16 | 2 | 22 |
-| 4. Auditoría de seguridad independiente | 4 | 12 | 1 | 17 |
+| 3. Código y pruebas (asistente) | 5 | 16 | 2 | 23 |
+| 4. Auditoría de seguridad independiente | 4 | 13 | 0 | 17 |
 | 5. Corrector independiente del informe y el repositorio | 20 | 4 | 6 | 30 |
-| **Total** | **30** | **40** | **23** | **93** |
+| **Total** | **31** | **41** | **22** | **94** |
 
 **Adoptado:** se usó tal como vino, después de verificarlo con una prueba o con una medición.
 **Modificado:** se tomó la idea y se cambió la forma, o se corrigió un error que encontró una prueba.
-**Descartado:** no se usó; el motivo está en la [sección de descartes](#descartados-23).
+**Descartado:** no se usó; el motivo está en la [sección de descartes](#descartados-22).
 
 ## Cómo se usó la IA
 
@@ -49,20 +49,22 @@ herramientas de IA. También alimenta 4.1.5.I.20 (la auditoría de seguridad con
   Desde el 5-oct, todas esas pruebas están en un solo archivo, [`pruebas/verificar.py`](../pruebas/verificar.py), con una sección
   por cada una (índice en [`pruebas/README.md`](../pruebas/README.md)). Antes eran cinco archivos, en
   `herramientas/`, [`pruebas/`](../pruebas/) y al final de [`viajes.py`](../viajes.py).
-    Detectaron 46 de 46 mutaciones en total. Una de ellas, un atributo público, recién se detectó
-    después de corregir el comparador (K-08).
+    Hoy [`pruebas/verificar.py`](../pruebas/verificar.py) rompe 46 reglas a propósito y detecta las 46. Antes de
+    unificarse, el comparador del diagrama tenía sus propias 8 mutaciones (en
+    `herramientas/uml_vs_codigo.py`, hasta el commit `baaa27c`), y una de ellas, un atributo público,
+    recién se detectó después de corregir el comparador (K-08).
 
 ## 1. Requerimientos, modelos y planificación (asistente)
 
 | ID | Lo que produjo la IA | Decisión | Análisis y fundamento | Dónde quedó |
 |---|---|---|---|---|
-| R-01 | Catálogo de 42 RF, 16 RNF (ISO/IEC 25010) y 8 Won't, con MoSCoW y criterios de aceptación | **Modificado** | Se auditó contra las diapositivas del docente (bloque 6). Siete RF tenían dos acciones en uno: se separaron en cuatro RF nuevos (RF-DES-10, RF-PAQ-11, RF-SEG-12 y RF-SEG-13) y se reescribieron tres (RF-SEG-01, RF-PAQ-09 y RF-RES-08). El catálogo quedó en 46 RF | Informe, cap. 2 |
+| R-01 | Catálogo de 42 RF, 16 RNF (ISO/IEC 25010) y 8 Won't, con MoSCoW y criterios de aceptación | **Modificado** | Se auditó contra las diapositivas del docente (bloque 6). Siete RF tenían dos acciones en uno: se separaron en cuatro RF nuevos (RF-DES-10, RF-PAQ-11, RF-SEG-12 y RF-SEG-13) y se reescribieron tres (RF-SEG-01, RF-PAQ-09 y RF-RES-08). El catálogo quedó en 46 RF (hoy son 50: RF-SEG-14 a RF-SEG-17 se agregaron el 5-oct, al cerrar los riesgos declarados) | Informe, cap. 2 |
 | R-02 | 13 supuestos para los vacíos del caso | **Modificado** | Faltaban cuatro vacíos que el docente nombra. Se agregaron S-14 a S-16: migración, destino no disponible dentro de un paquete vendido y quién ve los datos personales | Informe, §2 |
 | R-03 | Casos de uso con tres actores, incluido “Visitante” | **Descartado** | El docente pide dos actores. El visitante no tiene datos que el sistema guarde, y ver la oferta sin sesión quedó como supuesto (S-09) | Informe, §3.1 |
 | R-04 | Un primer sprint “de análisis” | **Descartado** | “No existe la iteración de análisis” (docente): cada sprint debe entregar algo ejecutable. Pasó a ser un período de preparación declarado con sus horas | Informe, §4.3 |
 | R-05 | Leo como Product Owner | **Modificado** | En Scrum el PO representa al cliente: son los socios, y el docente responde por ellos. Leo es Scrum Master, desarrollador y responsable de datos y de seguridad | Informe, §4.1 |
 | R-06 | Figuras en PlantUML | **Descartado** | Impresas tenían letra de 4,6 a 5,9 pt. Se rehicieron con coordenadas fijas (`svgkit.py`) a 7,5 pt, como el informe 4+1 de Modelamiento | [`diagramas/`](../diagramas/) |
-| R-07 | Diagrama de clases (`clases.puml`) | **Adoptado** | Leo lo aprobó el 2-oct. Después se modificó cinco veces al escribir el código, por las decisiones 7 a 12 del informe, y cada cambio está registrado | [`diagramas/clases.puml`](../diagramas/clases.puml) |
+| R-07 | Diagrama de clases (`clases.puml`) | **Adoptado** | Leo lo aprobó el 2-oct. Después se modificó nueve veces, por las decisiones 7 a 15 del informe, y cada cambio está registrado | [`diagramas/clases.puml`](../diagramas/clases.puml) |
 | R-08 | `trazabilidad.py`, verificador del catálogo | **Adoptado** | Detectó 9 de 9 mutaciones del capítulo de requerimientos y 5 de 5 del backlog | Informe (no viaja al repo) |
 
 ## 2. Iteraciones independientes sobre el modelo de clases
@@ -86,7 +88,7 @@ CLARO que adjuntaba el caso. Cada propuesta se comparó con el modelo del proyec
 El código lo escribió el asistente. Este es el registro de cómo se validó: qué se adoptó porque pasó sus
 verificaciones, y qué error tenía y cómo se encontró.
 
-### Adoptados después de verificarlos (4)
+### Adoptados después de verificarlos (5)
 
 | ID | Pieza | Cómo se validó |
 |---|---|---|
@@ -94,6 +96,7 @@ verificaciones, y qué error tenía y cómo se encontró.
 | A-02 | Precio con aritmética entera `(suma × (100 + margen) + 50) // 100` | 310.000 + 120.000 con 20 % da 516.000, como dice el criterio de RF-PAQ-04. La mutación que usa `float` se detecta |
 | A-03 | Contador de intentos y bloqueo en una sola sentencia SQL | Prueba de 5 fallos que bloquean y de un bloqueo que sobrevive a cerrar el programa. La mutación que bloquea a los 6 se detecta |
 | A-04 | `normalizar()` sin tildes, mayúsculas ni espacios dobles | “valle del  elqui” y “Valle del Elquí” se rechazan. La mutación que conserva las tildes se detecta |
+| A-05 | Auditoría final contra la rúbrica (5-oct): `Cliente.historial()`, `tiene_reserva_vigente()` y `actualizar_contacto()` no exigían sesión, así que un `Cliente` armado a mano con el id de otro leía sus reservas o cambiaba su contacto (contra R11 y el “por cualquier vía” de RF-SEG-05). Propuso `autorizar(self, "reservar")` en las tres y confirmar la fila escrita | Se aplicó tal como vino. Una afirmación nueva (sección “credenciales”) arma ese cliente y comprueba el `PermissionError` y que el nombre no cambió; la mutación que quita el control del historial se detecta. Desde el menú no era alcanzable: solo desde código |
 
 ### Modificados: errores y mejoras encontrados al verificar (16)
 
@@ -107,7 +110,7 @@ verificaciones, y qué error tenía y cómo se encontró.
 | K-06 | Con `BEGIN IMMEDIATE` en cada conexión, una conexión abierta dentro de otra quedaba esperando | El driver: el registro de un cliente se colgaba | Las búsquedas y el cifrado se hacen con la conexión cerrada |
 | K-07 | SQL armado con f-string (solo constantes, no explotable) | Bandit B608, contra RNF-SEG-03 | Consultas literales y `json_each(?)` |
 | K-08 | `uml_vs_codigo.py` no veía los atributos públicos | Prueba de mutación | Revisa `self.x` públicos |
-| K-09 | El comparador tenía una regex superlineal y funciones demasiado complejas | SonarCloud | Lectura por líneas y funciones chicas, con 8 de 8 mutaciones detectadas |
+| K-09 | El comparador tenía una regex superlineal y funciones demasiado complejas | SonarCloud | Lectura por líneas y funciones chicas, con 8 de 8 mutaciones detectadas (en `herramientas/uml_vs_codigo.py`, hasta el commit `baaa27c`, que unificó las pruebas) |
 | K-10 | Un guion desalineado del driver pasaba sin error, porque solo buscaba “Traceback” | Al leer la salida | El driver exige una lista de resultados esperados |
 | K-11 | Cuatro valores esperados mal calculados en las pruebas (552.000, 5 reservas, el id que SQLite reutiliza y un paquete de apoyo con un destino) | Las propias pruebas fallaron | Valores corregidos a mano, con su cálculo |
 | K-12 | La prueba de la clave perdida borraba y reescribía el archivo de la clave | SonarCloud S2083 (falso positivo, pero el patrón sobraba) | La prueba apunta a una ruta inexistente |
@@ -118,8 +121,13 @@ verificaciones, y qué error tenía y cómo se encontró.
 
 ## 4. Auditoría de seguridad independiente
 
-17 hallazgos: **4 adoptados, 12 modificados y 1 descartado**. La validación de cada uno, con las
+17 hallazgos: **4 adoptados, 13 modificados y 0 descartados**. La validación de cada uno, con las
 mutaciones que lo vigilan, está en [`AUDITORIA.md`](AUDITORIA.md).
+
+- H-03 (desactivar cuentas y suprimir datos) se descartó el 3-oct por estar fuera del alcance y quedó
+  como riesgo aceptado. El 5-oct, al reevaluar los riesgos declarados, se retomó modificado: desactivar
+  cuentas (RF-SEG-14) y el bloqueo progresivo de H-17 se construyeron, y la supresión pedida por el
+  cliente se atiende ante los socios (W-08).
 
 - Antes de actuar, se comprobaron por experimento cuatro afirmaciones: H-08, H-09, H-12 y H-14. Las
   cuatro eran ciertas y las tres primeras eran errores reales.
@@ -166,7 +174,7 @@ cinco eran errores reales del código o del informe, y se confirmaron con una pr
 | X-29 | Convertir HU-00 y HU-23 en tareas técnicas | **Descartado** | Se marcan como técnicas en el backlog; renombrarlas rompería su cita en los commits |
 | X-30 | Estado global con `global` (ruta de la base, ruta de la clave, plazo de sesión) | **Descartado** | Es un programa de un solo proceso, y las pruebas necesitan cambiar la base activa; el patrón se defendió en la ES2 |
 
-## Descartados (23)
+## Descartados (22)
 
 | ID | Propuesta | Por qué se descartó |
 |---|---|---|
@@ -186,7 +194,6 @@ cinco eran errores reales del código o del informe, y se confirmaron con una pr
 | C8 | Sin anulación de reservas | El modelo la declara (S-01): completa el CRUD de la reserva (G.15) |
 | K-17 | `intentosFallidos` como atributo del objeto | El contador vive solo en la base; nadie lo leía (SonarCloud S4487). Decisión 11 |
 | K-18 | Método `Paquete.precio_por_persona()` | Sobraba: `calcular_precio()` y la representación del paquete ya cubren el uso; el comparador lo marcó como no dibujado |
-| H-03 | Desactivar cuentas y suprimir datos | Fuera del alcance (§6) y exige cambiar el esquema y el modelo; declarado como riesgo aceptado en [`AUDITORIA.md`](AUDITORIA.md) §3 |
 | X-25 a X-30 | Seis recomendaciones del corrector independiente | Ver la sección 5: cada una con su motivo |
 
 ## Qué se aprendió del uso de la IA

@@ -24,9 +24,11 @@ apoyo de IA. Sábado 3 de octubre de 2026; riesgos declarados cerrados el lunes 
 | SonarCloud | 8 observaciones de las pruebas nuevas | 8 | |
 | Auditoría final (corrector independiente y revisión propia, 3-oct 22:00) | 10 de seguridad y privacidad (§2.3) | 10: el plazo de conservación quedó en [`PRIVACIDAD.md`](PRIVACIDAD.md) | |
 | Cierre de los riesgos declarados (5-oct) | 13 riesgos de §3 reevaluados | 11 cerrados, con su prueba y su mutación (§2.5) | 2 límites del modelo de amenazas, cada uno con su mitigación (§3) |
+| Auditoría final contra la rúbrica (5-oct) | 1 de seguridad (§2.7) | 1, con su prueba y su mutación | |
 | Revisión manual del modo demostración (5-oct) | 13 observaciones al usar el menú (§2.6) | 7 con cambio en el código, cada uno con su prueba y su mutación | Ninguno: 5 se responden sin cambio (ya estaban cubiertas o las fija el caso) y la recuperación de contraseña queda como alcance futuro, con su diseño (§3.1) |
 
-De la IA: **4 adoptados tal como vinieron, 12 modificados y 1 descartado**. Cada decisión, con su
+De la IA: **4 adoptados tal como vinieron, 13 modificados y 0 descartados**. H-03 se había descartado
+el 3-oct por estar fuera del alcance; el 5-oct se retomó modificado (§2.5). Cada decisión, con su
 fundamento, está en la sección 2. Tres hallazgos eran errores reales del código y se comprobaron por
 experimento antes de corregirlos: H-08, H-09 y H-12.
 
@@ -202,6 +204,15 @@ contradecían una regla del caso o una guía vigente.
 | Frenar la fuerza bruta en todas las entradas y registrar todo error | Bloqueo progresivo en el inicio de sesión y al cambiar la contraseña, y pausa del registro (RF-SEG-03, H-10, H-17, RF-SEG-17) | **Sin cambio:** la fuerza bruta solo sirve contra una entrada que esconde un secreto, y esas ya se frenan. Frenar “elija una opción” no protege nada. Registrar cada error de tipeo llenaría el registro sin decir nada nuevo: ya guarda los eventos de seguridad | 0 |
 | El primer administrador debería dar más datos | Correo y contraseña | **Sin cambio de datos:** el riesgo del primer uso es quién llega primero, y eso ya lo resuelve `crear_primero` (solo con la base vacía, en una sentencia, S-04). Pedirle RUT o teléfono sumaría datos personales que proteger sin ganar seguridad. La política nueva de contraseña rige también para él | 0 |
 
+### 2.7 Auditoría final contra la rúbrica (5-oct)
+
+Una última revisión del informe y del código contra los 20 indicadores encontró un control de acceso
+incompleto en el dominio (A-05 en [`ANALISIS_IA.md`](ANALISIS_IA.md)).
+
+| Hallazgo | Evidencia | Impacto | Corrección | Prueba que lo vigila |
+|---|---|---|---|---|
+| `Cliente.historial()`, `tiene_reserva_vigente()` y `actualizar_contacto()` no exigían sesión | Las tres consultaban o escribían con el id del objeto, sin llamar a `autorizar()` | Desde código (no desde el menú), un `Cliente` armado con el id de otro leía sus reservas o cambiaba su contacto: contra R11 y el “por cualquier vía” de RF-SEG-05 | `autorizar(self, "reservar")` al inicio de las tres, como el resto de las operaciones protegidas, y `actualizar_contacto()` confirma que escribió una fila | `verificar.py`, sección “credenciales”, y la mutación “A-05 historial sin sesión iniciada” |
+
 ## 3. Límites del modelo de amenazas
 
 Ya no hay riesgos “aceptados”: lo que se podía cerrar dentro del alcance se cerró (§2.5). Quedan dos
@@ -234,7 +245,7 @@ Ideas evaluadas el 5-oct (§2.6) que no se construyen en esta entrega, cada una 
 - **Aportó** 17 hallazgos con ubicación exacta y una recomendación por cada uno. Se verificaron todas las
   afirmaciones comprobables antes de actuar: H-08, H-09, H-12 y H-14 se confirmaron por experimento o
   por aritmética.
-- **Ninguna recomendación se aplicó sin revisarla**: 12 de 17 se modificaron. Cada modificación tiene
+- **Ninguna recomendación se aplicó sin revisarla**: 13 de 17 se modificaron (H-03, el 5-oct). Cada modificación tiene
   un motivo técnico o del caso: la disponibilidad de la agencia en H-01, la minimización en H-04 y un
   requerimiento del cliente en H-17.
 - **No vio** dos consecuencias de su propia recomendación H-08: las conexiones anidadas que quedaban
@@ -246,7 +257,7 @@ Ideas evaluadas el 5-oct (§2.6) que no se construyen en esta entrega, cada una 
 
 | Categoría | Controles en el sistema |
 |---|---|
-| A01 Broken Access Control | Permiso revisado en el dominio (`autorizar`, que exige una sesión iniciada y vigente: la contraseña no cambió y la cuenta sigue activa) y en el menú; cuentas desactivables; anular exige ser el titular en el objeto y en el SQL; el historial filtra por el id propio; el menú se arma con `puede()` |
+| A01 Broken Access Control | Permiso revisado en el dominio (`autorizar`, que exige una sesión iniciada y vigente: la contraseña no cambió y la cuenta sigue activa) y en el menú; cuentas desactivables; anular exige ser el titular en el objeto y en el SQL; el historial y los datos del cliente exigen sesión y filtran por el id propio (A-05); el menú se arma con `puede()` |
 | A02 Security Misconfiguration | Base y clave en 0600, `umask` 077, clave fuera del proyecto, ninguna credencial por omisión (S-04) |
 | A03 Software Supply Chain Failures | Dependencias fijadas con `==` y hash de todas las plataformas, `pip-audit` sin hallazgos, workflow en 6 combinaciones con un token de solo lectura y acciones fijadas por hash |
 | A04 Cryptographic Failures | Argon2id para contraseñas; Fernet (AES-128-CBC + HMAC-SHA256) para RUT y teléfono, que da confidencialidad e integridad; clave en archivo aparte y rotable con `MultiFernet` |
@@ -266,5 +277,5 @@ pip install bandit pip-audit
 bandit -r viajes.py main.py                          # esperado: No issues identified (0 en el producto)
 pip-audit -r requirements.txt --require-hashes        # esperado: No known vulnerabilities found
 git log --all --name-only --format= | sort -u | grep -E '\.env$|\.db$'   # esperado: nada
-python pruebas/verificar.py --todo                    # esperado: ninguna falla; 45 de 45 mutaciones
+python pruebas/verificar.py --todo                    # esperado: ninguna falla; 46 de 46 mutaciones
 ```
