@@ -677,15 +677,20 @@ def g18() -> None:
 
     def demora(correo: str) -> float:
         inicio = time.perf_counter()
-        for _ in range(3):
-            v.Usuario.autenticar(correo, "otra-clave-x")
+        v.Usuario.autenticar(correo, "otra-clave-x")
         return time.perf_counter() - inicio
 
     v.Usuario.autenticar(NADIE, "x")                 # el hash señuelo se calcula una vez
-    existe, no_existe = demora(PEDRO_C), demora(NADIE)
-    assert 0.5 < existe / no_existe < 2, (existe, no_existe)
-    ok("G.18", f"el correo inexistente tarda lo mismo que uno existente ({no_existe / 3 * 1000:.0f} ms"
-               f" contra {existe / 3 * 1000:.0f} ms): no revela qué correos hay")
+    # Los dos correos se miden alternados y se compara la mediana: en un servidor compartido (el
+    # runner de GitHub), una ráfaga de carga caía entera sobre un solo lado cuando se medían en bloque
+    # (0,35 s contra 0,85 s, el 5-oct). Tres rondas: con la falla previa, el correo existente llega a 4
+    # fallos y no se bloquea, así que ambos lados recorren el mismo camino.
+    rondas = [(demora(PEDRO_C), demora(NADIE)) for _ in range(3)]
+    existe = sorted(e for e, _ in rondas)[1]
+    no_existe = sorted(n for _, n in rondas)[1]
+    assert 0.5 < existe / no_existe < 2, rondas
+    ok("G.18", f"el correo inexistente tarda lo mismo que uno existente ({no_existe * 1000:.0f} ms"
+               f" contra {existe * 1000:.0f} ms, medianas): no revela qué correos hay")
     with v.conectar() as con:
         con.execute("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE correo = ?", (PEDRO_C,))
     for _ in range(5):
