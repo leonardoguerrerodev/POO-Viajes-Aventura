@@ -140,7 +140,7 @@ cinco eran errores reales del código o del informe, y se confirmaron con una pr
 | X-07 | Faltaban los RNF en la matriz de trazabilidad | **Adoptado** | La matriz tiene una fila por requerimiento, RF y RNF, con la comprobación concreta |
 | X-08 | La tabla de IA del informe solo contaba | **Adoptado** | El capítulo 6 tiene ahora la tabla «qué se pidió, qué devolvió, decisión y fundamento» |
 | X-09 | Los hallazgos no tenían las cinco partes | **Adoptado** | `AUDITORIA.md` §2.1 y §2.3 |
-| X-10 | Las mutaciones no se podían repetir | **Adoptado** | `herramientas/mutaciones.py`, 27 de 27, en el workflow |
+| X-10 | Las mutaciones no se podían repetir | **Adoptado** | `herramientas/mutaciones.py`, hoy 28 de 28, en el workflow |
 | X-11 | Referencias cruzadas que quedaron del orden anterior | **Adoptado** | Corregidas las cinco |
 | X-12 | Adjetivos sin medida | **Adoptado** | Reemplazados por el dato |
 | X-13 | Los RF Should y Could no tenían criterio de aceptación | **Adoptado** | 13 criterios nuevos; `trazabilidad.py` exige ahora un criterio por RF |

@@ -101,9 +101,10 @@ impacto si sigue ocurriendo, la recomendación tomada y el esfuerzo real de la c
 copia temporal del proyecto, y corre las pruebas que deben detectarlo. Falla si alguna mutación
 sobrevive. Corre en el workflow, en el job «mutaciones», en cada envío al repositorio.
 
-Resultado: **27 de 27 detectadas**. Son 9 reglas del negocio y 6 de cuentas y permisos; las 12
+Resultado: **28 de 28 detectadas**. Son 9 reglas del negocio y 6 de cuentas y permisos; las 12
 correcciones de esta auditoría; las de la auditoría final (sesión iniciada, edición a medias,
-`rowcount` y «2.5» personas); y los dos errores reales del desarrollo (K-04 y K-05).
+`rowcount` y «2.5» personas); los dos errores reales del desarrollo (K-04 y K-05); y el aislamiento
+del modo demostración (§2.4).
 
 ### 2.3 Auditoría final (3-oct, 22:00): seguridad y privacidad
 
@@ -123,6 +124,24 @@ de corregirlo.
 | 10 | Las mutaciones citadas no se podían repetir | No había un script en el repositorio | Una afirmación que el corrector no puede verificar | `herramientas/mutaciones.py` en el workflow | 45 min |
 | 16 | No había forma de respaldar la base | P-14: «si se pierde, se pierde con todo» | La pérdida del equipo era la pérdida de todas las reservas | `Administrador.respaldarBase()`: copia consistente en `respaldos/`, 0600, ignorada por git (RNF-FIA-03) | 30 min |
 | 28 | RUT de prueba con dígito verificador válido | `12.345.678-5` y `11.111.111-1` en pruebas y en la sesión del menú | Podrían coincidir con personas reales | Declarado como datos ficticios en el código y en la sesión del menú | 5 min |
+
+### 2.4 Modo demostración (5-oct): una puerta de prueba que no salta la seguridad
+
+El corrector y los socios necesitan probar el CRUD con los dos roles sin ingresar todo desde cero.
+La pantalla previa ofrece «Entrar al sistema» o «Modo demostración» (RNF-USA-04). Un acceso de prueba
+es justo el tipo de función que abre una puerta trasera, así que se diseñó como una decisión de
+seguridad:
+
+| Hallazgo | Evidencia | Impacto | Recomendación aplicada | Esfuerzo |
+|---|---|---|---|---|
+| Un acceso de prueba sin contraseña habría saltado RF-SEG-05 y el hallazgo 5 | Diseño revisado antes de escribirlo | Cualquiera tendría el menú del administrador sobre los datos reales | «Entrar como socio» y «Entrar como cliente» pasan por `Usuario.autenticar()`, como el inicio de sesión: la sesión es real y `autorizar()` la exige igual | 10 min |
+| Las cuentas de prueba necesitan contraseña | S-04: ninguna credencial escrita en el código | Una contraseña fija en el código sería pública en el repositorio | Se generan al azar en cada ejecución (`secrets.token_urlsafe`) y solo se muestran en pantalla | 5 min |
+| Los datos de prueba podrían mezclarse con los reales | La base y la clave son globales del módulo | Clientes ficticios en la base real, o datos reales cifrados con otra clave | Base y clave en una carpeta temporal, sin la variable de entorno real; todo se restaura al salir (también ante un error o Ctrl+C) y la carpeta se borra | 20 min |
+| El aislamiento podía romperse sin que nadie lo notara | Un cambio que quite `usar_base()` escribiría en la base real | Pérdida silenciosa de la separación | `prueba_rubrica.py` (G.15) comprueba que la base, la clave y la variable reales quedan intactas, y una mutación quita el aislamiento: la prueba la detecta | 15 min |
+
+Los datos de ejemplo se cargan solo con los métodos públicos del dominio. Pasan por las mismas
+validaciones que el menú, quedan en el registro de auditoría de la base temporal y usan RUT ficticios
+a la vista (11.111.111-1 y 22.222.222-2).
 
 ## 3. Declarados: riesgos aceptados y su motivo
 
@@ -178,5 +197,5 @@ bandit -r viajes.py main.py herramientas pruebas     # esperado: 0 B608; solo B1
 pip-audit -r requirements.txt --require-hashes        # esperado: No known vulnerabilities found
 git log --all --name-only --format= | sort -u | grep -E '\.env$|\.db$'   # esperado: nada
 python viajes.py && python herramientas/driver.py && python pruebas/prueba_rubrica.py
-python herramientas/mutaciones.py                    # esperado: 27 de 27 mutaciones detectadas
+python herramientas/mutaciones.py                    # esperado: 28 de 28 mutaciones detectadas
 ```

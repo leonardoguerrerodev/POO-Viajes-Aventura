@@ -73,14 +73,42 @@ igual.
 
 ## 2. Primer uso
 
+`python main.py` abre una pantalla previa con dos caminos:
+
+```
+1. Entrar al sistema        la base real (viajes.db)
+2. Modo demostración        base temporal con datos de ejemplo; se borra al salir
+```
+
+**Para probar todo sin ingresar datos: opción 2, «Modo demostración».**
+- Carga 5 destinos, 3 paquetes (2 publicados y 1 en borrador), 1 socio y 2 clientes con reservas.
+- Muestra en pantalla las cuentas de prueba con sus contraseñas, generadas al azar en esa ejecución:
+  no hay ninguna escrita en el código.
+- Ofrece «Entrar como socio» y «Entrar como cliente». Las dos pasan por el mismo inicio de sesión que
+  el resto del sistema, así que los permisos de cada rol se aplican igual.
+- Todo ocurre en una carpeta temporal. Al salir se borra, y **la base y la clave reales no se tocan**.
+- Para recorrer el CRUD completo:
+  - como socio: editar un destino, publicar el paquete en borrador, cambiar un cupo y ver las
+    reservas de un paquete;
+  - como cliente: reservar el paquete «Altiplano y desierto», que tiene un solo lugar libre, por más
+    personas (lo rechaza la regla R14), y anular una reserva.
+
+**Opción 1, «Entrar al sistema»:**
 - **No hay usuarios ni contraseñas en el código.** La primera vez, la base está vacía y el programa
   pide crear la cuenta del primer administrador: un correo y una contraseña de 12 caracteres o más,
   distinta del correo, que no sea de las más comunes y con al menos 5 caracteres distintos.
-- Después aparece la pantalla de inicio: **1** iniciar sesión, **2** registrarse como cliente (pide
-  nombre, RUT, correo, teléfono y contraseña, después de mostrar el aviso de datos personales) y
-  **3** ver los paquetes disponibles sin iniciar sesión.
-- Con el administrador se crean destinos, paquetes con 2 a 5 destinos, se publican y se ven sus
-  reservas. Con un cliente se reserva, se ven las reservas propias y se anulan.
+- Después aparece la pantalla de inicio:
+  - **1. Iniciar sesión (socios y clientes):** la misma entrada para los dos roles; la cuenta decide
+    qué menú aparece;
+  - **2. Registrarse como cliente:** pide nombre, RUT, correo, teléfono y contraseña, después de
+    mostrar el aviso de datos personales;
+  - **3. Ver los paquetes disponibles,** sin iniciar sesión.
+- El administrador es un socio de la agencia (el caso no tiene otro personal). Crea las cuentas de los
+  otros socios en «Cuentas → Crear la cuenta de un socio».
+- **Qué hace cada rol:**
+  - el administrador crea destinos y paquetes de 2 a 5 destinos, los publica y ve sus reservas;
+  - el cliente reserva, ve sus reservas y las anula.
+- Toda opción que pide un id muestra antes la lista correspondiente.
 - **`x`** en cualquier dato cancela la acción sin guardar. La sesión se cierra sola tras 10 minutos sin
   uso.
 
@@ -108,7 +136,7 @@ python viajes.py                     # autoverificación de las reglas R1 a R17:
 python pruebas/prueba_rubrica.py     # una afirmación verificable por indicador de la rúbrica
 python herramientas/uml_vs_codigo.py # el diagrama de clases contra el código: 0 diferencias
 python herramientas/driver.py        # recorre el menú con los dos roles y reescribe docs/SALIDA_TERMINAL.md
-python herramientas/mutaciones.py    # rompe 27 reglas a propósito y exige que alguna prueba lo detecte
+python herramientas/mutaciones.py    # rompe 28 reglas a propósito y exige que alguna prueba lo detecte
 ```
 
 Las cinco corren en cada envío al repositorio: las cuatro primeras en Windows, macOS y Linux con
