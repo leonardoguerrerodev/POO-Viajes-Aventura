@@ -22,6 +22,7 @@ import json                                 # lista de ids como un solo parámet
 import os                                   # permisos 0600 de la base y lectura del entorno
 import re                                   # patrones de correo, RUT y teléfono
 import secrets                              # contraseña aleatoria del hash señuelo
+import shutil                               # copia de la clave anterior al rotarla
 import sqlite3                              # la base de datos: un archivo, sin servidor
 import sys                                  # versión de Python y salida con mensaje claro
 import unicodedata                          # quita tildes al comparar nombres de destinos (RF-DES-02)
@@ -39,7 +40,7 @@ if sys.version_info < (3, 12):
 try:
     from argon2 import PasswordHasher       # Argon2id, librería especializada de PyPI (G.17)
     from argon2.exceptions import InvalidHashError, VerificationError
-    from cryptography.fernet import Fernet, InvalidToken  # cifrado autenticado: AES + HMAC (I.19)
+    from cryptography.fernet import Fernet, InvalidToken, MultiFernet  # cifrado autenticado: AES + HMAC (I.19)
 except ModuleNotFoundError:
     sys.exit("Faltan las librerías del proyecto: active el entorno virtual (.venv) e instale\n"
              "requirements.txt como indica el README, sección «Instalar y ejecutar».")
@@ -89,7 +90,8 @@ CAMPO_NOMBRE = "El nombre"
 
 # Acciones que un rol puede tener. Un texto fuera de este conjunto es un error de
 # programación y se rechaza: así un permiso mal escrito no se convierte en un «no» silencioso.
-ACCIONES = frozenset({"catalogo", "ver_reservas", "cuentas", "respaldo", "reservar"})
+ACCIONES = frozenset({"catalogo", "ver_reservas", "cuentas", "respaldo", "clave", "auditoria",
+                      "reservar"})
 
 
 class ReglaNegocioError(Exception):
@@ -190,18 +192,38 @@ def validar_telefono(telefono: str) -> str:
     return m.group(1)
 
 
-@lru_cache(maxsize=1)
-def cifrador() -> Fernet:
-    """Fernet con la clave del entorno o del archivo .env; la crea en el primer uso (S-12)."""
+def _leer_clave(ruta: Path) -> str | None:
+    """La clave de un archivo «VIAJES_CLAVE_DATOS=...». Si volvió de un respaldo con permisos
+    abiertos, se cierran."""
+    if os.name == "posix" and ruta.stat().st_mode & 0o077:
+        os.chmod(ruta, 0o600)
+    for linea in ruta.read_text(encoding="utf-8").splitlines():
+        nombre, _, valor = linea.partition("=")
+        if nombre.strip() == VARIABLE_CLAVE:
+            return valor.strip()
+    return None
+
+
+def _escribir_clave(ruta: Path, clave: str) -> None:
+    """O_EXCL: si dos procesos la crean a la vez, uno falla en vez de pisar la clave del otro."""
+    ruta.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    fd = os.open(ruta, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as archivo:
+        archivo.write(f"{VARIABLE_CLAVE}={clave}\n")
+
+
+def _claves_de_rotacion() -> list[Path]:
+    """Claves nuevas de una rotación que se cortó antes de reemplazar el archivo (ver
+    rotar_clave_de_datos): con ellas también se lee, para que ningún dato quede ilegible."""
+    return sorted(RUTA_CLAVE.parent.glob(RUTA_CLAVE.name + ".nueva-*")) if RUTA_CLAVE.parent.exists() else []
+
+
+def _claves_vigentes() -> list[str]:
+    """La clave principal, del entorno o del archivo; la crea en el primer uso (S-12). Después,
+    las de una rotación cortada, que solo sirven para leer."""
     clave = os.environ.get(VARIABLE_CLAVE)
     if not clave and RUTA_CLAVE.exists():
-        # Un archivo restaurado de un respaldo puede volver con permisos abiertos: se cierran.
-        if os.name == "posix" and RUTA_CLAVE.stat().st_mode & 0o077:
-            os.chmod(RUTA_CLAVE, 0o600)
-        for linea in RUTA_CLAVE.read_text(encoding="utf-8").splitlines():
-            nombre, _, valor = linea.partition("=")
-            if nombre.strip() == VARIABLE_CLAVE:
-                clave = valor.strip()
+        clave = _leer_clave(RUTA_CLAVE)
     if not clave:
         # Sin la clave, los RUT ya guardados son ilegibles: crear otra los perdería para siempre.
         # La condición es que haya datos cifrados, no usuarios: el primer administrador no tiene
@@ -212,12 +234,14 @@ def cifrador() -> Fernet:
         if cifrados:
             raise RuntimeError("Falta la clave de cifrado de los datos personales")
         clave = Fernet.generate_key().decode()
-        RUTA_CLAVE.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-        # O_EXCL: si dos procesos la crean a la vez, uno falla en vez de pisar la clave del otro.
-        fd = os.open(RUTA_CLAVE, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(fd, "w", encoding="utf-8") as archivo:
-            archivo.write(f"{VARIABLE_CLAVE}={clave}\n")
-    return Fernet(clave.encode())
+        _escribir_clave(RUTA_CLAVE, clave)
+    return [clave] + [c for ruta in _claves_de_rotacion() if (c := _leer_clave(ruta))]
+
+
+@lru_cache(maxsize=1)
+def cifrador() -> MultiFernet:
+    """Cifra siempre con la clave principal; para leer, prueba también las de una rotación cortada."""
+    return MultiFernet([Fernet(c.encode()) for c in _claves_vigentes()])
 
 
 def cifrar(valor: str) -> str:
@@ -231,6 +255,53 @@ def descifrar(token: str) -> str:
     except InvalidToken:
         raise ValueError("Un dato personal no se pudo leer: la clave no corresponde "
                          "o el dato fue alterado") from None
+
+
+def rotar_clave_de_datos(solicitante: "Usuario") -> tuple[int, str]:
+    """Cambia la clave que cifra el RUT y el teléfono, y vuelve a cifrar a todos los clientes (RF-SEG-15).
+
+    Para cuando la clave pudo filtrarse: un respaldo copiado, un socio que dejó la agencia. El orden
+    evita que un corte deje datos ilegibles:
+      1. la clave nueva se escribe aparte (clave.env.nueva-<fecha>, 0600);
+      2. todos los RUT y teléfonos se vuelven a cifrar en una sola transacción: si algo falla, no
+         cambia nada y la clave nueva se descarta;
+      3. la clave vieja se archiva (clave.env.anterior-<fecha>, para leer respaldos anteriores) y la
+         nueva toma su lugar con os.replace, que es atómico.
+    Si el programa se corta entre 2 y 3, cifrador() también lee con la clave nueva.
+    Devuelve cuántos clientes se volvieron a cifrar y el nombre del archivo de la clave anterior.
+    """
+    autorizar(solicitante, "clave")
+    if os.environ.get(VARIABLE_CLAVE):
+        raise RuntimeError("La clave viene de la variable de entorno: se rota donde se define")
+    vigentes = [Fernet(c.encode()) for c in _claves_vigentes()]
+    sello = f"{datetime.now(timezone.utc):%Y%m%d_%H%M%S_%f}"
+    nueva, ruta_nueva = Fernet.generate_key().decode(), RUTA_CLAVE.with_name(f"{RUTA_CLAVE.name}.nueva-{sello}")
+    _escribir_clave(ruta_nueva, nueva)
+    rotador = MultiFernet([Fernet(nueva.encode()), *vigentes])
+    try:
+        with conectar() as con:
+            filas = con.execute("SELECT id, rut_cifrado, telefono_cifrado FROM usuario"
+                                " WHERE rut_cifrado IS NOT NULL").fetchall()
+            for fila in filas:
+                try:
+                    rut = rotador.rotate(fila["rut_cifrado"].encode()).decode()
+                    telefono = rotador.rotate(fila["telefono_cifrado"].encode()).decode()
+                except InvalidToken:
+                    raise ValueError(f"El dato cifrado de la cuenta {fila['id']} está alterado: la"
+                                     " clave no se cambió") from None
+                con.execute("UPDATE usuario SET rut_cifrado = ?, telefono_cifrado = ? WHERE id = ?",
+                            (rut, telefono, fila["id"]))
+            registrar_evento(con, solicitante.obtener_id(), "clave.rotar", f"{len(filas)} clientes")
+    except BaseException:
+        ruta_nueva.unlink(missing_ok=True)
+        raise
+    anterior = RUTA_CLAVE.with_name(f"{RUTA_CLAVE.name}.anterior-{sello}")
+    shutil.copy2(RUTA_CLAVE, anterior)
+    os.replace(ruta_nueva, RUTA_CLAVE)
+    for vieja in _claves_de_rotacion():      # de rotaciones cortadas antes: ya no hacen falta
+        os.replace(vieja, vieja.with_name(vieja.name.replace(".nueva-", ".anterior-")))
+    cifrador.cache_clear()
+    return len(filas), anterior.name
 
 
 def autorizar(solicitante: "Usuario", accion: str) -> None:
@@ -265,6 +336,8 @@ CREATE TABLE IF NOT EXISTS usuario (
     telefono_cifrado  TEXT,                                                         -- R17
     intentos_fallidos INTEGER NOT NULL DEFAULT 0 CHECK (intentos_fallidos >= 0),
     bloqueado_hasta   TEXT,
+    bloqueos          INTEGER NOT NULL DEFAULT 0 CHECK (bloqueos >= 0),                -- H-17
+    activa            INTEGER NOT NULL DEFAULT 1 CHECK (activa IN (0, 1)),          -- RF-SEG-14
     -- un cliente tiene sus tres datos personales; un administrador no tiene ninguno
     CHECK ((rol = 'CLIENTE') = (nombre IS NOT NULL AND rut_cifrado IS NOT NULL
                                 AND telefono_cifrado IS NOT NULL)),
@@ -357,9 +430,24 @@ def conectar():
         con.close()
 
 
+# Columnas agregadas después de la primera versión: una base creada antes las recibe al abrirse,
+# con su valor por omisión y su CHECK. Texto literal, como todo el SQL.
+MIGRACIONES = (
+    ("bloqueos", "ALTER TABLE usuario ADD COLUMN bloqueos INTEGER NOT NULL DEFAULT 0"
+                 " CHECK (bloqueos >= 0)"),
+    ("activa", "ALTER TABLE usuario ADD COLUMN activa INTEGER NOT NULL DEFAULT 1"
+               " CHECK (activa IN (0, 1))"),
+)
+
+
 def crear_tablas() -> None:
     with conectar() as con:
         con.executescript(ESQUEMA)
+    with conectar() as con:
+        columnas = {fila["name"] for fila in con.execute("PRAGMA table_info(usuario)")}
+        for columna, sql in MIGRACIONES:
+            if columna not in columnas:
+                con.execute(sql)
     try:
         os.chmod(RUTA_ACTIVA, 0o600)            # sqlite crea el archivo en 0644 (RNF-SEG-04)
     except OSError:
@@ -374,6 +462,32 @@ def registrar_evento(con: sqlite3.Connection, usuario_id: int | None, accion: st
     """
     con.execute("INSERT INTO auditoria (fecha_utc, usuario_id, accion, detalle) VALUES (?, ?, ?, ?)",
                 (datetime.now(timezone.utc).isoformat(timespec="seconds"), usuario_id, accion, detalle))
+
+
+def consultar_auditoria(solicitante: "Usuario", limite: int = 30) -> list[tuple[str, str, str, str]]:
+    """Los últimos eventos del registro de auditoría, del más reciente al más antiguo (RF-SEG-16).
+
+    Es la pareja de registrar_evento(): lo que se escribe, un socio lo puede leer desde el menú.
+    Cada fila: fecha UTC, cuenta que actuó (su correo, o «sin cuenta» si el correo no existía),
+    acción y detalle, que solo lleva ids y montos.
+    """
+    autorizar(solicitante, "auditoria")
+    limite = entero(limite, "La cantidad de eventos", 1, 1000, "RF-SEG-16")
+    with conectar() as con:
+        filas = con.execute("SELECT a.fecha_utc, COALESCE(u.correo, '(sin cuenta)'), a.accion, a.detalle"
+                            " FROM auditoria a LEFT JOIN usuario u ON u.id = a.usuario_id"
+                            " ORDER BY a.id DESC LIMIT ?", (limite,)).fetchall()
+    return [tuple(fila) for fila in filas]
+
+
+def contar_bloqueos(solicitante: "Usuario", horas: int = 24) -> int:
+    """Cuántas cuentas se bloquearon por contraseñas erróneas en las últimas horas (RF-SEG-16): el
+    menú del socio lo avisa al entrar, para que nadie adivine contraseñas sin que se note."""
+    autorizar(solicitante, "auditoria")
+    desde = (datetime.now(timezone.utc) - timedelta(hours=horas)).isoformat(timespec="seconds")
+    with conectar() as con:
+        return con.execute("SELECT COUNT(*) FROM auditoria WHERE accion = 'sesion.bloqueo'"
+                           " AND fecha_utc >= ?", (desde,)).fetchone()[0]
 
 
 def exigir_una_fila(cur: sqlite3.Cursor, que: str) -> None:
@@ -407,10 +521,13 @@ class Usuario(ABC):
     SQL_INSERTAR_SI_VACIA = ("INSERT INTO usuario (correo, hash_clave, rol, nombre, rut_cifrado,"
                              " telefono_cifrado) SELECT ?, ?, ?, ?, ?, ?"
                              " WHERE NOT EXISTS (SELECT 1 FROM usuario)")
-    SQL_POR_CORREO = ("SELECT id, correo, hash_clave, rol, nombre, rut_cifrado, telefono_cifrado, bloqueado_hasta"
-                      " FROM usuario WHERE correo = ?")
+    SQL_POR_CORREO = ("SELECT id, correo, hash_clave, rol, nombre, rut_cifrado, telefono_cifrado, bloqueado_hasta,"
+                      " activa FROM usuario WHERE correo = ?")
+    SQL_CREDENCIAL = "SELECT hash_clave, activa FROM usuario WHERE id = ?"
     MAX_INTENTOS = 5
-    BLOQUEO = timedelta(minutes=5)
+    # Bloqueo progresivo (H-17): el primero es el de RF-SEG-03 (5 minutos); si sigue fallando sin
+    # acertar nunca, 15 y después 60. Un acierto vuelve a empezar.
+    BLOQUEOS = (timedelta(minutes=5), timedelta(minutes=15), timedelta(minutes=60))
     # Hash que se verifica cuando el correo no existe. Se calcula al cargar el módulo: si se
     # calculara en el primer intento, ese intento tardaría el doble y delataría el correo (H-06).
     _senuelo: str = HASHER.hash(secrets.token_urlsafe(16))
@@ -432,7 +549,13 @@ class Usuario(ABC):
         return self.__id
 
     def tiene_sesion(self) -> bool:
-        return self.__sesion_iniciada
+        """Sesión iniciada, con la contraseña que la cuenta tiene hoy y la cuenta activa. Si otra
+        sesión cambió la contraseña o un socio desactivó la cuenta, esta sesión deja de valer."""
+        if not self.__sesion_iniciada:
+            return False
+        with conectar() as con:
+            fila = con.execute(self.SQL_CREDENCIAL, (self.__id,)).fetchone()
+        return fila is not None and fila["activa"] == 1 and fila["hash_clave"] == self.__hash_clave
 
     def obtener_correo(self) -> str:
         return self.__correo
@@ -460,9 +583,18 @@ class Usuario(ABC):
             return False
 
     def cambiar_clave(self, actual: str, nueva: str) -> None:
-        """RF-SEG-11: exige la contraseña actual antes de aceptar la nueva."""
-        if not self.__verificar(actual):
-            raise PermissionError("La contraseña actual no es correcta")
+        """RF-SEG-11: exige la contraseña actual antes de aceptar la nueva.
+
+        La contraseña actual cuenta como un intento de inicio de sesión: cinco errores bloquean la
+        cuenta igual que en la entrada (H-10). Una sesión que ya no vale (la contraseña cambió en
+        otra, o la cuenta se desactivó) no puede cambiarla.
+        """
+        if not self.tiene_sesion():
+            raise PermissionError("La contraseña cambió en otra sesión o la cuenta no está activa:"
+                                  " inicie sesión de nuevo")
+        if not self.__intentar(actual, al_acertar=None):
+            raise PermissionError("La contraseña actual no es correcta, o la cuenta está bloqueada"
+                                  " por unos minutos")
         if nueva == actual:
             raise ReglaNegocioError("RF-SEG-11", "La contraseña nueva debe ser distinta de la actual")
         self._validar_clave(nueva)
@@ -500,6 +632,13 @@ class Usuario(ABC):
                 registrar_evento(con, None, "sesion.correo_inexistente")
             return None
         usuario = _usuario_desde_fila(fila)
+        if not fila["activa"]:
+            # Cuenta desactivada (RF-SEG-14): la misma respuesta y la misma demora que una
+            # contraseña errónea, y queda en el registro.
+            usuario.__verificar(clave if isinstance(clave, str) else "")
+            with conectar() as con:
+                registrar_evento(con, usuario.__id, "sesion.rechazada_inactiva")
+            return None
         if not usuario.__intentar(clave):
             return None
         usuario.__sesion_iniciada = True
@@ -513,7 +652,7 @@ class Usuario(ABC):
         except VerificationError:
             pass
 
-    def __intentar(self, clave: str) -> bool:
+    def __intentar(self, clave: str, al_acertar: str | None = "sesion.inicio") -> bool:
         """Un intento de inicio de sesión sobre esta cuenta: True si entra. Registra el resultado.
 
         El bloqueo se lee de nuevo dentro de la transacción, no del objeto: así dos sesiones a la
@@ -532,23 +671,33 @@ class Usuario(ABC):
             if correcta:
                 # Si los parámetros de Argon2 subieron desde que se creó el hash, se rehace ahora,
                 # que es el único momento en que se tiene la contraseña en claro.
+                # Solo si la base todavía tiene el hash que se verificó: nunca se escribe un hash
+                # viejo encima de una contraseña que otra sesión ya cambió.
                 if HASHER.check_needs_rehash(self.__hash_clave):
-                    self.__hash_clave = HASHER.hash(clave)
+                    rehecho = HASHER.hash(clave)
+                    if con.execute("UPDATE usuario SET hash_clave = ? WHERE id = ? AND hash_clave = ?",
+                                   (rehecho, self.__id, self.__hash_clave)).rowcount == 1:
+                        self.__hash_clave = rehecho
                 con.execute("UPDATE usuario SET intentos_fallidos = 0, bloqueado_hasta = NULL,"
-                            " hash_clave = ? WHERE id = ?", (self.__hash_clave, self.__id))
-                registrar_evento(con, self.__id, "sesion.inicio")
+                            " bloqueos = 0 WHERE id = ?", (self.__id,))
+                if al_acertar:
+                    registrar_evento(con, self.__id, al_acertar)
             else:
                 # Una sola sentencia: dos sesiones que fallan a la vez no pierden un intento.
                 # SQLite evalúa cada CASE con los valores anteriores a la actualización.
+                # El largo del bloqueo depende de cuántos lleva la cuenta sin acertar (H-17).
+                primero, segundo, siguientes = ((ahora + b).isoformat() for b in self.BLOQUEOS)
                 con.execute(
                     "UPDATE usuario SET"
-                    " bloqueado_hasta = CASE WHEN intentos_fallidos + 1 >= ? THEN ?"
-                    "                   ELSE bloqueado_hasta END,"
+                    " bloqueado_hasta = CASE WHEN intentos_fallidos + 1 >= ? THEN"
+                    "     CASE bloqueos WHEN 0 THEN ? WHEN 1 THEN ? ELSE ? END"
+                    "     ELSE bloqueado_hasta END,"
+                    " bloqueos = CASE WHEN intentos_fallidos + 1 >= ? THEN bloqueos + 1 ELSE bloqueos END,"
                     " intentos_fallidos = CASE WHEN intentos_fallidos + 1 >= ? THEN 0"
                     "                     ELSE intentos_fallidos + 1 END"
                     " WHERE id = ?",
-                    (self.MAX_INTENTOS, (ahora + self.BLOQUEO).isoformat(), self.MAX_INTENTOS,
-                     self.__id))
+                    (self.MAX_INTENTOS, primero, segundo, siguientes, self.MAX_INTENTOS,
+                     self.MAX_INTENTOS, self.__id))
                 bloqueo = con.execute("SELECT bloqueado_hasta > ? FROM usuario WHERE id = ?",
                                       (ahora.isoformat(), self.__id)).fetchone()[0]
                 registrar_evento(con, self.__id, "sesion.bloqueo" if bloqueo else "sesion.fallida")
@@ -572,6 +721,9 @@ class Usuario(ABC):
         except sqlite3.IntegrityError as error:
             # Solo el UNIQUE del correo es R9; otra restricción sigue como error de la base (H-06).
             if "usuario.correo" in str(error):
+                # Queda en el registro: muchos seguidos son alguien probando qué correos existen (H-06).
+                with conectar() as con:
+                    registrar_evento(con, autor.obtener_id() if autor else None, "registro.correo_repetido")
                 raise ReglaNegocioError("R9", "Ese correo ya tiene una cuenta") from None
             raise
         if cur.rowcount != 1:
@@ -624,9 +776,21 @@ class Cliente(Usuario):
         telefono = descifrar(self.__telefono)
         return f"+56 {telefono[0]} **** {telefono[-4:]}"
 
+    # El registro público tiene que decir si un correo ya existe: es la única forma de enumerar
+    # cuentas (H-06). Tras 5 correos repetidos en 10 minutos, el registro se pausa (RF-SEG-17).
+    REPETIDOS_MAXIMO = 5
+    VENTANA_REGISTRO = timedelta(minutes=10)
+
     @staticmethod
     def registrar(nombre: str, rut: str, correo: str, telefono: str, clave: str) -> "Cliente":
         """Registro público: siempre crea un cliente, nunca un administrador (RF-SEG-12)."""
+        desde = (datetime.now(timezone.utc) - Cliente.VENTANA_REGISTRO).isoformat(timespec="seconds")
+        with conectar() as con:
+            repetidos = con.execute("SELECT COUNT(*) FROM auditoria WHERE accion = 'registro.correo_repetido'"
+                                    " AND fecha_utc >= ?", (desde,)).fetchone()[0]
+        if repetidos >= Cliente.REPETIDOS_MAXIMO:
+            raise ReglaNegocioError("RF-SEG-17", "Hubo demasiados intentos de registro con correos que"
+                                    " ya existen: el registro se pausa unos minutos")
         cliente = Cliente(nombre, rut, correo, telefono, clave)
         cliente._insertar("CLIENTE", (cliente.__nombre, cliente.__rut, cliente.__telefono))
         return cliente
@@ -657,7 +821,7 @@ class Administrador(Usuario):
     """Socio de la agencia: mantiene el catálogo, arma los paquetes y crea cuentas de socios."""
 
     def puede(self, accion: str) -> bool:
-        return accion in ("catalogo", "ver_reservas", "cuentas", "respaldo")
+        return accion in ("catalogo", "ver_reservas", "cuentas", "respaldo", "clave", "auditoria")
 
     @staticmethod
     def crear_primero(correo: str, clave: str) -> "Administrador":
@@ -673,6 +837,25 @@ class Administrador(Usuario):
         nuevo = Administrador(correo, clave)
         nuevo._insertar("ADMINISTRADOR", autor=self)
         return nuevo
+
+    def desactivar_cuenta(self, correo: str) -> None:
+        """Cierra el acceso de una cuenta sin borrar su historia (RF-SEG-14): un socio que deja la
+        agencia, o una cuenta usada para abusar del sistema.
+
+        No vuelve a entrar, y sus sesiones abiertas dejan de valer en la acción siguiente
+        (tiene_sesion() revisa la base). Sus reservas y el registro de auditoría se conservan.
+        Nadie desactiva su propia cuenta: así siempre queda al menos un administrador activo.
+        """
+        autorizar(self, "cuentas")
+        correo = validar_correo(correo)
+        with conectar() as con:
+            fila = con.execute("SELECT id FROM usuario WHERE correo = ? AND activa = 1", (correo,)).fetchone()
+            if fila is None:
+                raise ValueError("No hay una cuenta activa con ese correo")
+            if fila["id"] == self.obtener_id():
+                raise ReglaNegocioError("RF-SEG-14", "No puede desactivar su propia cuenta")
+            con.execute("UPDATE usuario SET activa = 0 WHERE id = ?", (fila["id"],))
+            registrar_evento(con, self.obtener_id(), "cuenta.desactivar", f"cuenta {fila['id']}")
 
     def respaldar_base(self) -> str:
         """Copia consistente de la base en respaldos/, junto a ella (RNF-FIA-03, P-14).

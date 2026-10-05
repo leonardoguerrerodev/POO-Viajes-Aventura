@@ -40,6 +40,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 
 from argon2 import PasswordHasher  # noqa: E402
+from cryptography.fernet import Fernet, InvalidToken  # noqa: E402
 
 import viajes as v  # noqa: E402
 from viajes import (COSTO_MAXIMO, CUPO_MAXIMO, DESTINOS_MAXIMO, MARGEN_MAXIMO,  # noqa: E402
@@ -710,6 +711,58 @@ def g18() -> None:
     ok("G.18", "un hash con parámetros viejos se rehace al entrar (check_needs_rehash)")
 
 
+def g18_endurecido() -> None:
+    """Los riesgos que la auditoría había dejado como aceptados, cerrados y comprobados."""
+    admin = v.Usuario.autenticar("admin@viajes.cl", "clave-larga-admin")
+    admin.crear_administrador("socio@viajes.cl", "clave-larga-socio")
+    rita = v.Cliente.registrar("Rita", "11.111.111-1", "rita@c.cl", "933334444", "clave-larga-rita")
+    for _ in range(5):
+        rechaza(PermissionError, rita.cambiar_clave, "clave-equivocada", "otra-clave-larga-1")
+    assert v.Usuario.autenticar("rita@c.cl", "clave-larga-rita") is None
+    ok("G.18", "al cambiar la contraseña, la actual equivocada cuenta como intento: 5 errores bloquean la"
+               " cuenta (H-10)")
+
+    def bloquear(correo: str) -> int:
+        """Cinco fallos; devuelve los minutos del bloqueo y lo da por vencido para seguir probando."""
+        for _ in range(5):
+            v.Usuario.autenticar(correo, "clave-equivocada")
+        with v.conectar() as con:
+            hasta = con.execute("SELECT bloqueado_hasta FROM usuario WHERE correo = ?", (correo,)).fetchone()[0]
+            con.execute("UPDATE usuario SET bloqueado_hasta = NULL WHERE correo = ?", (correo,))
+        return round((datetime.fromisoformat(hasta) - datetime.now(timezone.utc)) / timedelta(minutes=1))
+
+    assert [bloquear("socio@viajes.cl") for _ in range(4)] == [5, 15, 60, 60]
+    assert v.Usuario.autenticar("socio@viajes.cl", "clave-larga-socio") is not None
+    assert bloquear("socio@viajes.cl") == 5
+    ok("G.18", "bloqueo progresivo: 5, 15 y 60 minutos mientras siga fallando; un acierto vuelve a 5 (H-17)")
+
+    una, otra = (v.Usuario.autenticar("socio@viajes.cl", "clave-larga-socio") for _ in range(2))
+    una.cambiar_clave("clave-larga-socio", "clave-nueva-del-socio")
+    assert una.tiene_sesion() and not otra.tiene_sesion()
+    rechaza(PermissionError, v.Destino("Sesión vieja", "Zona", "d", 1, 1000).guardar, otra)
+    ok("G.18", "cambiar la contraseña invalida las otras sesiones abiertas de esa cuenta")
+
+    abierta = v.Usuario.autenticar("socio@viajes.cl", "clave-nueva-del-socio")
+    admin.desactivar_cuenta("socio@viajes.cl")
+    assert v.Usuario.autenticar("socio@viajes.cl", "clave-nueva-del-socio") is None
+    assert not abierta.tiene_sesion()
+    rechaza(PermissionError, v.Destino("Cuenta cerrada", "Zona", "d", 1, 1000).guardar, abierta)
+    rechaza(PermissionError, abierta.cambiar_clave, "clave-nueva-del-socio", "otra-clave-larga-2")
+    rechaza(v.ReglaNegocioError, admin.desactivar_cuenta, "admin@viajes.cl")
+    rechaza(PermissionError, v.Administrador.desactivar_cuenta, rita, "admin@viajes.cl")
+    ok("G.18", "una cuenta desactivada no entra (mismo mensaje), pierde sus sesiones abiertas y no cambia"
+               " su contraseña; nadie desactiva la propia, y un cliente no desactiva a nadie (RF-SEG-14)")
+
+    for _ in range(v.Cliente.REPETIDOS_MAXIMO):
+        rechaza(v.ReglaNegocioError, v.Cliente.registrar, "Otra", "11.111.111-1", "rita@c.cl",
+                "933334444", "clave-larga-otra")
+    pausa = rechaza(v.ReglaNegocioError, v.Cliente.registrar, "Nueva", "11.111.111-1", "nueva@c.cl",
+                    "933334444", "clave-larga-nueva")
+    assert pausa.obtener_regla() == "RF-SEG-17"
+    ok("G.18", f"tras {v.Cliente.REPETIDOS_MAXIMO} correos ya registrados en 10 minutos, el registro"
+               " público se pausa: no sirve para averiguar qué correos existen (RF-SEG-17, H-06)")
+
+
 # --- 4.1.5.I.19: confidencialidad e integridad de los datos personales --------
 
 def i19(admin: v.Administrador, paquete: v.Paquete, cliente: v.Cliente) -> None:
@@ -736,6 +789,30 @@ def i19(admin: v.Administrador, paquete: v.Paquete, cliente: v.Cliente) -> None:
     e = rechaza(ValueError, v.Cliente, "P", "12.345.678-6", "x@c.cl", "912345678", "clave-larga-xx")
     assert "12.345.678" not in str(e) and "12345678" not in str(e)
     ok("I.19", "los mensajes de error nombran el campo, nunca el RUT ni el teléfono ingresados")
+
+
+def i19_rotacion(admin: v.Administrador, cliente: v.Cliente) -> None:
+    """RF-SEG-15: la clave se cambia sin perder ningún dato, y la vieja deja de servir."""
+    def rut_guardado() -> str:
+        with v.conectar() as con:
+            return con.execute("SELECT rut_cifrado FROM usuario WHERE id = ?", (cliente.obtener_id(),)).fetchone()[0]
+
+    antes, clave_vieja = rut_guardado(), v._leer_clave(v.RUTA_CLAVE)
+    cantidad, anterior = v.rotar_clave_de_datos(admin)
+    despues = rut_guardado()
+    assert cantidad == 1 and despues != antes
+    assert v.Usuario.autenticar("carolina@c.cl", "clave-de-carolina").rut_enmascarado() == "12.***.***-5"
+    rechaza(InvalidToken, Fernet(clave_vieja.encode()).decrypt, despues.encode())
+    archivo = v.RUTA_CLAVE.with_name(anterior)
+    assert archivo.exists() and (os.name != "posix" or archivo.stat().st_mode & 0o777 == 0o600)
+    rechaza(PermissionError, v.rotar_clave_de_datos, cliente)
+    os.environ[v.VARIABLE_CLAVE] = v._leer_clave(v.RUTA_CLAVE)
+    try:
+        rechaza(RuntimeError, v.rotar_clave_de_datos, admin)
+    finally:
+        os.environ.pop(v.VARIABLE_CLAVE, None)
+    ok("I.19", "rotar la clave: todos los RUT y teléfonos quedan con la nueva, la vieja ya no los lee y se"
+               " archiva en 0600 para los respaldos anteriores; solo un socio puede hacerlo (RF-SEG-15)")
 
 
 def con_iterdump() -> list[str]:
@@ -791,6 +868,7 @@ def seccion_credenciales() -> None:
         v.Cliente.registrar("Sal Dos", "22.222.222-2", "sal2@c.cl", "922222222", "clave-larga-dos")
         g17()
         g18()
+        g18_endurecido()
 
 
 def escenario_cliente(admin: v.Administrador) -> tuple[v.Paquete, v.Cliente]:
@@ -812,7 +890,9 @@ def escenario_cliente(admin: v.Administrador) -> tuple[v.Paquete, v.Cliente]:
 def seccion_datos() -> None:
     with entorno_temporal("datos"):
         admin = primer_administrador()
-        i19(admin, *escenario_cliente(admin))
+        paquete, cliente = escenario_cliente(admin)
+        i19(admin, paquete, cliente)
+        i19_rotacion(admin, cliente)
 
 
 # =====================================================================
@@ -843,10 +923,67 @@ def demostracion(admin: v.Administrador) -> None:
        " variable reales quedan intactas")
 
 
+def i20(admin: v.Administrador) -> None:
+    """La seguridad comprobada desde afuera: permisos, SQL, registro, dependencias y workflow."""
+    rechaza(PermissionError, v.Destino("Sin sesión", "Zona", "d", 1, 1000).guardar,
+            v.Administrador("x@y.cl", "clave-larga-xyz"))
+    ok("I.20", "un Administrador armado sin iniciar sesión no tiene ningún permiso (hallazgo 5)")
+
+    def literal(nodo: ast.expr) -> bool:
+        """Un texto fijo, una constante con nombre, o la elección entre dos de ellos."""
+        if isinstance(nodo, ast.IfExp):
+            return literal(nodo.body) and literal(nodo.orelse)
+        return isinstance(nodo, (ast.Constant, ast.Name, ast.Attribute))
+
+    armadas, asserts = [], {}
+    for archivo in ("viajes.py", "main.py"):
+        arbol = ast.parse((RAIZ / archivo).read_text(encoding="utf-8"))
+        asserts[archivo] = sum(isinstance(n, ast.Assert) for n in ast.walk(arbol))
+        for nodo in ast.walk(arbol):
+            if (isinstance(nodo, ast.Call) and getattr(nodo.func, "attr", "") in ("execute", "executescript",
+                                                                                  "executemany")
+                    and nodo.args and not literal(nodo.args[0])):
+                armadas.append(f"{archivo}:{nodo.lineno}")
+            # Y las constantes con SQL (SQL_..., ESQUEMA, sql): un texto pegado ahí también cuenta.
+            if isinstance(nodo, ast.Assign) and any(
+                    isinstance(t, ast.Name) and (t.id.upper().startswith("SQL") or t.id == "ESQUEMA")
+                    for t in nodo.targets) and not literal(nodo.value):
+                armadas.append(f"{archivo}:{nodo.lineno}")
+    assert not armadas, f"SQL armado con texto en {armadas}"
+    ok("I.20", "ninguna consulta SQL se arma pegando textos: todas son literales con parámetros ?"
+               " (RNF-SEG-03, revisado con ast en todo el producto)")
+    assert asserts == {"viajes.py": 0, "main.py": 0}, asserts
+    ok("I.20", "el producto no usa assert: ninguna regla depende de algo que python -O desactiva (bandit B101)")
+
+    visible = v.Cliente.registrar("Rut Visible", "12.345.678-5", "visible@c.cl", "987654321", "clave-larga-vis")
+    for _ in range(5):
+        v.Usuario.autenticar("visible@c.cl", "clave-equivocada")
+    with v.conectar() as con:
+        registro = " ".join(f[0] for f in con.execute("SELECT accion || ' ' || detalle FROM auditoria"))
+    for dato in ("12345678", "12.345.678", "987654321", "visible@c.cl", "clave-larga-vis"):
+        assert dato not in registro, dato
+    ok("I.20", "el registro de auditoría no guarda RUT, teléfono, correo ni contraseña (H-02)")
+    acciones = [evento[2] for evento in v.consultar_auditoria(admin, 50)]
+    assert "sesion.bloqueo" in acciones and "cuenta.crear" in acciones and v.contar_bloqueos(admin) == 1
+    rechaza(PermissionError, v.consultar_auditoria, visible)
+    ok("I.20", "el socio lee el registro de auditoría y ve los bloqueos de las últimas 24 horas; un cliente"
+               " no puede (RF-SEG-16)")
+
+    requisitos = (RAIZ / "requirements.txt").read_text(encoding="utf-8")
+    bloques = [b for b in re.split(r"\n(?=[A-Za-z0-9_.-]+==)", requisitos) if re.match(r"[A-Za-z0-9_.-]+==", b)]
+    flujo = (RAIZ / ".github" / "workflows" / "pruebas.yml").read_text(encoding="utf-8")
+    acciones_ci = re.findall(r"uses: \S+@(\S+)", flujo)
+    assert bloques and all("--hash=sha256:" in b for b in bloques)
+    assert "contents: read" in flujo and acciones_ci and all(re.fullmatch(r"[0-9a-f]{40}", a) for a in acciones_ci)
+    ok("I.20", f"{len(bloques)} dependencias con versión exacta y hash; las acciones del workflow fijadas por"
+               " hash y su token de solo lectura (cadena de suministro)")
+
+
 def seccion_seguridad() -> None:
     with entorno_temporal("seguridad"):
         admin = primer_administrador()
         demostracion(admin)
+        i20(admin)
 
 
 # =====================================================================
@@ -854,13 +991,13 @@ def seccion_seguridad() -> None:
 # =====================================================================
 
 ENTER = ""
-ANA = "ana@v.cl"
+ANA = "ana@viajes.cl"
 SURIRE, FLAMENCOS = "Salar de Surire", "Flamencos y termas"
 SALIDA = (date.today() + timedelta(days=30)).strftime("%d-%m-%Y")
 REGRESO = (date.today() + timedelta(days=35)).strftime("%d-%m-%Y")
 # Cada línea: lo que se teclea. Las contraseñas van por getpass y en la salida se ven como ••••.
-# Menú del administrador: 1-6 destinos, 7-13 paquetes, 14 crear socio, 15 respaldo, 16 contraseña,
-# 17 cerrar sesión.
+# Menú del administrador: 1-6 destinos, 7-13 paquetes, 14 crear socio, 15 desactivar cuenta,
+# 16 respaldo, 17 rotar la clave, 18 registro de auditoría, 19 contraseña, 20 cerrar sesión.
 # Menú del cliente: 1-4 reservas, 5-6 mis datos, 7 contraseña, 8 cerrar sesión.
 GUION = [
     # Modo demostración (RNF-USA-04): base temporal con datos de ejemplo. El socio edita un destino
@@ -868,7 +1005,7 @@ GUION = [
     "2",
     "1", "3", "1", "Valle del Elqui", "Norte Chico", "Observación astronómica", "3", ENTER,
     "9", "3", "s", ENTER,
-    "17",
+    "20",
     "2", "2", "2", "2", ENTER,
     "8",
     "0",
@@ -894,12 +1031,15 @@ GUION = [
     "11", "1", "10", ENTER,
     "7", ENTER,
     # Cuentas, cancelación y opción inexistente.
-    "14", "matias@v.cl", "clave-larga-de-matias", "clave-larga-de-matias", ENTER,
+    "14", "matias@viajes.cl", "clave-larga-de-matias", "clave-larga-de-matias", ENTER,
     "2", "Torres del Paine", "x", ENTER,
     "99", ENTER,
     "9" * 5000, ENTER,                 # H-12: int() con más de 4.300 dígitos ya no rompe el menú
-    "15", ENTER,                       # respaldo de la base (RNF-FIA-03)
-    "17",
+    "16", ENTER,                       # respaldo de la base (RNF-FIA-03)
+    "15", "matias@viajes.cl", "s", ENTER,   # el socio deja la agencia: su cuenta se desactiva (RF-SEG-14)
+    "20",
+    # La cuenta desactivada ya no entra, con el mismo mensaje que una contraseña errónea.
+    "1", "matias@viajes.cl", "clave-larga-de-matias",
     # Registro público de un cliente: el RUT con el dígito verificador malo se rechaza al
     # escribirlo, y se vuelve a pedir; una contraseña corta la rechaza el dominio.
     "2", "s", "Carolina Díaz", "12.345.678-6", "12.345.678-5", CAROLINA, "9 1234 5678",
@@ -925,7 +1065,9 @@ GUION = [
     # El administrador ve quién viaja: nombre y correo, sin RUT ni teléfono (RF-RES-11).
     "1", ANA, "clave-larga-de-ana",
     "13", "1", ENTER,
-    "17",
+    "17", "s", ENTER,                  # rotar la clave de cifrado (RF-SEG-15)
+    "18", ENTER,                       # registro de auditoría (RF-SEG-16)
+    "20",
     # Sin sesión también se ve la oferta (S-09).
     "3",
     "0",
@@ -933,6 +1075,11 @@ GUION = [
 
 # Lo que la sesión tiene que mostrar: si falta algo, el guion se desalineó con el menú.
 ESPERADO = [
+    "Cuenta desactivada. Sus reservas y el registro de auditoría se conservan.",
+    "Clave cambiada: 1 cliente(s) cifrados de nuevo.",
+    "Registro de auditoría: los últimos 30 eventos (hora UTC)",
+    "cuenta.desactivar",
+    "clave.rotar",
     "MODO DEMOSTRACIÓN · base temporal, se borra al salir",
     "Datos de ejemplo cargados: 5 destinos",
     "Guardado: [1] Valle del Elqui",
@@ -950,7 +1097,7 @@ ESPERADO = [
     "Publicado: [1] Altiplano y estrellas",
     "Solo se edita un paquete en borrador",
     "cupo 10 de 10 · publicado",
-    "Cuenta de administrador creada para matias@v.cl.",
+    "Cuenta de administrador creada para matias@viajes.cl.",
     "Acción cancelada. No se guardó nada.",
     "Sesión cerrada.",
     "El RUT no es válido: revise el dígito verificador",
@@ -1035,7 +1182,7 @@ def probar_inactividad() -> str:
     # 11 minutos después: la cuenta no se crea.
     guion = ["1", ANA, "clave-larga-de-ana", "clave-larga-de-ana",    # entrar al sistema y primer uso
              "1", ANA, "clave-larga-de-ana",
-             "14", "intruso@v.cl",
+             "14", "intruso@viajes.cl",
              "0"]
     dentro = con_reloj(RelojQueSalta([0, 10, 10, 11 * 60 + 20]), guion)
     assert "Cuenta de administrador creada" not in dentro, "la acción vencida se completó"
@@ -1071,7 +1218,8 @@ def condensar(texto: str) -> str:
 
 def seccion_menu() -> None:
     sesion = ejecutar()
-    assert sesion.count("Correo o contraseña incorrectos") == 2     # RF-SEG-02
+    # RF-SEG-02 y RF-SEG-14: contraseña errónea, correo inexistente y cuenta desactivada, igual.
+    assert sesion.count("Correo o contraseña incorrectos") == 3
     ok("G.15", f"el menú real, con los dos roles y el modo demostración: {len(ESPERADO)} resultados"
                " esperados, ninguna traza y todas las respuestas del guion usadas")
     caducada = probar_inactividad()
@@ -1292,10 +1440,28 @@ MUTACIONES = [
     ("Hallazgo 5 permiso sin sesión iniciada", VIAJES,
      "if (not isinstance(solicitante, Usuario) or not solicitante.tiene_sesion()",
      "if (not isinstance(solicitante, Usuario)", ["reglas"]),
-    ("H-10 cambiar la clave sin comparar el hash", VIAJES,
-     '"UPDATE usuario SET hash_clave = ? WHERE id = ? AND hash_clave = ?",\n'
-     '                              (nuevo_hash, self.__id, self.__hash_clave)',
-     '"UPDATE usuario SET hash_clave = ? WHERE id = ?",\n                              (nuevo_hash, self.__id)', ["reglas"]),
+    # La sesión se revisa antes de cambiar la contraseña; el «AND hash_clave = ?» del UPDATE queda como
+    # defensa ante la carrera entre las dos (la mutación de la revisión sí se detecta).
+    ("H-10 una sesión que ya no vale cambia la contraseña", VIAJES,
+     'if not self.tiene_sesion():\n            raise PermissionError("La contraseña cambió en otra sesión',
+     'if False:\n            raise PermissionError("La contraseña cambió en otra sesión', ["credenciales"]),
+    ("H-10 la contraseña actual equivocada no cuenta como intento", VIAJES,
+     "if not self.__intentar(actual, al_acertar=None):", "if not self.__verificar(actual):", ["credenciales"]),
+    ("H-17 bloqueo fijo, no progresivo", VIAJES,
+     "BLOQUEOS = (timedelta(minutes=5), timedelta(minutes=15), timedelta(minutes=60))",
+     "BLOQUEOS = (timedelta(minutes=5), timedelta(minutes=5), timedelta(minutes=5))", ["credenciales"]),
+    ("Sesión vieja sigue valiendo tras cambiar la contraseña", VIAJES,
+     'fila["activa"] == 1 and fila["hash_clave"] == self.__hash_clave', 'fila["activa"] == 1', ["credenciales"]),
+    ("RF-SEG-14 una cuenta desactivada entra", VIAJES, 'if not fila["activa"]:', "if False:", ["credenciales"]),
+    ("RF-SEG-17 el registro no se pausa", VIAJES, "if repetidos >= Cliente.REPETIDOS_MAXIMO:", "if False:",
+     ["credenciales"]),
+    ("RF-SEG-15 rotar la clave sin volver a cifrar", VIAJES,
+     'rut = rotador.rotate(fila["rut_cifrado"].encode()).decode()', 'rut = fila["rut_cifrado"]', ["datos"]),
+    ("RF-SEG-16 cualquiera lee el registro de auditoría", VIAJES,
+     '    autorizar(solicitante, "auditoria")\n    limite = entero(', '    limite = entero(', ["seguridad"]),
+    ("RNF-SEG-03 una consulta armada pegando textos", VIAJES,
+     'SQL_CREDENCIAL = "SELECT hash_clave, activa FROM usuario WHERE id = ?"',
+     'SQL_CREDENCIAL = "SELECT hash_clave, activa FROM usuario WHERE id = " + "?"', ["seguridad"]),
     ("H-16 sin lista de contraseñas comunes", VIAJES,
      "if clave.casefold() in CLAVES_COMUNES or len(set(clave)) < CLAVE_DISTINTOS:", "if False:", ["reglas"]),
     ("H-17 bloqueo con hora local", VIAJES,

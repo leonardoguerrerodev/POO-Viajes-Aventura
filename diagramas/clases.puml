@@ -1,7 +1,7 @@
 @startuml clases
 ' Diagrama de clases de Viajes Aventura (paso 5 del plan). Convención de la ES1: nombres en camelCase,
 ' privado con «-», protegido con «#», sin constructor, «void» cuando no devuelve nada. El código usa
-' snake_case y herramientas/uml_vs_codigo.py convierte uno en otro para compararlos.
+' snake_case, y pruebas/verificar.py (sección «uml») convierte uno en otro para compararlos.
 skinparam classAttributeIconSize 0
 skinparam defaultFontName "Liberation Sans"
 skinparam defaultFontSize 11
@@ -53,6 +53,7 @@ package "Cuentas y acceso" {
   class Administrador {
     + {static} crearPrimero(correo: str, clave: str): Administrador
     + crearAdministrador(correo: str, clave: str): Administrador
+    + desactivarCuenta(correo: str)
     + respaldarBase(): str
     + puede(accion: str): bool
   }

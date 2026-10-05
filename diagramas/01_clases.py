@@ -1,7 +1,7 @@
 """Fig. · Diagrama de clases completo, con coordenadas fijas (svgkit), para una página ancha.
 
 Los miembros y las relaciones se leen de clases.puml, que sigue siendo la única fuente del modelo
-(y la que compara el script uml_vs_codigo.py contra el código). Este script solo decide dónde va
+(y la que pruebas/verificar.py compara contra el código). Este script solo decide dónde va
 cada caja: las relaciones dibujadas se comprueban contra las del .puml y, si no coinciden, falla.
 Unidad = 1 pt impreso. Las firmas largas se envuelven en la misma caja («envolver antes que ensanchar»).
 """

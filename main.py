@@ -19,8 +19,9 @@ from pathlib import Path                    # la clave temporal del modo demostr
 
 import viajes                               # solo para aislar la base y la clave en la demostración
 from viajes import (MARGEN_PROPUESTO, Administrador, Cliente, Destino, Paquete,
-                    ReglaNegocioError, Reserva, Usuario, crear_tablas, hay_usuarios, pesos,
-                    validar_correo, validar_rut, validar_telefono)
+                    ReglaNegocioError, Reserva, Usuario, consultar_auditoria, contar_bloqueos,
+                    crear_tablas, hay_usuarios, pesos, rotar_clave_de_datos, validar_correo,
+                    validar_rut, validar_telefono)
 
 # Techo de todo entero que se teclea: un número enorme no debe llegar a int() ni a la base.
 MAXIMO_ENTERO = 10**9
@@ -29,6 +30,8 @@ INACTIVIDAD_MAXIMA = 10 * 60                # segundos sin actividad antes de ce
 CREDENCIALES_INVALIDAS = ("   ! Correo o contraseña incorrectos, o la cuenta está bloqueada"
                           " por unos minutos.")
 SESION_CADUCADA = "   ! La sesión se cerró por inactividad. Inicie sesión de nuevo."
+SESION_INVALIDA = ("   ! La sesión ya no es válida: la contraseña cambió en otra sesión o la cuenta"
+                   " fue desactivada.")
 # Deber de información (Ley 19.628 modificada por la Ley 21.719, art. 14 ter): para qué se piden los
 # datos, cómo se protegen y cómo se ejercen los derechos (H-14).
 AVISO_DATOS = (
@@ -390,6 +393,33 @@ def respaldar(sesion: Administrador) -> None:
     print("   La clave de cifrado no va en el respaldo: respáldela aparte (ver README).")
 
 
+def desactivar_una_cuenta(sesion: Administrador) -> None:
+    """RF-SEG-14: un socio que deja la agencia ya no entra; su historia se conserva."""
+    correo = pedir_valido("   Correo de la cuenta a desactivar: ", validar_correo)
+    if not pedir_si_no(f"   ¿Desactivar {correo}? No podrá volver a entrar"):
+        raise Cancelado
+    sesion.desactivar_cuenta(correo)
+    print("   Cuenta desactivada. Sus reservas y el registro de auditoría se conservan.")
+
+
+def rotar_clave(sesion: Administrador) -> None:
+    """RF-SEG-15: si la clave de cifrado pudo filtrarse, se reemplaza sin perder ningún dato."""
+    print("   Se genera una clave nueva y se vuelven a cifrar el RUT y el teléfono de todos los clientes.")
+    if not pedir_si_no("   ¿Continuar?"):
+        raise Cancelado
+    cantidad, anterior = rotar_clave_de_datos(sesion)
+    print(f"   Clave cambiada: {cantidad} cliente(s) cifrados de nuevo. La clave anterior quedó como")
+    print(f"   {anterior}, junto a la nueva: guárdela con los respaldos anteriores, que la")
+    print("   necesitan para leerse, o bórrela si no hay ninguno. Respalde aparte la clave nueva.")
+
+
+def ver_auditoria(sesion: Administrador) -> None:
+    """RF-SEG-16: quién hizo qué y cuándo, sin RUT, teléfono ni contraseñas."""
+    print("\n   Registro de auditoría: los últimos 30 eventos (hora UTC)")
+    for fecha, cuenta, accion, detalle in consultar_auditoria(sesion, 30):
+        print(f"   {fecha[:19].replace('T', ' ')}  {cuenta:<22.22} {accion:<26} {detalle}")
+
+
 def crear_socio(sesion: Administrador) -> None:
     nuevo = sesion.crear_administrador(pedir_texto("   Correo del socio: "), pedir_clave_nueva())
     print(f"   Cuenta de administrador creada para {nuevo.obtener_correo()}.")
@@ -473,7 +503,10 @@ OPCIONES = [
     ("Paquetes", "Eliminar un paquete", "catalogo", eliminar_paquete),
     ("Paquetes", "Ver las reservas de un paquete", "ver_reservas", reservas_de_paquete),
     ("Cuentas", "Crear la cuenta de un socio", "cuentas", crear_socio),
+    ("Cuentas", "Desactivar una cuenta", "cuentas", desactivar_una_cuenta),
     ("Cuentas", "Respaldar la base de datos", "respaldo", respaldar),
+    ("Cuentas", "Rotar la clave de cifrado de los datos personales", "clave", rotar_clave),
+    ("Cuentas", "Ver el registro de auditoría", "auditoria", ver_auditoria),
     ("Reservas", "Ver los paquetes disponibles", "reservar", ver_oferta),
     ("Reservas", "Reservar un paquete", "reservar", reservar),
     ("Reservas", "Mis reservas", "reservar", mis_reservas),
@@ -494,6 +527,10 @@ def mostrar_menu(sesion: Usuario, opciones: list[tuple]) -> None:
     limpiar()
     rol = "administrador" if sesion.puede("catalogo") else "cliente"
     print("=" * 66 + f"\n   Viajes Aventura · {sesion.obtener_correo()} ({rol})\n" + "=" * 66)
+    if sesion.puede("auditoria") and (bloqueos := contar_bloqueos(sesion)):
+        # RF-SEG-16: alguien probando contraseñas no pasa desapercibido.
+        print(f"   ! Aviso: {bloqueos} bloqueo(s) de cuenta por contraseñas erróneas en las últimas"
+              " 24 horas. Revise el registro de auditoría.")
     seccion = None
     for numero, (nombre_seccion, etiqueta, _accion, _funcion) in enumerate(opciones, 1):
         if nombre_seccion != seccion:
@@ -516,7 +553,7 @@ def atender(funcion, sesion: Usuario | None) -> bool:
         print("   Acción cancelada. No se guardó nada.")
     except ReglaNegocioError as error:
         print(f"   ! {error}")                          # el mensaje de la regla es para el usuario
-    except (PermissionError, ValueError, TypeError) as error:
+    except (PermissionError, ValueError, TypeError, RuntimeError) as error:
         print(f"   ! {error}")
     except sqlite3.OperationalError:
         print("   ! La base de datos está ocupada o no se pudo abrir. Intente de nuevo.")
@@ -557,6 +594,10 @@ def usar_sesion(sesion: Usuario) -> bool:
 
 def recorrer_menu(sesion: Usuario, opciones: list[tuple]) -> bool:
     while True:
+        if not sesion.tiene_sesion():
+            # La contraseña cambió en otra sesión, o un socio desactivó la cuenta (RF-SEG-14).
+            print(SESION_INVALIDA)
+            return True
         mostrar_menu(sesion, opciones)
         try:
             eleccion = esperar(input, PIDE_OPCION).strip()
