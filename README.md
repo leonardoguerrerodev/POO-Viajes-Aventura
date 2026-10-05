@@ -10,7 +10,14 @@ contraseñas protegidas y cifrado de los datos personales del cliente.
 Evaluación Sumativa 4 de Programación Orientada a Objeto Seguro (TI3021), INACAP Valparaíso.
 Trabajo individual de Leonardo Guerrero.
 
-**Para el corrector:** [`ENTREGA.md`](ENTREGA.md) enlaza la evidencia de cada indicador de la rúbrica.
+**Informe técnico:** [`docs/Informe_Tecnico.pdf`](docs/Informe_Tecnico.pdf) (requerimientos, modelos UML y
+BPMN, planificación, implementación, seguridad y trazabilidad).
+
+**Por dónde empezar:**
+- **Probar el programa sin ingresar datos:** instalar (§1) y elegir “Modo demostración” (§2).
+- **Corregir la evaluación:** [`ENTREGA.md`](ENTREGA.md) enlaza la evidencia de cada indicador de la rúbrica.
+- **Revisar la seguridad:** el resumen de §4 y, en detalle, [`docs/AUDITORIA.md`](docs/AUDITORIA.md) y
+  [`docs/PRIVACIDAD.md`](docs/PRIVACIDAD.md).
 
 ## 1. Instalar y ejecutar
 
@@ -92,7 +99,8 @@ igual.
   - como socio: editar un destino, publicar el paquete en borrador, cambiar un cupo y ver las
     reservas de un paquete;
   - como cliente: reservar el paquete “Altiplano y desierto”, que tiene un solo lugar libre, por más
-    personas (lo rechaza la regla R14), y anular una reserva.
+    personas (lo rechaza la regla R14 del caso; las 17 reglas están en el informe, §2.1), y anular
+    una reserva.
 
 **Opción 1, “Entrar al sistema”:**
 - **No hay usuarios ni contraseñas en el código.** La primera vez, la base está vacía y el programa
@@ -165,7 +173,22 @@ de la rúbrica. Qué prueba cada una, y dónde está el control en el código, s
 3.14 (las mutaciones, en Linux). Ninguna toca `viajes.db` ni la clave real: trabajan sobre archivos
 temporales.
 
-## 4. Problemas frecuentes
+## 4. Seguridad en breve
+
+| Riesgo | Control |
+|---|---|
+| Contraseñas robadas de la base | Solo se guarda su resumen Argon2id (argon2-cffi), con sal propia; la política rechaza contraseñas comunes, secuencias y datos de la propia persona |
+| Adivinar contraseñas | Bloqueo progresivo de 5, 15 y 60 minutos, también al cambiarla; el mismo mensaje y la misma demora para todo fallo |
+| Datos personales expuestos | RUT y teléfono cifrados con Fernet (AES + HMAC); la clave vive fuera del proyecto y se puede rotar; en pantalla, RUT, correo y teléfono enmascarados |
+| Acceso indebido | Permisos por rol revisados en el dominio, solo con sesión iniciada; la sesión vence a los 10 minutos; las cuentas se desactivan |
+| Inyección SQL | Todas las consultas son texto literal con parámetros `?` |
+| Rastro de lo ocurrido | Registro de auditoría de actividad y seguridad, sin datos personales, legible por los socios |
+
+La evaluación completa, con los hallazgos, su decisión y los límites del modelo de amenazas, está en
+[`docs/AUDITORIA.md`](docs/AUDITORIA.md); la conservación de los datos y qué hacer ante un incidente, en
+[`docs/PRIVACIDAD.md`](docs/PRIVACIDAD.md).
+
+## 5. Problemas frecuentes
 
 | Mensaje | Causa | Solución |
 |---|---|---|
@@ -176,7 +199,7 @@ temporales.
 | `ensurepip is not available` (Ubuntu o Debian) | Falta el módulo `venv` | `sudo apt install python3-venv` y crear el entorno de nuevo |
 | `Password input may be echoed` | El programa se abrió desde la consola de un editor, no desde una terminal | Ejecutarlo en la terminal del sistema, para que la contraseña no se vea |
 
-## 5. Estructura
+## 6. Estructura
 
 | Ruta | Contenido |
 |---|---|
@@ -185,4 +208,17 @@ temporales.
 | [`requirements.txt`](requirements.txt) | Las dependencias, con versión exacta y los hashes de Windows, macOS y Linux |
 | [`diagramas/`](diagramas/) | Diagrama de clases (`clases.puml`, la fuente), casos de uso y BPMN, con sus generadores |
 | [`pruebas/`](pruebas/) | `verificar.py`, todas las pruebas por indicador de la rúbrica, y su índice [`README.md`](pruebas/README.md) |
-| [`docs/`](docs/) | Informe técnico, auditoría de seguridad, privacidad (conservación e incidentes), análisis del uso de IA, sesión real del menú y transcripciones de la IA |
+| [`docs/Informe_Tecnico.pdf`](docs/Informe_Tecnico.pdf) | El informe técnico entregado |
+| [`docs/AUDITORIA.md`](docs/AUDITORIA.md) | Evaluación de la seguridad: hallazgos de la IA y propios, su decisión, pruebas de mutación, límites del modelo de amenazas y alcances futuros |
+| [`docs/PRIVACIDAD.md`](docs/PRIVACIDAD.md) | Conservación de los datos, incidentes (Ley 21.719), derechos de los clientes y qué protege el cifrado |
+| [`docs/ANALISIS_IA.md`](docs/ANALISIS_IA.md) | Cada contribución de la IA, adoptada, modificada o descartada, con su motivo |
+| [`docs/SALIDA_TERMINAL.md`](docs/SALIDA_TERMINAL.md) | Una sesión real del menú con los dos roles, generada por las pruebas |
+| [`docs/ia/`](docs/ia/) | Prompts y respuestas íntegros de la IA |
+| [`.github/workflows/pruebas.yml`](.github/workflows/pruebas.yml) | El workflow que corre las pruebas en Windows, macOS y Linux en cada envío |
+| [`ENTREGA.md`](ENTREGA.md) | La evidencia de cada indicador de la rúbrica |
+
+## Autoría y uso
+
+Trabajo académico individual de Leonardo Guerrero para la Evaluación Sumativa 4 de Programación
+Orientada a Objeto Seguro (TI3021), INACAP Valparaíso, 2026. El repositorio es público para que se pueda
+revisar; no tiene licencia de reutilización.

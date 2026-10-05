@@ -2,7 +2,7 @@
 
 Programación Orientada a Objeto Seguro (TI3021) · Leonardo Guerrero · individual · 5 de octubre de 2026
 
-Esta página dice dónde está la evidencia de cada indicador de la rúbrica. "Informe" es el informe técnico
+Esta página dice dónde está la evidencia de cada indicador de la rúbrica. “Informe” es el informe técnico
 en PDF entregado en el AAI, con una copia en [`docs/Informe_Tecnico.pdf`](docs/Informe_Tecnico.pdf); las rutas son
 archivos de este repositorio.
 
@@ -11,8 +11,8 @@ entorno virtual (`source .venv/bin/activate`, o `.venv\Scripts\Activate.ps1` en 
 `python main.py` → **2. Modo demostración**. Trae datos de ejemplo y cuentas de prueba de los dos roles,
 en una base temporal que no toca nada real.
 
-**Para comprobar cada afirmación:** `python pruebas/verificar.py`, con el entorno virtual activado. Corre las pruebas paso a paso, por
-indicador de la rúbrica, y [`pruebas/README.md`](pruebas/README.md) dice qué prueba cada una y dónde
+**Para comprobar cada afirmación:** `python pruebas/verificar.py`, con el entorno virtual activado.
+Corre las pruebas paso a paso, por indicador de la rúbrica, y [`pruebas/README.md`](pruebas/README.md) dice qué prueba cada una y dónde
 está el control en el código. Corren solas en cada envío al repositorio ([sello “Pruebas”](README.md)).
 
 ## Evidencia por indicador
